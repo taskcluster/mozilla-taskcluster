@@ -9,8 +9,14 @@ import * as Joi from 'joi';
 let schema = Joi.object().keys({
   documentdb: Joi.object().keys({
     host: Joi.string().required().description('documentdb hostname'),
-    key: Joi.string().required().description('master or secondary read/write key')
+    key: Joi.string().required().description('master or secondary read/write key'),
+    database: Joi.string().required().description('database name')
+  }),
+
+  treeherder: Joi.object().keys({
+    apiUrl: Joi.string().required()
   })
+
 }).unknown(true);
 
 export default async function load(file) {
@@ -19,7 +25,6 @@ export default async function load(file) {
     file = path.join(__dirname, 'config', file);
   }
 
-  console.log(file);
   let conf = new Provider().
     file(path.join(process.cwd(), 'treeherder-proxy.json')).
     defaults(require('./config/default')).

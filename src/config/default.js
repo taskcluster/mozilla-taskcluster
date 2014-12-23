@@ -6,4 +6,8 @@ export default {
     host: undefined,
     key: undefined
   },
+
+  treeherder: {
+    apiUrl: 'https://treeherder.mozilla.org/api/'
+  }
 }
