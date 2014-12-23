@@ -10,6 +10,7 @@ const COLLECTION_PROXY = [
   'getCollection',
   'find',
   'findOne',
+  'findById',
   'findAndRemove',
   'findOneAndRemove',
   'findAndModify',
@@ -22,6 +23,7 @@ export class Collection {
   constructor(client) {
     this.client = client;
     for (let proxy of COLLECTION_PROXY) {
+      if (this[proxy]) continue;
       this[proxy] = this.client[proxy].bind(this.client);
     }
   }
