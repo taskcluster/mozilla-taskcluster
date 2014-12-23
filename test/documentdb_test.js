@@ -1,14 +1,8 @@
-import * as documentdb from 'documentdb';
 import * as subject from '../src/collection';
 
 import * as Joi from 'joi';
 import uuid from 'uuid';
 import assert from 'assert';
-
-let url = 'https://stage-treeherder-proxy.documents.azure.com:443/';
-let client = new documentdb.DocumentClient(url, {
-  masterKey: 'RMMBgZ7iNxcohzoc/ZgtB9dez0InyfpeomPP1F2G6dDcWwc4rwyQRsRdXL03Nd6VPKmW7dxd+SGrUqcXoj/DCA=='
-});
 
 suite('documentdb', function() {
   let Data = subject.define('repository').
@@ -19,7 +13,7 @@ suite('documentdb', function() {
 
   let connection, db = uuid.v4();
   suiteSetup(async function() {
-    connection = await subject.connect(client, db, [
+    connection = await subject.connect(this.documentdb, db, [
       Data
     ]);
   });
@@ -29,7 +23,7 @@ suite('documentdb', function() {
   });
 
   test('create connection second time', async function() {
-    let con = await subject.connect(client, db, [Data]);
+    let con = await subject.connect(this.documentdb, db, [Data]);
   });
 
   suite('collections', function() {

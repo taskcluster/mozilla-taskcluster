@@ -1,0 +1,1 @@
+--require test/entrypoint --ui tdd test/setup.js
