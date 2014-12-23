@@ -38,12 +38,7 @@ class Connection {
 }
 
 export async function connect(client, database, collections) {
-  let db;
-  try {
-    db = await client.createDatabaseAsync({ id: database });
-  } catch (e) {
-    console.log(e);
-  }
+  let db = await client.createDatabaseAsync({ id: database });
   return new Connection(db.resource, client);
 }
 
