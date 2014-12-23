@@ -30,6 +30,7 @@ async function main() {
   if (res.error) throw res.error;
 
   // Map the repositories into our internal structure...
+  let seen = new Set();
   let repos = res.body.reduce((all, thRepo) => {
     // Skip any non-hg urls we don't poll these at least not right now...
     if (thRepo.url.indexOf('https://hg.mozilla.org') !== 0) {
@@ -37,15 +38,27 @@ async function main() {
     }
 
     let normalizedUrl = urljoin(thRepo.url, '/');
+
+    if (seen.has(normalizedUrl)) {
+      console.log('duplicate url', thRepo);
+      return all;
+    }
+
     all.push({
       alias: thRepo.name,
       url: normalizedUrl
     });
 
+    seen.add(normalizedUrl);
+
     return all;
   }, []);
 
-  console.log(repos);
+  let ops = repos.map(function(doc) {
+    return runtime.db.repositories.createIfNotExists(doc);
+  });
+
+  await Promise.all(ops);
 }
 
 main().catch((err) => {

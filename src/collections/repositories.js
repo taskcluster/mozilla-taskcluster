@@ -1,18 +1,48 @@
-import { define } from '../collection';
+import { Collection } from '../db';
 import * as Joi from 'joi';
+import { createHash } from 'crypto';
 
 /**
 The repositories collection contains the list of all repositories which should
 be synchronized by the proxy.
 */
-export default define('repositories').
-  schema(Joi.object().keys({
-    alias: Joi.string().required().
-      description('Alias used by treeherder'),
+export default class Repositories extends Collection {
+  static hashUrl(url) {
+    return createHash('md5').update(url).digest('hex');
+  }
 
-    url: Joi.string().required().regex(/^https\:\/\/hg\.mozilla.org/).
-      description('Mozilla hg url'),
+  get id() {
+    return 'repositories';
+  }
 
-    lastPushId: Joi.number().integer().default(0).min(0).required().
-      description('Push log id')
-  }))
+  get schema() {
+    return Joi.object().keys({
+      id: Joi.string(),
+
+      alias: Joi.string().required().
+        description('Alias used by treeherder'),
+
+      url: Joi.string().required().regex(/^https\:\/\/hg\.mozilla.org/).
+        description('Mozilla hg url'),
+
+      lastPushId: Joi.number().integer().default(0).min(0).
+        description('Push log id')
+    })
+  }
+
+  async validateDocument(doc) {
+    // Await + super don't seem to play nice hack around it!
+    let v = super(doc);
+    doc = await v;
+    doc.id = Repositories.hashUrl(doc.url);
+    return doc;
+  }
+
+  async createIfNotExists(doc) {
+    doc = await this.validateDocument(doc);
+
+    let found = await this.findById(doc.id);
+    if (found) return found;
+    return await this.create(doc);
+  }
+}
