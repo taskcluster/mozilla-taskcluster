@@ -170,7 +170,6 @@ export class Connection {
     ).toArrayAsync();
 
     if (collection.feed[0]) {
-      conosle.log('>>', collection.feed[0]);
       return this.links.collection[id] = collection.feed[0]._self;
     }
 
