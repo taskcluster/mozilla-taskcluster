@@ -23,6 +23,7 @@ suite('collections/repositories', function() {
 
     let create = await subject.create(doc);
     let found = await subject.findById(expected);
+    assert.equal(create.lastPushId, 0);
     assert.equal(found._self, create._self);
   });
 });

@@ -22,8 +22,7 @@ export default class Repositories extends Collection {
       alias: Joi.string().required().
         description('Alias used by treeherder'),
 
-      url: Joi.string().required().regex(/^https\:\/\/hg\.mozilla.org/).
-        description('Mozilla hg url'),
+      url: Joi.string().required(),
 
       lastPushId: Joi.number().integer().default(0).min(0).
         description('Push log id')
