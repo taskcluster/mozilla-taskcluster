@@ -13,6 +13,31 @@ function sleep(n) {
   });
 }
 
+function lock(name, fn, ctx) {
+  name = `__lock__${name}`;
+  // Helper to ensure only one instance of a async function is running per
+  // object at a given time...
+  let clear = () => {
+    delete ctx[name];
+  };
+
+  if (ctx[name]) {
+    return ctx[name];
+  }
+
+  ctx[name] = fn.call(ctx);
+  if (!ctx[name].then) {
+    throw new Error('not a promise');
+  }
+  return ctx[name].then((res) => {
+    clear();
+    return res;
+  }).catch((e) => {
+    clear();
+    throw e;
+  })
+}
+
 export class Collection {
   constructor(connection) {
     Joi.assert(connection, Joi.object().type(Connection));
@@ -148,44 +173,49 @@ export class Connection {
   }
 
   async ensureDatabase() {
-    if (this.links.database) {
-      return this.links.database;
-    }
+    return await lock('ensureDatabase', async function() {
+      if (this.links.database) {
+        return this.links.database;
+      }
 
-    let db = await this.client.queryDatabases(
-      `SELECT * FROM root WHERE root.id = "${this.id}"`
-    ).toArrayAsync();
+      let db = await this.client.queryDatabases(
+        `SELECT * FROM root WHERE root.id = "${this.id}"`
+      ).toArrayAsync();
 
-    if (db.feed.length) {
-      return this.links.database = db.feed[0]._self;
-    }
+      if (db.feed.length) {
+        return this.links.database = db.feed[0]._self;
+      }
 
-    let db = await this.client.createDatabaseAsync({
-      id: this.id
-    });
+      let db = await this.client.createDatabaseAsync({
+        id: this.id
+      });
 
-    return this.links.database = db.resource._self;
+      return this.links.database = db.resource._self;
+    }, this);
   }
 
   async ensureCollection(id) {
-    if (this.links.collections[id]) {
-      return this.links.collections[id];
-    }
+    return await lock(`ensureCollection ${id}`, async function() {
+      if (this.links.collections[id]) {
+        return this.links.collections[id];
+      }
 
-    let dbLink = await this.ensureDatabase();
-    let collection = await this.client.queryCollections(
-      dbLink,
-      `SELECT * FROM root WHERE root.id = "${id}"`
-    ).toArrayAsync();
+      let dbLink = await this.ensureDatabase();
+      let collection = await this.client.queryCollections(
+        dbLink,
+        `SELECT * FROM root WHERE root.id = "${id}"`
+      ).toArrayAsync();
 
-    if (collection.feed[0]) {
-      return this.links.collection[id] = collection.feed[0]._self;
-    }
+      if (collection.feed[0]) {
+        this.links.collections[id] = collection.feed[0]._self;
+        return this.links.collections[id];
+      }
 
-    let collection = await this.client.createCollectionAsync(
-      dbLink,
-      { id: id }
-    );
-    return this.links.collections[id] = collection.resource._self;
+      let collection = await this.client.createCollectionAsync(
+        dbLink,
+        { id: id }
+      );
+      return this.links.collections[id] = collection.resource._self;
+    }, this);
   }
 }
