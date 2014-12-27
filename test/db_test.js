@@ -1,6 +1,7 @@
 import * as subject from '../src/db';
-
 import * as Joi from 'joi';
+import docdb from 'documentdb-q-promises';
+
 import uuid from 'uuid';
 import assert from 'assert';
 
@@ -18,26 +19,31 @@ suite('db', function() {
     }
   }
 
-  let connection, db = uuid.v4();
-  suiteSetup(async function() {
-    connection = await subject.connect(this.documentdb, db, [
-      Data
-    ]);
+  let connection, db = uuid.v4(), client, data;
+  suiteSetup(function() {
+    client = new docdb.DocumentClientWrapper(
+      this.config.documentdb.host,
+      { masterKey: this.config.documentdb.key }
+    );
+
+    connection = new subject.Connection(
+      db,
+      this.config.documentdb.host,
+      { masterKey: this.config.documentdb.key }
+    );
+
+    data = new Data(connection);
   });
 
   suiteTeardown(async function() {
     await connection.destroy();
   });
 
-  test('create connection second time', async function() {
-    let con = await subject.connect(this.documentdb, db, [Data]);
-  });
-
   suite('collections', function() {
     test('validateDocument() fail', async function() {
       let err;
       try {
-        await connection.data.validateDocument({});
+        await data.validateDocument({});
       } catch (e) {
         err = e;
       }
@@ -45,42 +51,56 @@ suite('db', function() {
     });
 
     test('validateDocument() pass', async function() {
-      await connection.data.validateDocument({
+      await data.validateDocument({
         id: 'wootbar',
         url: 'http://github.com'
       });
     });
 
     suite('CRUD', function() {
+      let id = 'wootbar';
       setup(async function() {
-        await connection.data.create({
-          id: 'wootbar22',
+        await data.create({
+          id: id,
           url: 'baz'
         });
       });
 
       teardown(async function() {
-        await connection.data.findOneAndRemove({ id: 'wootbar22' });
+        await data.remove(id);
       });
 
-      test('findOne', async function() {
-        let result = await connection.data.findOne({
-          id: 'wootbar22'
-        });
-
-        assert.equal(result.id, 'wootbar22');
+      test('#findById', async function() {
+        let result = await data.findById(id);
+        assert.equal(result.id, id);
         assert.equal(result.url, 'baz');
       });
 
-      test('update', async function() {
-        let doc = await connection.data.findOne({ id: 'wootbar22' });
-        doc.url = 'xfoobar';
-        await connection.data.update({ id: 'wootbar22' }, { url: 'xfoobar' });
+      test('update - no conflict', async function() {
+        let result = await data.update(id, async function(doc) {
+          doc.url = 'new';
+          return doc;
+        });
 
-        let docUpdate = await connection.data.findOne({ id: 'wootbar22' });
-        assert.equal(docUpdate.url, doc.url);
-        assert.equal(docUpdate._self, doc._self);
-        assert.notEqual(doc._etag, docUpdate._etag);
+        let doc = await data.findById(id);
+        assert.equal(doc.url, 'new');
+        assert.equal(doc._etag, result.resource._etag);
+      });
+
+      test('update - conflict', async function() {
+        let currentTry = 0;
+        let result = await data.update(id, async function(doc) {
+          doc.url = 'new';
+          if (currentTry++ < 3) {
+            await client.replaceDocumentAsync(doc._self, doc);
+          }
+          return doc;
+        });
+
+        let doc = await data.findById(id);
+        assert.equal(currentTry, 4, 'ran for 4 tries');
+        assert.equal(doc.url, 'new');
+        assert.equal(doc._etag, result.resource._etag);
       });
     });
   });
