@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "prepublish": "6to5 -s -m commonInterop -e src --out-dir build"
+    "prepublish": "6to5 -s -m common -e src --out-dir build"
   },
   "repository": {
     "type": "git",
@@ -18,13 +18,12 @@
   },
   "homepage": "https://github.com/lightsofapollo/treeherder-proxy",
   "dependencies": {
-    "6to5": "^1.15.0",
+    "6to5": "^2.0.0",
     "argparse": "^0.1.16",
     "debug": "^2.1.0",
     "denodeify": "^1.2.0",
     "documentdb": "^0.9.2",
     "documentdb-q-promises": "^0.9.2",
-    "doqmentdb": "0.0.2",
     "hapi": "^8.0.0",
     "install": "^0.1.8",
     "joi": "^5.0.2",
