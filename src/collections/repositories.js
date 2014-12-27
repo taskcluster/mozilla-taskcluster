@@ -37,12 +37,4 @@ export default class Repositories extends Collection {
     doc.id = Repositories.hashUrl(doc.url);
     return doc;
   }
-
-  async createIfNotExists(doc) {
-    doc = await this.validateDocument(doc);
-
-    let found = await this.findById(doc.id);
-    if (found) return found;
-    return await this.create(doc);
-  }
 }

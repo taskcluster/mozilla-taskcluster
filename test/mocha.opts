@@ -1,1 +1,1 @@
---require test/entrypoint --ui tdd test/setup.js
+--timeout 20s --require test/entrypoint --ui tdd test/setup.js

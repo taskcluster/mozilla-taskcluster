@@ -40,11 +40,20 @@ export class Collection {
     let link = await this.con.ensureCollection(this.id);
 
     doc = await this.validateDocument(doc);
-    return await this.client.createDocumentAsync(
+    let res = await this.client.createDocumentAsync(
       link,
       doc,
       opts
     );
+    return res.resource;
+  }
+
+  async createIfNotExists(doc) {
+    doc = await this.validateDocument(doc);
+
+    let found = await this.findById(doc.id);
+    if (found) return found;
+    return await this.create(doc);
   }
 
   /**
