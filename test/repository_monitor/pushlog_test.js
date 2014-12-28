@@ -25,7 +25,7 @@ suite('pushlog', function() {
     assert.equal(res.lastpushid, 0);
   });
 
-  test('limit pushes', async function() {
+  test('get()', async function() {
     let a = { a: true };
     let b = { b: true };
     let c = { c: true };

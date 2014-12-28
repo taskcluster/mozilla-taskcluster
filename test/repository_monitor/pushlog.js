@@ -11,7 +11,10 @@ function intOrUndefined(n) {
 
 class Pushlog {
   constructor(server) {
-    let server = new Hapi.Server();
+    let server = new Hapi.Server({
+      debug: { request: ['hapi'] }
+    });
+
     server.connection({ port: 0 });
     server.route({
       method: 'GET',
@@ -54,7 +57,6 @@ class Pushlog {
       if (!(pushid in this.pushes)) continue;
       pushes[pushid] = this.pushes[pushid];
     }
-
     reply({ lastpushid: this.lastpushid, pushes });
   }
 

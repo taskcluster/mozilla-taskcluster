@@ -4,6 +4,14 @@ import assert from 'assert';
 
 suite('repository_monitor/pushlog_client', function() {
 
+  let range = (start, end) => {
+    let result = [];
+    for (let i = start; i <= end; i++) {
+      result.push(i);
+    }
+    return result;
+  };
+
   let server, numberOfPushes = 1000, pushes = {};
   suiteSetup(async function() {
     server = await pushlog();
@@ -35,4 +43,23 @@ suite('repository_monitor/pushlog_client', function() {
     }
     assert.deepEqual(res.pushes, expected);
   });
+
+  suite('iterate()', function() {
+    test('odd numbers', async function() {
+      let pushed = [];
+      await client.iterate(server.url, 197, 215, async function(item) {
+        pushed.push(parseInt(item.id, 10));
+      });
+      assert.deepEqual(pushed, range(198, 215));
+    });
+
+    test('even numbers beyond actual', async function() {
+      let pushed = [];
+      await client.iterate(server.url, 899, 4000, async function(item) {
+        pushed.push(parseInt(item.id, 10));
+      });
+      assert.deepEqual(pushed, range(900, 1000));
+    });
+  });
+
 });

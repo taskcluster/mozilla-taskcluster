@@ -6,6 +6,7 @@ import Debug from 'debug';
 import * as Joi from 'joi';
 
 let debug = Debug('repository_monitor:pushlog_client');
+let ITERATE_CHUNKS = 10;
 
 export default class PushlogClient {
   constructor() {
@@ -91,5 +92,37 @@ export default class PushlogClient {
     let res = await req.end();
     if (res.error) throw res.error;
     return this.formatBody(res.body);
+  }
+
+  /**
+  Iterate through all pushlog entires in chunks to not overload server.
+
+  @param {String} url where repository lives at.
+  @param {Number} start id to use (exclusive)
+  @param {Number} end id to use (inclusive)
+  @param {Function} fn async function to invoke.
+  */
+  async iterate(url, start=0, end=1, fn) {
+    if (start > end) {
+      throw new Error(`Start must be < then end : ${start} < ${end}`);
+    }
+
+    let remainder = end - start;
+    let chunks = Math.ceil(remainder / ITERATE_CHUNKS);
+
+    for (let chunk = 0; chunk < chunks; chunk++) {
+      let startID = start + (ITERATE_CHUNKS * chunk);
+      let endID = Math.min(startID + ITERATE_CHUNKS, end);
+      let res = await this.get(url, startID, endID);
+
+      if (startID > res.lastPushId) {
+        // Edge case where we request beyond the actual available pushes...
+        return;
+      }
+
+      for (let push of res.pushes) {
+        await fn(push);
+      }
+    }
   }
 }
