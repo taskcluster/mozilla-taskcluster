@@ -84,7 +84,26 @@ suite('db', function() {
 
         let doc = await data.findById(id);
         assert.equal(doc.url, 'new');
-        assert.equal(doc._etag, result.resource._etag);
+        assert.equal(doc._etag, result._etag);
+      });
+
+      test('update - with existing doc', async function() {
+        let doc = await data.findById(id);
+
+        doc = await data.update(doc, function(doc) {
+          doc.url = 'new';
+          return doc;
+        });
+
+        doc = await data.update(doc, function(doc) {
+          doc.url = 'another';
+          return doc;
+        });
+
+        assert.equal(doc.url, 'another');
+        let foundDoc = await data.findById(id);
+        assert.equal(doc._etag, foundDoc._etag);
+        assert.equal(doc.url, foundDoc.url);
       });
 
       test('update - conflict', async function() {
@@ -100,7 +119,7 @@ suite('db', function() {
         let doc = await data.findById(id);
         assert.equal(currentTry, 4, 'ran for 4 tries');
         assert.equal(doc.url, 'new');
-        assert.equal(doc._etag, result.resource._etag);
+        assert.equal(doc._etag, result._etag);
       });
     });
   });

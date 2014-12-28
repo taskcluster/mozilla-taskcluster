@@ -94,45 +94,53 @@ export class Collection {
   });
   ```
   */
-  async update(id, asyncHandler) {
-    Joi.assert(id, Joi.string(), 'document id must be passed...');
-
+  async update(idOrDoc, asyncHandler) {
     let maxTries = 5;
     let currentTry = 0;
     let wait = 0;
     let interval = 100;
 
-    debug('initialize update', id);
+    debug('initialize update', idOrDoc);
     while (++currentTry <= maxTries) {
-      let doc = await this.findById(id);
+      let doc;
+      // If this is the first attempt then we can try to use an existing object
+      // prior to fetching one from the database saving us a call...
+      if (currentTry === 1 && typeof idOrDoc === 'object') {
+        doc = idOrDoc;
+        idOrDoc = idOrDoc.id;
+      }
+      if (!doc) doc = await this.findById(idOrDoc);
+
       let updated = await asyncHandler(doc);
+      updated = await this.validateDocument(updated);
       // Allow the handler to abort the update for any reason...
       if (!updated) {
-        debug('aborting update', id);
+        debug('aborting update', idOrDoc);
         return false;
       }
       try {
-        debug('issue update...', id);
-        return await this.client.replaceDocumentAsync(doc._self, updated, {
+        debug('issue update...', idOrDoc);
+        let result = await this.client.replaceDocumentAsync(doc._self, updated, {
           accessCondition: {
             type: 'IfMatch',
             condition: doc._etag
           }
         });
+        return result.resource;
       } catch (e) {
         // Only handle 412 the precondition handler which checks etags.
-        if (e.error.code !== 412) {
-          debug('Error handling update', id, e);
+        if (!e.error || e.error.code !== 412) {
+          debug('Error handling update', idOrDoc, e);
           throw e;
         }
-        debug(`Sleeping ${interval} after failure updating ${id}`);
+        debug(`Sleeping ${interval} after failure updating ${idOrDoc}`);
         await sleep(interval);
         interval = (currentTry * interval) + interval;
-        debug('Failed update new interval', id, interval);
+        debug('Failed update new interval', idOrDoc, interval);
       }
     }
     throw new Error(
-      `Failed to update ${id} after maximum attempts...`
+      `Failed to update ${idOrDoc} after maximum attempts...`
     );
   }
 
