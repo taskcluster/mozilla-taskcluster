@@ -3,7 +3,7 @@ The monitor class is designed to watch and update _all_ repositories meaning
 you should never need more then one of these instances running.
 */
 
-import request from 'superagent-promise';
+import PushlogClient from './pushlog_client';
 import urljoin from 'urljoin';
 import qs from 'querystring';
 import Debug from 'debug';
@@ -11,19 +11,17 @@ import assert from 'assert';
 
 let debug = Debug('treeherder-proxy:monitor');
 
-export default class Monitor {
-  static jsonPush(url, props={}) {
-    let query = Object.assign({}, props);
-    query.version = 2;
-    return `${urljoin(url, '/json-pushes/')}?${qs.stringify(query)}`;
-  }
+// Behold! The singleton this is done mostly to benefit form the maximum amount
+// of caching in sockets and for ease of use.
+let pushlog = new PushlogClient();
 
+export default class Monitor {
   constructor(repos) {
     this.repos = repos;
     // List of repositories indexed by id.
     this.list = {};
     // List of repositories and their health check indexed by id.
-    this.checks = {};
+    this.locks = {};
   }
 
   async fetchRepositories() {
@@ -33,33 +31,45 @@ export default class Monitor {
     }
   }
 
-  async checkRepository(repo) {
-    let check;
-    debug('Check repository %s', repo.url);
-    // Get the current check...
-    check = this.checks[repo.id] || {
-      active: true,
+  async runCheck(repo, lock) {
+    let status = await pushlog.get(repo.url);
+    let startID = lock.lastPushId;
+    let endID = status.lastPushId;
+
+    if (startID < endID) {
+      console.log('check log', lock, startID, endID);
+      await pushlog.iterate(repo.url, startID, endID, async function(push) {
+        // TODO: Do something with each push...
+        // Update after each push...
+        await this.repos.update(repo.id, async function(doc) {
+          assert(
+            push.id > doc.lastPushId,
+            `Race detected in push id update ${repo.id}`
+          )
+          doc.lastPushId = push.id;
+          return doc;
+        });
+        lock.lastPushId = push.id;
+        debug('Updated push %s now at %d', repo.alias, lock.lastPushId);
+      }.bind(this));
+    }
+  }
+
+  async tryCheck(repo) {
+    // Reference or create the lock...
+    let lock = this.locks[repo.id] || {
+      active: false,
       lastPushId: repo.lastPushId
     };
+    this.locks[repo.id] = lock;
 
-    this.checks[repo.id] = check;
-
-    let url = Monitor.jsonPush(repo.url, { full: 1 });
-    let initialRes = await request.get(url).end();
-    let body = initialRes.body;
-
-    if (check.lastPushId < body.lastpushid) {
-      debug('Updated push %s now at %d', repo.alias, body.lastpushid);
-      await this.repos.update(repo.id, async function(doc) {
-        assert(
-          body.lastpushid > doc.lastPushId,
-          `Race detected in push id update ${repo.id}`
-        )
-        doc.lastPushId = body.lastpushid;
-        return doc;
-      });
-
-      check.lastPushId = body.lastpushid;
+    try {
+      lock.active = true;
+      await this.runCheck(repo, lock);
+    } catch (e) {
+      console.error(`Erorr processing run ${repo.url}\n ${e.stack}`);
+    } finally {
+      lock.active = false;
     }
   }
 
@@ -73,14 +83,14 @@ export default class Monitor {
       let repo = this.list[id];
       //debug('check', repo.alias, repo.id);
       // Repository has not yet been checked...
-      if (!(repo.id in this.checks)) {
-        ops.push(this.checkRepository(repo));
+      if (!(repo.id in this.locks)) {
+        ops.push(this.tryCheck(repo));
         return;
       }
 
-      let check = this.checks[repo.id];
+      let check = this.locks[repo.id];
       if (!check.active) {
-        ops.push(this.checkRepository(repo));
+        ops.push(this.tryCheck(repo));
         return;
       }
     }
@@ -111,5 +121,3 @@ export default class Monitor {
     clearInterval(this.interval);
   }
 }
-
-
