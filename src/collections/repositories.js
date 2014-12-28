@@ -26,7 +26,7 @@ export default class Repositories extends Collection {
 
       lastPushId: Joi.number().integer().default(0).min(0).
         description('Push log id')
-    })
+    }).unknown(true)
   }
 
   async validateDocument(doc) {
