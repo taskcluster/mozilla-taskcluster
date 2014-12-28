@@ -16,12 +16,15 @@ let debug = Debug('treeherder-proxy:monitor');
 let pushlog = new PushlogClient();
 
 export default class Monitor {
-  constructor(repos) {
+  constructor(repos, options={}) {
     this.repos = repos;
     // List of repositories indexed by id.
     this.list = {};
     // List of repositories and their health check indexed by id.
     this.locks = {};
+
+    // Maximum number of pushes to fetch
+    this.maxPushFetches = options.maxPushFetches || 2000;
   }
 
   async fetchRepositories() {
@@ -36,19 +39,31 @@ export default class Monitor {
     let startID = lock.lastPushId;
     let endID = status.lastPushId;
 
+    if (endID - startID > this.maxPushFetches) {
+      debug('Beyond maximum pushes for %s truncating fetch', repo.url);
+      startID = endID - this.maxPushFetches;
+    }
+
     if (startID < endID) {
-      console.log('check log', lock, startID, endID);
       await pushlog.iterate(repo.url, startID, endID, async function(push) {
         // TODO: Do something with each push...
         // Update after each push...
-        await this.repos.update(repo.id, async function(doc) {
+        let update = await this.repos.update(repo, async function(doc) {
           assert(
             push.id > doc.lastPushId,
-            `Race detected in push id update ${repo.id}`
+            `
+            Race detected in push id update ${repo.alias} \n
+              Current push id ${doc.lastPushId} is greater than push ${push.id}
+            `
           )
           doc.lastPushId = push.id;
           return doc;
         });
+
+        // Update our cached copy to the new etag allowing updates to skip
+        // looking up the current document if the state is consistent already.
+        repo._etag = update._etag;
+
         lock.lastPushId = push.id;
         debug('Updated push %s now at %d', repo.alias, lock.lastPushId);
       }.bind(this));
@@ -83,15 +98,15 @@ export default class Monitor {
       let repo = this.list[id];
       //debug('check', repo.alias, repo.id);
       // Repository has not yet been checked...
-      if (!(repo.id in this.locks)) {
+      if (!(this.locks[repo.id])) {
         ops.push(this.tryCheck(repo));
-        return;
+        continue;
       }
 
       let check = this.locks[repo.id];
       if (!check.active) {
         ops.push(this.tryCheck(repo));
-        return;
+        continue;
       }
     }
 
