@@ -26,7 +26,7 @@ export default class Monitor {
     this.locks = {};
 
     // Maximum number of pushes to fetch
-    this.maxPushFetches = options.maxPushFetches || 2000;
+    this.maxPushFetches = options.maxPushFetches || 100;
   }
 
   async fetchRepositories() {
@@ -51,7 +51,19 @@ export default class Monitor {
         // Messages are sent "at least once" this means in edge cases or crashes
         // the messages may be sent more then once...
 
-        let body = { repo, push }
+        let titleId = '(unknown)';
+        if (push.changesets && push.changesets[0]) {
+          titleId = push.changesets[0].node;
+        }
+
+        let title = `Push ${push.id} for ${repo.alias} cset ${titleId}`;
+
+        let body = {
+          repo,
+          push,
+          title: title
+        };
+
         let msg = this.queue.create('push', body).
           attempts(5).
           backoff({ type: 'exponential' });
