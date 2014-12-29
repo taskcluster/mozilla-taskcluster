@@ -20,8 +20,12 @@ suite('repository_monitor/monitor', function() {
 
   let subject, repos, alias = 'localhost';
   setup(async function() {
-    repos = new Repositories(this.connection);
-    subject = new Monitor(repos);
+    repos = this.runtime.repositories;
+    subject = new Monitor(
+      this.runtime.kue,
+      repos
+    );
+
     await repos.create({
       url: server.url,
       alias: alias
@@ -40,10 +44,25 @@ suite('repository_monitor/monitor', function() {
     });
 
     test('updates after pushing', async function() {
-      server.push();
-      let result = await waitFor({ sleep: 100 }, async function() {
+      let pushJobs = [];
+      this.runtime.kue.process('push', function(job, done) {
+        pushJobs.push(job);
+        done();
+      });
+
+      let push = { mypush: true };
+      server.push(push);
+      let result = await waitFor(async function() {
         let doc = await repos.findById(Repositories.hashUrl(server.url));
         return doc.lastPushId === 1;
+      });
+
+      await waitFor(async function() {
+        if (pushJobs.length === 1) {
+          let data = pushJobs[0].data;
+          assert.deepEqual(server.pushes[1].changesets, data.push.changesets);
+          return true;
+        }
       });
     });
   });

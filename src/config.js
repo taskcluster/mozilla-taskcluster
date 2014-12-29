@@ -15,7 +15,15 @@ let schema = Joi.object().keys({
 
   treeherder: Joi.object().keys({
     apiUrl: Joi.string().required()
-  })
+  }),
+
+  redis: Joi.object().keys({
+    host: Joi.string().required()
+  }).unknown(true),
+
+  kue: Joi.object().keys({
+    prefix: Joi.string().required()
+  }).unknown(true)
 
 }).unknown(true);
 
@@ -25,11 +33,12 @@ export default async function load(file) {
     file = path.join(__dirname, 'config', file);
   }
 
-  let conf = new Provider().
-    file(path.join(process.cwd(), 'treeherder-proxy.json')).
-    defaults(require('./config/default')).
-    overrides(require(file));
+  let baseName = path.basename(file).split('.')[0];
 
+  let conf = new Provider().
+    file(path.join(process.cwd(), `${baseName}-treeherder-proxy.json`)).
+    overrides(require(file)).
+    defaults(require('./config/default'))
 
   let initial = await denodeify(conf.load.bind(conf))();
   return await denodeify(Joi.validate.bind(Joi))(

@@ -9,5 +9,14 @@ export default {
 
   treeherder: {
     apiUrl: 'https://treeherder.mozilla.org/api/'
-  }
+  },
+
+  kue: {
+    prefix: undefined
+  },
+
+  /**
+  Redis credentials
+  */
+  redis: {}
 }

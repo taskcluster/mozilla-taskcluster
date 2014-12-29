@@ -9,7 +9,6 @@ import loadConfig from '../config';
 import createRuntime from '../runtime';
 import request from 'superagent-promise';
 import urljoin from 'urljoin';
-import Repositories from '../collections/repositories';
 
 import { ArgumentParser } from 'argparse';
 
@@ -37,7 +36,10 @@ async function main() {
       return all;
     }
 
+
     let normalizedUrl = urljoin(thRepo.url, '/');
+
+    //if (normalizedUrl.indexOf('org/try/') === -1) return all;
 
     if (seen.has(normalizedUrl)) {
       console.log('duplicate url', thRepo);
@@ -55,10 +57,11 @@ async function main() {
   }, []);
 
   let ops = repos.map(function(doc) {
-    return runtime.db.repositories.createIfNotExists(doc);
+    return runtime.repositories.createIfNotExists(doc);
   });
 
   await Promise.all(ops);
+  console.log('Finished importing %d', ops.length)
 }
 
 main().catch((err) => {

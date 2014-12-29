@@ -8,6 +8,7 @@ import urljoin from 'urljoin';
 import qs from 'querystring';
 import Debug from 'debug';
 import assert from 'assert';
+import denodeify from 'denodeify';
 
 let debug = Debug('treeherder-proxy:monitor');
 
@@ -16,7 +17,8 @@ let debug = Debug('treeherder-proxy:monitor');
 let pushlog = new PushlogClient();
 
 export default class Monitor {
-  constructor(repos, options={}) {
+  constructor(queue, repos, options={}) {
+    this.queue = queue;
     this.repos = repos;
     // List of repositories indexed by id.
     this.list = {};
@@ -46,6 +48,16 @@ export default class Monitor {
 
     if (startID < endID) {
       await pushlog.iterate(repo.url, startID, endID, async function(push) {
+        // Messages are sent "at least once" this means in edge cases or crashes
+        // the messages may be sent more then once...
+
+        let body = { repo, push }
+        let msg = this.queue.create('push', body).
+          attempts(5).
+          backoff({ type: 'exponential' });
+
+        await denodeify(msg.save.bind(msg))();
+
         // TODO: Do something with each push...
         // Update after each push...
         let update = await this.repos.update(repo, async function(doc) {
