@@ -1,0 +1,5 @@
+/node_modules
+/test-treeherder-proxy.json
+/production-treeherder-proxy.json
+/build
+/npm-debug.log
