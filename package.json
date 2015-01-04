@@ -19,6 +19,7 @@
   "homepage": "https://github.com/lightsofapollo/treeherder-proxy",
   "dependencies": {
     "6to5": "^2.0.0",
+    "amqplib": "^0.3.0",
     "argparse": "^0.1.16",
     "debug": "^2.1.0",
     "denodeify": "^1.2.0",
@@ -27,6 +28,7 @@
     "hapi": "^8.0.0",
     "install": "^0.1.8",
     "joi": "^5.0.2",
+    "joi-to-json-schema": "^1.0.2",
     "kue": "^0.8.11",
     "mz": "^1.2.0",
     "nconf": "^0.7.1",

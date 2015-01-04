@@ -1,7 +1,4 @@
 export default {
-  /**
-  Azure documentdb credentials...
-  */
   documentdb: {
     host: undefined,
     key: undefined
@@ -15,8 +12,6 @@ export default {
     prefix: undefined
   },
 
-  /**
-  Redis credentials
-  */
+  // Redis config see kue readme
   redis: {}
 }
