@@ -10,11 +10,16 @@ kueadmin:
     - redis
 
 test:
+  volumes:
+    - .:/app
   build: .
+  command: /bin/bash
   links:
     - redis
+    - rabbitmq
+
+rabbitmq:
+  image: mikaelhg/docker-rabbitmq
 
 redis:
   image: redis
-  ports:
-    - "6379:6379"
