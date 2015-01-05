@@ -1,17 +1,8 @@
+// This file is here only so Joi can fill in the blanks of 
+// sub objects... See defaults in src/config.js
 export default {
-  documentdb: {
-    host: undefined,
-    key: undefined
-  },
-
-  treeherder: {
-    apiUrl: 'https://treeherder.mozilla.org/api/'
-  },
-
-  kue: {
-    prefix: undefined
-  },
-
-  // Redis config see kue readme
+  documentdb: {},
+  treeherder: {},
+  kue: {},
   redis: {}
 }

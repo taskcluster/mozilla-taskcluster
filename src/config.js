@@ -4,6 +4,8 @@ import fs from 'mz/fs';
 import denodeify from 'denodeify';
 import * as Joi from 'joi';
 
+const TREEHERDER_API = 'https://treeherder.mozilla.org/api/';
+
 // Schema used to ensure we have all the correct configuration values prior to
 // running any more complex logic...
 let schema = Joi.object().keys({
@@ -14,7 +16,7 @@ let schema = Joi.object().keys({
   }),
 
   treeherder: Joi.object().keys({
-    apiUrl: Joi.string().required()
+    apiUrl: Joi.string().default(TREEHERDER_API)
   }),
 
   redis: Joi.object().keys({
@@ -28,8 +30,20 @@ let schema = Joi.object().keys({
   commitPublisher: Joi.object().keys({
     connectionString: Joi.string().required(),
     exchangePrefix: Joi.string(),
-    title: Joi.string(),
-    description: Joi.string()
+    title: Joi.string().trim().default(`
+      Pushlog Commit Events
+    `),
+    description: Joi.string().default(`
+      The pushlog events can be used to hook various other components into
+      the act of commiting to a particuar repository (usually to kick off tests)
+      this exchange is hopefuly a short lived thing which abstracts polling the
+      pushlog for new data.
+
+      Pushes will be monitored (via polling) and events will be sent as new data
+      is available. If for some reason the service goes down previous commits
+      will also be fetched and any missing data (up to a particular amount) will
+      be sent as events...
+    `)
   })
 }).unknown(true);
 
@@ -47,8 +61,16 @@ export default async function load(file) {
     defaults(require('./config/default'));
 
   let initial = await denodeify(conf.load.bind(conf))();
-  return await denodeify(Joi.validate.bind(Joi))(
+  let result = Joi.validate(
     initial,
-    schema
+    schema,
+    {
+      context: {
+        env: process.env
+      }
+    }
   );
+
+  if (result.error) throw result.error;
+  return result.value;
 };
