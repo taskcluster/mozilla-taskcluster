@@ -3,6 +3,10 @@ export default {
     prefix: 'test'
   },
 
+  documentdb: {
+    database: 'treeherder-proxy-testing',
+  },
+
   redis: {
     host: 'redis'
   },
