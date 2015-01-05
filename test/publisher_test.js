@@ -3,6 +3,8 @@ import publisher from '../src/publisher';
 import * as Joi from 'joi';
 import toJSONSchema from 'joi-to-json-schema';
 import assert from 'assert';
+import { createClient, AMQPListener } from 'taskcluster-client';
+import waitFor from './wait_for';
 
 suite('publisher', function() {
 
@@ -19,7 +21,7 @@ suite('publisher', function() {
       number: Joi.number().required()
     }));
 
-  let subject;
+  let subject, listener;
   setup(async function() {
     subject = await publisher({
       title: 'tests',
@@ -27,6 +29,20 @@ suite('publisher', function() {
       connectionString: this.config.commitPublisher.connectionString,
       exchangePrefix: 'test/'
     });
+
+    // destroy the exchange each time to ensure we are in known state.
+    try {
+      await subject.channel.deleteExchange('test/magicfoo');
+    } catch (e) {
+    }
+
+    listener = new AMQPListener({
+      connectionString: this.config.commitPublisher.connectionString
+    });
+  });
+
+  teardown(async function() {
+    await subject.close();
   });
 
   test('toSchema()', function() {
@@ -37,7 +53,7 @@ suite('publisher', function() {
       exchangePrefix: subject.exchangePrefix,
       entries: [{
         type: 'topic-exchange',
-        exchange: `${subject.exchangePrefix}${Exchange.config.exchange}`,
+        exchange: Exchange.config.exchange,
         name: Exchange.config.name,
         title: Exchange.config.title,
         description: Exchange.config.description,
@@ -49,5 +65,51 @@ suite('publisher', function() {
       }]
     };
     assert.deepEqual(schema, expected);
+  });
+
+  test('publish()', async function() {
+    let XfooEvents = createClient(subject.toSchema(Exchange));
+    let events = new XfooEvents();
+    assert.ok(events.doMagicFoo);
+
+    let publish = async function() {
+      await subject.publish(
+        Exchange,
+        { first: 'first', second: 'second' },
+        { wootbar: 'is wootbar', number: 5 }
+      );
+    };
+
+    listener.bind(events.doMagicFoo());
+
+    let message;
+    listener.on('message', function(msg) {
+      message = msg;
+    })
+
+    // Run an initial publish as we may not have created the exchange yet...
+    await publish();
+    await listener.resume();
+
+    await subject.publish(
+      Exchange,
+      { first: 'first', second: 'second' },
+      { wootbar: 'is wootbar', number: 5 }
+    );
+
+    await waitFor(async function() {
+      return !!message;
+    });
+
+    assert.deepEqual(message.payload, {
+      wootbar: 'is wootbar',
+      number: 5
+    });
+
+    assert.equal(message.routingKey, 'first.second');
+    assert.deepEqual(message.routing, {
+      first: 'first',
+      second: 'second'
+    });
   });
 });

@@ -19,7 +19,9 @@ test:
     - rabbitmq
 
 rabbitmq:
-  image: mikaelhg/docker-rabbitmq
+  image: rabbitmq:3.4-management
+  ports:
+    - "15672"
 
 redis:
   image: redis

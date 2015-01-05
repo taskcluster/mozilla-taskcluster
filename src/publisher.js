@@ -6,16 +6,76 @@ import * as Joi from 'joi';
 import Exchange from './exchange';
 import amqplib from 'amqplib';
 import toJSONSchema from 'joi-to-json-schema';
+import Debug from 'debug';
+
+let debug = Debug('publisher');
 
 class Publisher {
   constructor(opts) {
+    this._seenExchanges = new Set();
     // validated below
     Object.assign(this, opts);
   }
 
   async close() {
-    await this.conn.close();
     await this.channel.close();
+    await this.conn.close();
+  }
+
+  convertRoutingKey(exchange, object) {
+    let keys = exchange.config.routingKey;
+    let result = exchange.config.routingKey.map((element) => {
+      let value = object[element.name];
+      if (!value) throw new Error(`Missing key ${element.name}`);
+      return element.name;
+    });
+    return result.join('.');
+  }
+
+  async publish(exchange, routingKey, inputMessage) {
+    Joi.assert(
+      exchange,
+      Joi.object().type(Exchange)
+    );
+
+    let outputMessage = Joi.validate(inputMessage, exchange.config.schema);
+    let exchangeName = `${this.exchangePrefix}${exchange.config.exchange}`;
+    let keys = exchange.config.routingKey;
+
+    // Invalid schema should never happen as we control input...
+    if (outputMessage.error) {
+      throw outputMessage.error;
+    }
+
+    if (!this._seenExchanges.has(exchangeName)) {
+      debug('create exchange', exchangeName);
+      await this.channel.assertExchange(exchangeName, 'topic');
+      this._seenExchanges.add(exchangeName);
+    }
+
+    if (typeof routingKey === 'object') {
+      routingKey = this.convertRoutingKey(exchange, routingKey);
+    }
+
+    let content = JSON.stringify(outputMessage.value);
+    let opts = {
+      persistent: true,
+      contentType: 'application/json'
+    };
+
+    return await new Promise((accept, reject) => {
+      debug('sending message', { exchangeName, routingKey });
+      this.channel.publish(
+        exchangeName,
+        routingKey,
+        new Buffer(content),
+        opts,
+        (error, value) => {
+          if (error) return reject(error);
+          accept(value);
+        }
+      );
+    });
   }
 
   /**
@@ -42,7 +102,7 @@ class Publisher {
         return {
           // Everything is a topic exchange for now...
           type: 'topic-exchange',
-          exchange: `${this.exchangePrefix}${exchange}`,
+          exchange,
           name,
           title,
           description,
