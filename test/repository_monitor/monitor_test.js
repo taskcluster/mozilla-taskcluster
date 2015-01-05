@@ -9,6 +9,7 @@ import pushlog from './pushlog';
 import waitFor from '../wait_for';
 import createProc from '../process';
 import denodeify from 'denodeify';
+import * as kueUtils from '../kue';
 
 import Repositories from '../../src/collections/repositories';
 
@@ -84,14 +85,12 @@ suite('repository_monitor/monitor', function() {
       );
 
       await waitFor(async function() {
-        let jobs = this.runtime.jobs;
-        let complete = await denodeify(jobs.completeCount).call(jobs);
-        let incomplete = await denodeify(jobs.inactiveCount).call(jobs);
-        let active = await denodeify(jobs.activeCount).call(jobs);
+        let stats = await kueUtils.stats(this.runtime);
 
-        return complete === 1 &&
-               incomplete === 0 &&
-               active === 0;
+        return stats.complete === 1 &&
+               stats.incomplete === 0 &&
+               stats.active === 0;
+
       }.bind(this));
     });
   });
