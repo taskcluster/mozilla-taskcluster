@@ -5,6 +5,7 @@ The repository monitor watches for any changes in mozilla hg repositories.
 
 import '6to5/polyfill';
 import cli from '../cli';
+import publisher from '../publisher';
 
 import Monitor from '../repository_monitor/monitor';
 import PushExchange from '../exchanges/push';
@@ -23,6 +24,10 @@ function work(fn) {
 }
 
 cli(async function main(runtime, config) {
+  let commitPublisher = await publisher(config.commitPublisher);
+  await commitPublisher.assertExchanges(
+    PushExchange
+  );
 
   // graceful shutdown
   process.once('SIGTERM', () => {
@@ -62,7 +67,7 @@ cli(async function main(runtime, config) {
       alias: data.repo.alias
     };
 
-    await runtime.commitPublisher.publish(
+    await commitPublisher.publish(
       PushExchange,
       routingKeys,
       message
