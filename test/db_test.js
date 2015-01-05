@@ -15,7 +15,7 @@ suite('db', function() {
       return Joi.object().keys({
         id: Joi.string().min(1).required(),
         url: Joi.string().required(),
-      });
+      }).unknown(true);
     }
   }
 
