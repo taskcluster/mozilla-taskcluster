@@ -24,6 +24,9 @@ export default class Repositories extends Collection {
 
       url: Joi.string().required(),
 
+      lastChangset: Joi.string().
+        description('Last changeset in most recent push'),
+
       lastPushId: Joi.number().integer().default(0).min(0).
         description('Push log id')
     }).unknown(true)

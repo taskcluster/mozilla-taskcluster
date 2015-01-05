@@ -88,6 +88,13 @@ export default class Monitor {
               Current push id ${doc.lastPushId} is greater than push ${push.id}
             `
           )
+
+          // The changeset could be useful in the case where we need to poll in
+          // a fashion after the pushlog is destroyed for some reason...
+          doc.lastChangeset = push.changesets[push.changesets.length - 1].node;
+
+          // Last push id is the ideal method and is more reliable unless
+          // pushlog is destroyed, etc...
           doc.lastPushId = push.id;
           return doc;
         });

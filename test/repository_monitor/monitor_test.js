@@ -43,7 +43,7 @@ suite('repository_monitor/monitor', function() {
 
   suite('interval checks', function() {
     test('updates after pushing', async function() {
-      let push = [
+      let changesets = [
         {
          author: 'Author <user@domain.com>',
          branch: 'default',
@@ -51,7 +51,17 @@ suite('repository_monitor/monitor', function() {
          files: [
           'xfoobar'
          ],
-         node: 'node',
+         node: 'commit-0',
+         tags: []
+        },
+        {
+         author: 'Author <user@domain.com>',
+         branch: 'default',
+         desc: 'desc',
+         files: [
+          'xfoobar'
+         ],
+         node: 'commit-1',
          tags: []
         },
       ];
@@ -60,11 +70,14 @@ suite('repository_monitor/monitor', function() {
       await this.listener.connect();
       await this.listener.bind(this.pushEvents.push());
 
-      server.push(push);
+      server.push(changesets);
       let result = await waitFor(async function() {
         let doc = await repos.findById(Repositories.hashUrl(server.url));
         return doc.lastPushId === 1;
       });
+
+      let doc = await repos.findById(Repositories.hashUrl(server.url));
+      assert.equal(doc.lastChangeset, changesets[changesets.length - 1].node);
 
       // Consume the queue now that the event has been sent...
       let [ message ] = await Promise.all([
@@ -76,7 +89,7 @@ suite('repository_monitor/monitor', function() {
       assert.equal(message.payload.url, server.url);
       assert.deepEqual(
         message.payload.changesets,
-        push.map((v) => {
+        changesets.map((v) => {
           let result = Object.assign({}, v);
           result.description = result.desc;
           delete result.desc;
