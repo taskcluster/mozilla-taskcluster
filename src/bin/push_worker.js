@@ -1,6 +1,6 @@
 #! /usr/bin/env node
 /**
-The repository monitor watches for any changes in mozilla hg repositories.
+Works the "kue" for pushes and emits amqp events.
 */
 
 import '6to5/polyfill';
