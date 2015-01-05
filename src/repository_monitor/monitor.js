@@ -18,9 +18,10 @@ let pushlog = new PushlogClient();
 
 // Helper function for sending messages to kue with the defaults sane for the
 // monitor.
-async function later(jobs, topic, body) {
+async function schedulePush(jobs, topic, body) {
   let msg = jobs.create('push', body).
     attempts(5).
+    searchKeys(['repo.alias']).
     backoff({ type: 'exponential' });
 
   await denodeify(msg.save.bind(msg))();
@@ -75,7 +76,7 @@ export default class Monitor {
           title: title
         };
 
-        await later(this.jobs, 'push', body);
+        await schedulePush(this.jobs, 'push', body);
 
         // TODO: Do something with each push...
         // Update after each push...
