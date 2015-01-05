@@ -50,7 +50,6 @@ async function main() {
 
     seen.add(normalizedUrl);
 
-    console.log(all);
     return all;
   }, []);
 
@@ -60,6 +59,7 @@ async function main() {
 
   await Promise.all(ops);
   console.log('Finished importing %d', ops.length)
+  process.exit();
 }
 
 main().catch((err) => {
