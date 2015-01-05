@@ -5,24 +5,11 @@ the proxy service uses...
 */
 
 import '6to5/polyfill';
-import loadConfig from '../config';
-import createRuntime from '../runtime';
+import cli from '../cli';
 import request from 'superagent-promise';
 import urljoin from 'urljoin';
 
-import { ArgumentParser } from 'argparse';
-
-let parser = new ArgumentParser();
-parser.addArgument(['profile'], {
-  help: 'Configuration profile to use'
-});
-
-async function main() {
-  let argv = parser.parseArgs();
-
-  let config = await loadConfig(process.argv[2]);
-  let runtime = await createRuntime(config);
-
+cli(async function main(runtime, config) {
   let url = urljoin(config.treeherder.apiUrl, '/repository/');
   let res = await request.get(url).end();
 
@@ -60,8 +47,4 @@ async function main() {
   await Promise.all(ops);
   console.log('Finished importing %d', ops.length)
   process.exit();
-}
-
-main().catch((err) => {
-  setTimeout(() => { throw err; });
-})
+});
