@@ -17,7 +17,7 @@ export default async function waitFor(opts={}, fn, ...args) {
     opts = {};
   }
 
-  let maxTries = opts.maxTries || 5;
+  let maxTries = opts.maxTries || 200;
   let waitBetween = opts.sleep || 50;
   let start = Date.now();
 

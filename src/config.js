@@ -24,8 +24,25 @@ let schema = Joi.object().keys({
   }).unknown(true),
 
   kue: Joi.object().keys({
-    prefix: Joi.string().required()
+    prefix: Joi.string().required(),
+    admin: Joi.object().keys({
+      port: Joi.number().default(60024)
+    })
   }).unknown(true),
+
+  repositoryMonitor: Joi.object().keys({
+    interval: Joi.number().default(2000).
+      description(`
+        Interval between when checking invidual repositories. When repositories
+        are busy no checking occurs.
+      `),
+
+    maxPushFetches: Joi.number().default(200).
+      description(`
+        Number of missing pushes to fetch if current push id < then current
+        changelog push id (most recent N are fetched in ascending order).
+      `.trim())
+  }),
 
   commitPublisher: Joi.object().keys({
     connectionString: Joi.string().required(),

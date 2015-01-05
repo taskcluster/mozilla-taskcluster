@@ -12,7 +12,6 @@ let debug = Debug('publisher');
 
 class Publisher {
   constructor(opts) {
-    this._seenExchanges = new Set();
     // validated below
     Object.assign(this, opts);
   }
@@ -32,6 +31,13 @@ class Publisher {
     return result.join('.');
   }
 
+  async assertExchanges(...exchanges) {
+    await Promise.all(exchanges.map((ex) => {
+      let name = `${this.exchangePrefix}${ex.config.exchange}`;
+      return this.channel.assertExchange(name, 'topic');
+    }));
+  }
+
   async publish(exchange, routingKey, inputMessage) {
     Joi.assert(
       exchange,
@@ -45,12 +51,6 @@ class Publisher {
     // Invalid schema should never happen as we control input...
     if (outputMessage.error) {
       throw outputMessage.error;
-    }
-
-    if (!this._seenExchanges.has(exchangeName)) {
-      debug('create exchange', exchangeName);
-      await this.channel.assertExchange(exchangeName, 'topic');
-      this._seenExchanges.add(exchangeName);
     }
 
     if (typeof routingKey === 'object') {

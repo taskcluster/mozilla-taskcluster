@@ -1,9 +1,10 @@
 import * as docdb from 'documentdb';
 import { Connection } from './db';
-import Kue from 'kue';
+import kue from 'kue';
 import publisher from './publisher';
 
 import Repos from './collections/repositories';
+import PushExchange from './exchanges/push';
 
 export default async function(config) {
   let db = new Connection(
@@ -12,15 +13,21 @@ export default async function(config) {
     { masterKey: config.documentdb.key }
   );
 
-  let kue = Kue.createQueue({
+  let jobs = kue.createQueue({
     prefix: config.kue.prefix,
     redis: config.redis
   });
 
+  let commitPublisher = await publisher(config.commitPublisher);
+  await commitPublisher.assertExchanges(
+    PushExchange
+  );
+
   return {
     db,
     kue,
-    commitPublisher: await publisher(config.commitPublisher),
+    jobs,
+    commitPublisher,
     repositories: new Repos(db)
   };
 }

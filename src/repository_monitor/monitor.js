@@ -2,13 +2,13 @@
 The monitor class is designed to watch and update _all_ repositories meaning
 you should never need more then one of these instances running.
 */
-
-import PushlogClient from './pushlog_client';
 import urljoin from 'urljoin';
 import qs from 'querystring';
 import Debug from 'debug';
 import assert from 'assert';
 import denodeify from 'denodeify';
+
+import PushlogClient from './pushlog_client';
 
 let debug = Debug('treeherder-proxy:monitor');
 
@@ -16,9 +16,19 @@ let debug = Debug('treeherder-proxy:monitor');
 // of caching in sockets and for ease of use.
 let pushlog = new PushlogClient();
 
+// Helper function for sending messages to kue with the defaults sane for the
+// monitor.
+async function later(jobs, topic, body) {
+  let msg = jobs.create('push', body).
+    attempts(5).
+    backoff({ type: 'exponential' });
+
+  await denodeify(msg.save.bind(msg))();
+}
+
 export default class Monitor {
-  constructor(queue, repos, options={}) {
-    this.queue = queue;
+  constructor(jobs, repos, options={}) {
+    this.jobs = jobs;
     this.repos = repos;
     // List of repositories indexed by id.
     this.list = {};
@@ -26,6 +36,7 @@ export default class Monitor {
     this.locks = {};
 
     // Maximum number of pushes to fetch
+    this.interval = options.interval || 2000;
     this.maxPushFetches = options.maxPushFetches || 100;
   }
 
@@ -64,11 +75,7 @@ export default class Monitor {
           title: title
         };
 
-        let msg = this.queue.create('push', body).
-          attempts(5).
-          backoff({ type: 'exponential' });
-
-        await denodeify(msg.save.bind(msg))();
+        await later(this.jobs, 'push', body);
 
         // TODO: Do something with each push...
         // Update after each push...
@@ -139,8 +146,8 @@ export default class Monitor {
   }
 
   async start(checkInterval=2000) {
-    if (this.interval) throw new Error('Already running...');
-    debug('start : interval %d', checkInterval)
+    if (this._intervalHandle) throw new Error('Already running...');
+    debug('start : interval %d', this.interval)
 
     // Update the repository list...
     await this.fetchRepositories();
@@ -149,14 +156,14 @@ export default class Monitor {
     // then sleeping for some time... This ensures if one check is blocked we
     // still run the others (and the check method above ensures we do check the
     // same repositories concurrently.
-    this.interval = setInterval(() => {
+    this._intervalHandle = setInterval(() => {
       this.check().catch((e) => {
         console.error('Error processing a check', e);
       })
-    }, checkInterval);
+    }, this.interval);
   }
 
   stop() {
-    clearInterval(this.interval);
+    clearInterval(this._intervalHandle);
   }
 }

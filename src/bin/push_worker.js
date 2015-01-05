@@ -1,0 +1,68 @@
+#! /usr/bin/env node
+/**
+The repository monitor watches for any changes in mozilla hg repositories.
+*/
+
+import '6to5/polyfill';
+import cli from '../cli';
+
+import Monitor from '../repository_monitor/monitor';
+import PushExchange from '../exchanges/push';
+
+// Time allowed for running jobs to complete before killing...
+const KUE_SHUTDOWN_GRACE = 5000;
+
+function work(fn) {
+  return function(value, done) {
+    fn(value)
+      .then((...args) => {
+        done(null, ...args);
+      })
+      .catch(done);
+  }
+}
+
+cli(async function main(runtime, config) {
+
+  // graceful shutdown
+  process.once('SIGTERM', () => {
+    runtime.jobs.shutdown((err) => {
+      if (err) {
+        console.error(err)
+      }
+      process.exit(0);
+    }, KUE_SHUTDOWN_GRACE);
+  });
+
+  // Process the incoming pushes....
+  runtime.jobs.process('push', 100, work(async function(task) {
+    let data = task.data;
+    let message = {
+      id: data.push.id,
+      url: data.repo.url,
+      alias: data.repo.alias,
+      date: new Date(data.push.date * 1000).toJSON(),
+      user: data.push.user,
+      changesets: data.push.changesets.map((cset) => {
+        return {
+          author: cset.author,
+          branch: cset.branch,
+          description: cset.desc,
+          files: cset.files,
+          node: cset.node,
+          tags: cset.tags
+        }
+      })
+    };
+
+    let routingKeys = {
+      alias: data.repo.alias
+    };
+
+    await runtime.commitPublisher.publish(
+      PushExchange,
+      routingKeys,
+      message
+    );
+  }));
+});
