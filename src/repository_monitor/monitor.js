@@ -113,7 +113,8 @@ export default class Monitor {
       lock.active = true;
       await this.runCheck(repo, lock);
     } catch (e) {
-      console.error(`Erorr processing run ${repo.url}\n ${e.stack}`);
+      console.log(`Error processing run ${repo.url}\n ${e.stack}`);
+      lock.active = false;
     } finally {
       lock.active = false;
     }

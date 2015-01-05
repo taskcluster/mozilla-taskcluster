@@ -14,11 +14,12 @@ export default exchange('pushlog').
     }
   ).
   schema(Joi.object().keys({
-    id: Joi.string().required().description('pushlog id'),
+    id: Joi.number().required().description('pushlog id'),
     url: Joi.string().required().description('url for repository'),
     alias: Joi.string().required().description('repository alias'),
     date: Joi.date().required().description('date of the push'),
-    user: Joi.string().email().required().description('user who pushed'),
+    user: Joi.string().required().
+      description('user who pushed (usually an email)'),
     changesets: Joi.array().
       required().
       includes(

@@ -64,10 +64,17 @@ export default class PushlogClient {
       lastPushId: body.lastpushid
     };
 
-    let range = Object.keys(body.pushes).sort();
+    let range = Object.keys(body.pushes).map((v) => {
+      return Number(v);
+    }).sort((a, b) => {
+      // Custom sort because JS default implementation does not sort numbers in
+      // a descending order!
+      return a - b;
+    });
+
     result.pushes = range.map((id) => {
       let push = Object.assign({}, body.pushes[id]);
-      push.id = id;
+      push.id = Number(id);
       return push;
     });
 
@@ -113,12 +120,14 @@ export default class PushlogClient {
     for (let chunk = 0; chunk < chunks; chunk++) {
       let startID = start + (ITERATE_CHUNKS * chunk);
       let endID = Math.min(startID + ITERATE_CHUNKS, end);
+      debug('iterate', { url, startID, endID });
       let res = await this.get(url, startID, endID);
 
       if (startID > res.lastPushId) {
         // Edge case where we request beyond the actual available pushes...
         return;
       }
+
 
       for (let push of res.pushes) {
         await fn(push);

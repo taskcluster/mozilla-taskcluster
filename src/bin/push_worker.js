@@ -34,6 +34,9 @@ cli(async function main(runtime, config) {
     }, KUE_SHUTDOWN_GRACE);
   });
 
+  // Start interval promotion (should only run one of these)...
+  runtime.jobs.promote();
+
   // Process the incoming pushes....
   runtime.jobs.process('push', 100, work(async function(task) {
     let data = task.data;

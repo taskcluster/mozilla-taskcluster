@@ -38,9 +38,6 @@ async function main() {
 
 
     let normalizedUrl = urljoin(thRepo.url, '/');
-
-    //if (normalizedUrl.indexOf('org/try/') === -1) return all;
-
     if (seen.has(normalizedUrl)) {
       console.log('duplicate url', thRepo);
       return all;
@@ -53,6 +50,7 @@ async function main() {
 
     seen.add(normalizedUrl);
 
+    console.log(all);
     return all;
   }, []);
 
