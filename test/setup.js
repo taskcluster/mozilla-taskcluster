@@ -7,6 +7,7 @@ import * as kueUtils from './kue';
 import publisher from '../src/publisher';
 
 import PushExchange from '../src/exchanges/push';
+import THProject from 'mozilla-treeherder/project';
 
 suiteSetup(async function() {
 
@@ -24,6 +25,11 @@ suiteSetup(async function() {
   ));
 
   this.pushEvents = new Client();
+  this.treeherder = new THProject('try', {
+    consumerKey: 'try',
+    consumerSecret: 'try',
+    baseUrl: this.config.treeherder.apiUrl
+  });
 });
 
 suiteTeardown(async function() {
