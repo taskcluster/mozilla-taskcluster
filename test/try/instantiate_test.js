@@ -81,14 +81,17 @@ suite('instantiate', function() {
       encoding: 'utf8'
     });
 
-    let taskGraph = instantiate(input, {
+    let params = {
       owner:         'user@example.com',
       source:        'http://localhost/unit-test',
       comment:       "try: something...",
       project:       "try",
       revision:      'REVISION',
-      revision_hash: 'RESULTSET'
-    });
+      revision_hash: 'RESULTSET',
+      pushlog_id:    '1',
+      repository_url: 'http://xfoobar.com'
+    };
+    let taskGraph = instantiate(input, params);
 
 
     // Do a little smoke testing
@@ -97,6 +100,8 @@ suite('instantiate', function() {
     assert(taskGraph.tasks[0].task.routes.indexOf('xyz.try.RESULTSET') !== -1);
     assert(taskGraph.tasks.length === 3);
     assert(taskGraph.tasks[1].taskId === taskGraph.tasks[2].requires[0]);
+
+    assert.deepEqual(taskGraph.tasks[0].task.extra, params);
 
     // Create taskGraphId
     let taskGraphId = slugid.v4();

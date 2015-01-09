@@ -60,6 +60,8 @@ export default function instantiate(template, options) {
     project: Joi.string().required(),
     revision_hash: Joi.string().required(),
     comment: Joi.string().default(""),
+    pushlog_id: Joi.string().required(),
+    repository_url: Joi.string().required()
   }));
 
   // Create label cache, so we provide the same slugids for the same label
@@ -83,15 +85,17 @@ export default function instantiate(template, options) {
 
   // Parameterize template
   template = mustache.render(template, {
-    'now': new Date().toJSON(),
-    'owner': options.owner,
-    'source': options.source,
-    'revision': options.revision,
-    'comment': options.comment,
-    'project': options.project,
-    'revision_hash': options.revision_hash,
-    'from_now': fromNow,
-    'as_slugid': asSlugId
+    now: new Date().toJSON(),
+    owner: options.owner,
+    source: options.source,
+    revision: options.revision,
+    comment: options.comment,
+    project: options.project,
+    revision_hash: options.revision_hash,
+    pushlog_id: options.pushlog_id,
+    repository_url: options.repository_url,
+    from_now: fromNow,
+    as_slugid: asSlugId
   });
 
   // Parse template

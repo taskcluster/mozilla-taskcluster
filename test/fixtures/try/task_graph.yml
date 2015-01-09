@@ -19,6 +19,16 @@ tasks:
           FLAGS:      '{{ comment }}'
           REVISION:   '{{ revision }}'
           PROJECT:    '{{ project }}'
+      extra:
+        owner: '{{owner}}'
+        source: '{{{source}}}'
+        comment: '{{comment}}'
+        project: '{{project}}'
+        revision: '{{revision}}'
+        revision_hash: '{{revision_hash}}'
+        pushlog_id: '{{pushlog_id}}'
+        repository_url: '{{{repository_url}}}'
+
       metadata:
         name:       "Make Decision based on flags"
         description: |
