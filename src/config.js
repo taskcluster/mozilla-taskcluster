@@ -15,8 +15,14 @@ let schema = Joi.object().keys({
     database: Joi.string().required().description('database name')
   }),
 
+  treeherderProxy: Joi.object().keys({
+    port: Joi.number().default(process.env.PORT || 60025)
+  }),
+
   treeherder: Joi.object().keys({
-    apiUrl: Joi.string().default(TREEHERDER_API)
+    apiUrl: Joi.string().default('http://thapi:8080/api/'),
+    credentials: Joi.string().
+      description('entire treeherder/etl/data/credentials.json file')
   }),
 
   redis: Joi.object().keys({

@@ -7,6 +7,10 @@ export default {
     database: 'treeherder-proxy-testing',
   },
 
+  treeherder: {
+    credentials: JSON.stringify(require('../../test/fixtures/treeherder.json'))
+  },
+
   redis: {
     host: 'redis'
   },

@@ -1,3 +1,19 @@
+# Treeherder dependencies...
+mysql:
+  image: mysql:5.5
+  environment:
+    MYSQL_ROOT_PASSWORD: treeherder
+    MYSQL_DATABASE: treeherder
+
+memcached:
+  image: memcached:1.4
+
+mysql:
+  image: mysql:5.5
+  environment:
+    MYSQL_ROOT_PASSWORD: treeherder
+    MYSQL_DATABASE: treeherder
+
 kueadmin:
   build: .
   command: |
@@ -9,6 +25,27 @@ kueadmin:
   links:
     - redis:2.8
 
+# The bootstrap step is special in that it should be run prior to any of the
+# "real" processes which need to use the database.
+thbootstrap:
+  image: lightsofapollo/treeherder
+  links:
+    - mysql
+    - rabbitmq
+    - memcached
+  command: ./docker/init.sh
+
+thapi:
+  image: lightsofapollo/treeherder
+  links:
+    - mysql
+    - rabbitmq
+    - memcached
+    - thbootstrap
+  command: ./docker/gunicorn.sh
+  ports:
+    - "8000"
+
 test:
   volumes:
     - .:/app
@@ -17,6 +54,8 @@ test:
   links:
     - redis
     - rabbitmq
+    - thapi
+    - thbootstrap
 
 rabbitmq:
   image: rabbitmq:3.4-management

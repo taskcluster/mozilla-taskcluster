@@ -3,6 +3,7 @@
 export default {
   documentdb: {},
   treeherder: {},
+  treeherderProxy: {},
   kue: {
     admin: {}
   },
