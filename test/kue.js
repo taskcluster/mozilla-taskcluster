@@ -1,4 +1,5 @@
 import denodeify from 'denodeify';
+import waitFor from './wait_for';
 
 export async function clear(runtime) {
   let Jobs = runtime.kue.Job;
@@ -23,3 +24,13 @@ export async function stats(runtime) {
   return { complete, incomplete, active };
 }
 
+
+export async function ensureFinished(runtime, count=1) {
+  await waitFor(async function() {
+    let details = await stats(runtime);
+
+    return details.complete === count &&
+           details.incomplete === 0 &&
+           details.active === 0;
+  }.bind(this));
+}

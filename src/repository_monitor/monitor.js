@@ -76,7 +76,7 @@ export default class Monitor {
           title: title
         };
 
-        await schedulePush(this.jobs, 'push', body);
+        await schedulePush(this.jobs, 'publish-push', body);
 
         // TODO: Do something with each push...
         // Update after each push...
