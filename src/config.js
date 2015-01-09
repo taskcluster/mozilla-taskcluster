@@ -27,10 +27,10 @@ let schema = Joi.object().keys({
 
   taskcluster: Joi.object().keys({
     credentials: Joi.object().keys({
-      clientId: Joi.string().required().
-        default(Joi.ref('env.TASKCLUSTER_CLIENT_ID')),
-      accessToken: Joi.string().required().
-        default(Joi.ref('env.TASKCLUSTER_ACCESS_TOKEN'))
+      clientId: Joi.string().
+        default(Joi.ref('$env.TASKCLUSTER_CLIENT_ID')),
+      accessToken: Joi.string().
+        default(Joi.ref('$env.TASKCLUSTER_ACCESS_TOKEN'))
     })
   }),
 
@@ -75,10 +75,10 @@ let schema = Joi.object().keys({
 
   // Note pulse is _only_ used for consuming messages and not publishing them
   pulse: Joi.object().keys({
-    username: Joi.string().required().
-      default(Joi.ref('env.PULSE_USERNAME')),
-    password: Joi.string().required().
-      default(Joi.ref('env.PULSE_PASSWORD'))
+    username: Joi.string().
+      default(Joi.ref('$env.PULSE_USERNAME')),
+    password: Joi.string().
+      default(Joi.ref('$env.PULSE_PASSWORD'))
   }),
 
   commitPublisher: Joi.object().keys({
@@ -108,7 +108,6 @@ export default async function load(file) {
   }
 
   let baseName = path.basename(file).split('.')[0];
-
   let conf = new Provider().
     file(path.join(process.cwd(), `${baseName}-treeherder-proxy.json`)).
     overrides(require(file)).

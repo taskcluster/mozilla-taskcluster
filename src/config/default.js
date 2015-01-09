@@ -17,6 +17,8 @@ export default {
   try: yaml.safeLoad(fs.readFileSync(TRY_CONFIG, 'utf8'), {
     filename: TRY_CONFIG
   }),
+  taskcluster: {},
+  pulse: {},
   redis: {},
   repositoryMonitor: {}
 }

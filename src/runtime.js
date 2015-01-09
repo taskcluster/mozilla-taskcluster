@@ -16,7 +16,6 @@ export default async function(config) {
     redis: config.redis
   });
 
-
   return {
     db,
     kue,

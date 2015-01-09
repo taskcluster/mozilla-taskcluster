@@ -2,7 +2,7 @@ import * as documentdb from 'documentdb';
 import loadConfig from '../src/config';
 import loadRuntime from '../src/runtime';
 import denodeify from 'denodeify';
-import { createClient, AMQPListener } from 'taskcluster-client';
+import taskcluster from 'taskcluster-client';
 import * as kueUtils from './kue';
 import publisher from '../src/publisher';
 
@@ -13,14 +13,29 @@ suiteSetup(async function() {
 
   this.config = await loadConfig(__dirname + '/../src/config/test.js');
   this.runtime = await loadRuntime(this.config);
-  this.listener = new AMQPListener({
+
+  // Note listener is for messages/exchanges we generate...
+  this.listener = new taskcluster.AMQPListener({
     connectionString: this.config.commitPublisher.connectionString
+  });
+
+  // Pulse is for things external components generate...
+  this.pulse = new taskcluster.PulseListener({
+    credentials: this.config.pulse
+  });
+
+  this.queue = new taskcluster.Queue({
+    credentials: this.config.taskcluster.credentials
+  });
+
+  this.scheduler = new taskcluster.Scheduler({
+    credentials: this.config.taskcluster.credentials
   });
 
   let commitPublisher = await publisher(this.config.commitPublisher);
   await commitPublisher.assertExchanges(PushExchange);
 
-  let Client = createClient(commitPublisher.toSchema(
+  let Client = taskcluster.createClient(commitPublisher.toSchema(
     PushExchange
   ));
 

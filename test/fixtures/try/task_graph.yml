@@ -1,0 +1,79 @@
+scopes:
+  - 'queue:define-task:aws-provisioner/v2'
+  - 'queue:route:xyz.{{ project  }}.{{ revision_hash }}'
+tasks:
+  # A decision task
+  - taskId:           '{{#as_slugid}}decision-task{{/as_slugid}}'
+    task:
+      routes:
+        - 'xyz.{{ project  }}.{{ revision_hash }}'
+      provisionerId:  aws-provisioner
+      workerType:     v2
+      created:        '{{ now }}'
+      deadline:       '{{#from_now }}1 day 2 hours{{/from_now}}'
+      payload:
+        image:        ubuntu:13.10
+        command:
+          - /bin/decide
+        env:
+          FLAGS:      '{{ comment }}'
+          REVISION:   '{{ revision }}'
+          PROJECT:    '{{ project }}'
+      metadata:
+        name:       "Make Decision based on flags"
+        description: |
+          Description of specific task...
+        owner:        '{{ owner }}'
+        source:       '{{{ source }}}'
+
+  # Build task that is independent of the decision task
+  - taskId:           '{{#as_slugid }}build-task{{/as_slugid}}'
+    task:
+      provisionerId:  aws-provisioner
+      workerType:     v2
+      created:        '{{ now }}'
+      deadline:       '{{#from_now }}1 day 2 hours{{/from_now}}'
+      payload:
+        image:        ubuntu:13.10
+        command:
+          - "/bin/bash"
+          - "-c"
+          - "echo \"Hello World\"; sleep 10; echo \"done\";"
+        maxRunTime:   600
+      metadata:
+        name:       "TaskA: Build something TaskB"
+        description: |
+          Description of specific task...
+        owner:        '{{ owner }}'
+        source:       '{{{ source }}}'
+
+  # Test task that depends on build task
+  - taskId:           '{{#as_slugid }}test-task{{/as_slugid}}'
+    requires:
+      - '{{#as_slugid }}build-task{{/as_slugid}}'
+    task:
+      provisionerId:  aws-provisioner
+      workerType:     v2
+      created:        '{{ now }}'
+      deadline:       '{{#from_now }}1 day 2 hours{{/from_now}}'
+      payload:
+        image:        ubuntu:13.10
+        command:
+          - "/bin/bash"
+          - "-c"
+          - "echo \"Hello World\"; sleep 10; echo \"done\";"
+        maxRunTime:   600
+      metadata:
+        name:       "TaskA: Build something TaskB"
+        description: |
+          Description of specific task...
+        owner:        '{{ owner }}'
+        source:       '{{{ source }}}'
+
+metadata:
+  name:           "My Test TaskGraph"
+  description: |
+    Some description of the test task in **markdown**.
+  owner:        '{{ owner }}'
+  source:       '{{{ source }}}'
+
