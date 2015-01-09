@@ -10,6 +10,7 @@ import publisher from '../publisher';
 import PushExchange from '../exchanges/push';
 import Monitor from '../repository_monitor/monitor';
 import PublishPushJob from '../jobs/publish_push';
+import TreeherderResultsetJob from '../jobs/treeherder_resultset';
 
 // Time allowed for running jobs to complete before killing...
 const KUE_SHUTDOWN_GRACE = 5000;
@@ -41,10 +42,16 @@ cli(async function main(runtime, config) {
   });
 
   // Start interval promotion (should only run one of these)...
-  runtime.jobs.promote();
+  runtime.jobs.promote(config.treeherder.credentials);
 
   // Process the incoming pushes....
   runtime.jobs.process('publish-push', 100, work(
     PublishPushJob.bind(this, commitPublisher)
+  ));
+
+  // Treeherder resultset pushes.
+  let thCreds = JSON.parse(config.treeherder.credentials);
+  runtime.jobs.process('treeherder-resultset', 100, work(
+    TreeherderResultsetJob.bind(this, thCreds, config.treeherder)
   ));
 });

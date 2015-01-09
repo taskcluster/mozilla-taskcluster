@@ -19,7 +19,7 @@ let pushlog = new PushlogClient();
 // Helper function for sending messages to kue with the defaults sane for the
 // monitor.
 async function schedulePush(jobs, topic, body) {
-  let msg = jobs.create('push', body).
+  let msg = jobs.create(topic, body).
     attempts(5).
     searchKeys(['repo.alias']).
     backoff({ type: 'exponential' });
@@ -76,7 +76,10 @@ export default class Monitor {
           title: title
         };
 
-        await schedulePush(this.jobs, 'publish-push', body);
+        await Promise.all([
+          schedulePush(this.jobs, 'publish-push', body),
+          schedulePush(this.jobs, 'treeherder-resultset', body)
+        ]);
 
         // TODO: Do something with each push...
         // Update after each push...

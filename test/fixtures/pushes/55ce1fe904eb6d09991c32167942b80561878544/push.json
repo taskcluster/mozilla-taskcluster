@@ -1,0 +1,304 @@
+[
+  {
+   "author": "Brian Smith <brian@briansmith.org>", 
+   "branch": "default", 
+   "desc": "Bug 1119075: Use standard unicode literals with VS2015 and later, r=waldo", 
+   "files": [
+    "mfbt/Char16.h"
+   ], 
+   "node": "8a0648aa1533899d62abc60302f866fd9e2d2d96", 
+   "tags": []
+  }, 
+  {
+   "author": "Brian Smith <brian@briansmith.org>", 
+   "branch": "default", 
+   "desc": "Bug XXXXXXX, Part 1: Replace uses of hash_set/hash_map with unodered_set/unodered_map in gfx", 
+   "files": [
+    "gfx/2d/DrawEventRecorder.h", 
+    "gfx/2d/DrawTargetD2D.h", 
+    "gfx/2d/DrawTargetD2D1.h"
+   ], 
+   "node": "872f224c971d41639dc42ef1376cc6e5a3fa1019", 
+   "tags": []
+  }, 
+  {
+   "author": "Brian Smith <brian@briansmith.org>", 
+   "branch": "default", 
+   "desc": "Bug XXXXXXX, Part 2: Replace uses of hash_map with unordered_map in toolkit/crashreporter", 
+   "files": [
+    "toolkit/crashreporter/google-breakpad/src/common/windows/pdb_source_line_writer.h"
+   ], 
+   "node": "acea5ebaabe6b4f9edb011a75aeb17c58f571e15", 
+   "tags": []
+  }, 
+  {
+   "author": "Brian Smith <brian@briansmith.org>", 
+   "branch": "default", 
+   "desc": "Avoid defining snprintf as a macro on Windows when MSVC provides it", 
+   "files": [
+    "b2g/app/nsBrowserApp.cpp", 
+    "browser/app/nsBrowserApp.cpp", 
+    "toolkit/components/ctypes/tests/jsctypes-test.cpp", 
+    "toolkit/components/protobuf/google/protobuf/stubs/common.cc", 
+    "toolkit/crashreporter/google-breakpad/src/common/logging.cc", 
+    "toolkit/crashreporter/google-breakpad/src/processor/minidump.cc", 
+    "toolkit/crashreporter/google-breakpad/src/third_party/libdisasm/x86_disasm.c", 
+    "toolkit/crashreporter/google-breakpad/src/third_party/libdisasm/x86_format.c", 
+    "toolkit/crashreporter/google-breakpad/src/third_party/libdisasm/x86_insn.c", 
+    "toolkit/crashreporter/google-breakpad/src/third_party/libdisasm/x86_misc.c", 
+    "toolkit/mozapps/update/common/updatedefines.h", 
+    "tools/profiler/BreakpadSampler.cpp", 
+    "tools/profiler/JSStreamWriter.cpp", 
+    "tools/profiler/ProfileEntry.cpp", 
+    "xpcom/base/CodeAddressService.h", 
+    "xpcom/base/nsStackWalk.cpp", 
+    "xpcom/glue/nsStringAPI.cpp", 
+    "xpcom/glue/standalone/nsXPCOMGlue.cpp", 
+    "xulrunner/app/nsXULRunnerApp.cpp", 
+    "xulrunner/stub/nsXULStub.cpp"
+   ], 
+   "node": "fcca39d2a4eff270abef00b687174922f6480c6e", 
+   "tags": []
+  }, 
+  {
+   "author": "Brian Smith <brian@briansmith.org>", 
+   "branch": "default", 
+   "desc": "Avoid defining snprintf as a macro when MSVC provides it", 
+   "files": [
+    "dom/media/android/AndroidMediaResourceServer.cpp"
+   ], 
+   "node": "d2c49c6092829f30af973043ef7adb7e8125f83f", 
+   "tags": []
+  }, 
+  {
+   "author": "Brian Smith <brian@briansmith.org>", 
+   "branch": "default", 
+   "desc": "Avoid defining snprintf as a macro when MSVC provides it", 
+   "files": [
+    "gfx/angle/src/common/angleutils.h", 
+    "gfx/harfbuzz/src/hb-private.hh", 
+    "gfx/skia/trunk/src/core/SkString.cpp", 
+    "gfx/skia/trunk/src/pdf/SkPDFTypes.cpp"
+   ], 
+   "node": "7301f7b8a2b869a2ed72569a01475aaf51c38d86", 
+   "tags": []
+  }, 
+  {
+   "author": "Brian Smith <brian@briansmith.org>", 
+   "branch": "default", 
+   "desc": "Avoid defining snprintf as a macro when MSVC provides it", 
+   "files": [
+    "media/libstagefright/system/core/liblog/fake_log_device.c", 
+    "media/libstagefright/system/core/liblog/logd_write.c", 
+    "media/libstagefright/system/core/liblog/logprint.c", 
+    "media/libvpx/vp9/common/vp9_systemdependent.h"
+   ], 
+   "node": "84088ec652ab561b83d3e27bf42f343d706b2456", 
+   "tags": []
+  }, 
+  {
+   "author": "Brian Smith <brian@briansmith.org>", 
+   "branch": "default", 
+   "desc": "Avoid defining snprintf as a macro when MSVC provides it (WebRTC)", 
+   "files": [
+    "media/mtransport/third_party/nrappkit/src/util/util.c", 
+    "media/webrtc/signaling/src/sdp/sipcc/cpr_strings.h"
+   ], 
+   "node": "ed90cb7aab19f79e618a85e7053c1a508e833643", 
+   "tags": []
+  }, 
+  {
+   "author": "Brian Smith <brian@briansmith.org>", 
+   "branch": "default", 
+   "desc": "Avoid defining snprintf as a macro when MSVC provides it", 
+   "files": [
+    "mfbt/WeakPtr.h"
+   ], 
+   "node": "9baf7483a874d00e615fef42f9d335d056cde30f", 
+   "tags": []
+  }, 
+  {
+   "author": "Brian Smith <brian@briansmith.org>", 
+   "branch": "default", 
+   "desc": "Avoid defining snprintf as a macro when MSVC provides it (netwerk)", 
+   "files": [
+    "netwerk/sctp/src/netinet/sctp_os_userspace.h"
+   ], 
+   "node": "c69d7081910b68208c6c11f370f272d5bff63802", 
+   "tags": []
+  }, 
+  {
+   "author": "Brian Smith <brian@briansmith.org>", 
+   "branch": "default", 
+   "desc": "Avoid defining snprintf as a macro when MSVC provides it (NSPR)", 
+   "files": [
+    "nsprpub/pr/src/io/prprf.c"
+   ], 
+   "node": "ebcb14317e392f7e714ebab7e53620ddf6e0b422", 
+   "tags": []
+  }, 
+  {
+   "author": "Brian Smith <brian@briansmith.org>", 
+   "branch": "default", 
+   "desc": "Avoid defining snprintf as a macro when MSVC provides it (other)", 
+   "files": [
+    "python/which/launcher.cpp", 
+    "testing/web-platform/tests/resources/webidl2/test/widlproc/src/os.h"
+   ], 
+   "node": "94561bceb4a254cb66236ada9f12119fee8e317f", 
+   "tags": []
+  }, 
+  {
+   "author": "Brian Smith <brian@briansmith.org>", 
+   "branch": "default", 
+   "desc": "Avoid defining snprintf as a macro when MSVC provides it (toolkit)", 
+   "files": [
+    "toolkit/components/ctypes/tests/jsctypes-test-finalizer.cpp"
+   ], 
+   "node": "fc61f6d3f3888ee14becdff6f0790f439a6e31d2", 
+   "tags": []
+  }, 
+  {
+   "author": "Brian Smith <brian@briansmith.org>", 
+   "branch": "default", 
+   "desc": "Bug 1119072, Part 1: Don't block compilation with VS2015 in configure, r=glandium\"", 
+   "files": [
+    "configure.in", 
+    "js/src/configure.in"
+   ], 
+   "node": "d1e72a5a103f5eac2a463f67b4460e66395cd783", 
+   "tags": []
+  }, 
+  {
+   "author": "Brian Smith <brian@briansmith.org>", 
+   "branch": "default", 
+   "desc": "Bug 1119072, Part 2: Suppress new VS2015 warnings, r=glandium", 
+   "files": [
+    "configure.in"
+   ], 
+   "node": "3d8ccf74c63e3e2b7528e3e80a53131900720288", 
+   "tags": []
+  }, 
+  {
+   "author": "Brian Smith <brian@briansmith.org>", 
+   "branch": "default", 
+   "desc": "Bug 1119072, Part 3: Silence warning about deprecated use of hash_set and hash_map in Chromium code, r=glandium", 
+   "files": [
+    "ipc/chromium/src/base/hash_tables.h", 
+    "security/sandbox/chromium/base/containers/hash_tables.h"
+   ], 
+   "node": "4ebce25a18d1d834a3402bcc6bfe50069250e2f9", 
+   "tags": []
+  }, 
+  {
+   "author": "Brian Smith <brian@briansmith.org>", 
+   "branch": "default", 
+   "desc": "Bug 1119072, Part 4: Disable warning 4091 in VS2015 builds to work around VS2015 incompatibility with Platform SDK 8.1, r=glandium", 
+   "files": [
+    "configure.in"
+   ], 
+   "node": "444edc85c3ed3509f239926bd1a65af4927bb1a3", 
+   "tags": []
+  }, 
+  {
+   "author": "Brian Smith <brian@briansmith.org>", 
+   "branch": "default", 
+   "desc": "Bug 1119072, Part 5: Work around problem with cmath and M_PI on VS2015, r=ehsan", 
+   "files": [
+    "dom/media/webaudio/blink/Biquad.cpp"
+   ], 
+   "node": "10ce40a839d674a852d275f80982b19ce0d93d34", 
+   "tags": []
+  }, 
+  {
+   "author": "Brian Smith <brian@briansmith.org>", 
+   "branch": "default", 
+   "desc": "Bug 1119072, Part 6: Change a non-conforming usage of a const value type to a non-const value type, which VS2015 rightly rejects, r=glandium", 
+   "files": [
+    "security/sandbox/win/src/handle_closer.h"
+   ], 
+   "node": "0042cc9be967ef476475a571abaf609efc1f8e68", 
+   "tags": []
+  }, 
+  {
+   "author": "Brian Smith <brian@briansmith.org>", 
+   "branch": "default", 
+   "desc": "Bug 1119072, Part 7: Work around internal compiler error in Skia, r=bjacob", 
+   "files": [
+    "gfx/skia/patches/README", 
+    "gfx/skia/patches/vs2015-internal-compiler-error-workaround.patch", 
+    "gfx/skia/trunk/include/core/SkTemplates.h"
+   ], 
+   "node": "e0ef24fc5dbc12bcf6e48a19b5ac7d979b78b9eb", 
+   "tags": []
+  }, 
+  {
+   "author": "Brian Smith <brian@briansmith.org>", 
+   "branch": "default", 
+   "desc": "Bug 1119072, Part 8: Work around internal compiler error in VS2015 (libstagefright), r=cpearce", 
+   "files": [
+    "media/libstagefright/system/core/include/utils/TypeHelpers.h"
+   ], 
+   "node": "9cf03dcedb2ec6bc1b4a0230167a4ed399c3262a", 
+   "tags": []
+  }, 
+  {
+   "author": "Brian Smith <brian@briansmith.org>", 
+   "branch": "default", 
+   "desc": "NOT FOR CHECKIN: Work around _THROW0() error in VS2015", 
+   "files": [
+    "config/msvc-stl-wrapper.template.h", 
+    "memory/mozalloc/msvc_raise_wrappers.h"
+   ], 
+   "node": "b6ca267cce8b177d2ffc38f49cefe8ffd9e0710e", 
+   "tags": []
+  }, 
+  {
+   "author": "Brian Smith <brian@briansmith.org>", 
+   "branch": "default", 
+   "desc": "NOT FOR CHECKIN: define bad already_Addrefed copy constructor to get past compilation problems on VS2015", 
+   "files": [
+    "mfbt/AlreadyAddRefed.h"
+   ], 
+   "node": "da2bb5f3332c8978a3f705973af09d8669c828d4", 
+   "tags": []
+  }, 
+  {
+   "author": "Brian Smith <brian@briansmith.org>", 
+   "branch": "default", 
+   "desc": "Deal with wchar_t/char16_t conversion", 
+   "files": [
+    "dom/media/gmp/GMPChild.cpp"
+   ], 
+   "node": "3f1b03995b31928d23d2d55d7e3c5f590130e8d7", 
+   "tags": []
+  }, 
+  {
+   "author": "Brian Smith <brian@briansmith.org>", 
+   "branch": "default", 
+   "desc": "screenshot", 
+   "files": [
+    "testing/tools/screenshot/win32-screenshot.cpp"
+   ], 
+   "node": "76dcf73b7deb46efb12d2b3994d4defcbb008fc8", 
+   "tags": []
+  }, 
+  {
+   "author": "Brian Smith <brian@briansmith.org>", 
+   "branch": "default", 
+   "desc": "workmonitory char16_t", 
+   "files": [
+    "toolkit/components/maintenanceservice/workmonitor.cpp"
+   ], 
+   "node": "16d61c83497a834c0c97c74e564a8e4c0ca6c11f", 
+   "tags": []
+  }, 
+  {
+   "author": "Brian Smith <brian@briansmith.org>", 
+   "branch": "default", 
+   "desc": "try: -b do -p emulator,emulator-jb,emulator-kk -u none -t none", 
+   "files": [], 
+   "node": "26d16d482533c507c427866019edca8eafd2ee45", 
+   "tags": []
+  }
+]
