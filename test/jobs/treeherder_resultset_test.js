@@ -50,6 +50,7 @@ suite('jobs/treeherder_resultset', function() {
     await waitFor(async function() {
       let res = await this.treeherder.getResultset();
       let target = res.results[0];
+      if (!target) return false;
       return target.revision_hash === expectedResultset.revision_hash;
     }.bind(this));
   });
