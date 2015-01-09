@@ -25,6 +25,29 @@ let schema = Joi.object().keys({
       description('entire treeherder/etl/data/credentials.json file')
   }),
 
+  taskcluster: Joi.object().keys({
+    credentials: Joi.object().keys({
+      clientId: Joi.string().required().
+        default(Joi.ref('env.TASKCLUSTER_CLIENT_ID')),
+      accessToken: Joi.string().required().
+        default(Joi.ref('env.TASKCLUSTER_ACCESS_TOKEN'))
+    })
+  }),
+
+  try: Joi.object().keys({
+    defaultUrl: Joi.string().required().
+      description('Default url (with mustache params) to use to fetch taskgraph'),
+
+    defaultScopes:
+      Joi.array().includes(Joi.string()).required().
+        description('List of default scopes to restrict graph to'),
+
+    projects: Joi.object().pattern(/.*/, Joi.object({
+      scopes: Joi.array(),
+      url: Joi.string()
+    }))
+  }),
+
   redis: Joi.object().keys({
     host: Joi.string().required()
   }).unknown(true),
@@ -48,6 +71,14 @@ let schema = Joi.object().keys({
         Number of missing pushes to fetch if current push id < then current
         changelog push id (most recent N are fetched in ascending order).
       `.trim())
+  }),
+
+  // Note pulse is _only_ used for consuming messages and not publishing them
+  pulse: Joi.object().keys({
+    username: Joi.string().required().
+      default(Joi.ref('env.PULSE_USERNAME')),
+    password: Joi.string().required().
+      default(Joi.ref('env.PULSE_PASSWORD'))
   }),
 
   commitPublisher: Joi.object().keys({
