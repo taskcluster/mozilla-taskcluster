@@ -30,11 +30,8 @@ suite('publisher', function() {
       exchangePrefix: 'test/'
     });
 
-    // destroy the exchange each time to ensure we are in known state.
-    try {
-      await subject.channel.deleteExchange('test/magicfoo');
-    } catch (e) {
-    }
+    // create the exchange each time to ensure we are in known state.
+    await subject.assertExchanges(Exchange);
 
     listener = new AMQPListener({
       connectionString: this.config.commitPublisher.connectionString
