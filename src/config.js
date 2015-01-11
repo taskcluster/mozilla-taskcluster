@@ -20,7 +20,7 @@ let schema = Joi.object().keys({
   }),
 
   treeherder: Joi.object().keys({
-    apiUrl: Joi.string().default('http://thapi:8080/api/'),
+    apiUrl: Joi.string().required(),
     credentials: Joi.string().
       description('entire treeherder/etl/data/credentials.json file')
   }),
@@ -124,6 +124,9 @@ export default async function load(file) {
     }
   );
 
-  if (result.error) throw result.error;
+  if (result.error) {
+    // Annotate give us _really_ pretty error messages.
+    throw new Error(result.error.annotate());
+  }
   return result.value;
 };

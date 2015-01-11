@@ -11,19 +11,16 @@ export default {
     credentials: JSON.stringify(require('../../test/fixtures/treeherder.json'))
   },
 
-  redis: {
-    host: 'redis'
-  },
+  redis: {},
 
   repositoryMonitor: {
-    interval: 100,
+    interval: 1000,
     maxPushFetches: 100
   },
 
   commitPublisher: {
     title: `(Test) Commits`,
     description: `...`,
-    connectionString: `amqp://rabbitmq:5672`,
     exchangePrefix: 'tests/'
   }
 }

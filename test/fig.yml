@@ -14,17 +14,6 @@ mysql:
     MYSQL_ROOT_PASSWORD: treeherder
     MYSQL_DATABASE: treeherder
 
-kueadmin:
-  build: .
-  command: |
-    /bin/bash -c 'cd /app && ./node_modules/.bin/6to5-node -r /app/src/bin/kue production'
-  volumes:
-    - .:/app
-  ports:
-    - "60024:60024"
-  links:
-    - redis:2.8
-
 # The bootstrap step is special in that it should be run prior to any of the
 # "real" processes which need to use the database.
 thbootstrap:
@@ -46,24 +35,13 @@ thapi:
   ports:
     - "8000"
 
-test:
-  volumes:
-    - .:/app
-  build: .
-  command: /bin/bash
-  links:
-    - redis
-    - rabbitmq
-    - thapi
-    - thbootstrap
-
 rabbitmq:
   image: rabbitmq:3.4-management
   ports:
-    - "15672:15672"
-    - "5672:5672"
+    - "15672"
+    - "5672"
 
 redis:
   image: redis
   ports:
-    - "6379:6379"
+    - "6379"

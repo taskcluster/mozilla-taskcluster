@@ -1,17 +1,83 @@
 import * as documentdb from 'documentdb';
+import dockerOpts from 'dockerode-options';
 import loadConfig from '../src/config';
 import loadRuntime from '../src/runtime';
 import denodeify from 'denodeify';
 import taskcluster from 'taskcluster-client';
+import fs from 'mz/fs';
 import * as kueUtils from './kue';
 import publisher from '../src/publisher';
+import { exec } from 'mz/child_process';
 
+import URL from 'url';
 import PushExchange from '../src/exchanges/push';
 import THProject from 'mozilla-treeherder/project';
 
-suiteSetup(async function() {
+const FIG_ROOT = __dirname;
+const GENERATED_CONFIG = `${__dirname}/test.json`;
 
-  this.config = await loadConfig(__dirname + '/../src/config/test.js');
+async function figPs() {
+  let [stdout, stderr] = await exec('fig ps -q', {
+    cwd: FIG_ROOT
+  });
+
+  return stdout.trim().split('\n').map((v) => {
+    return v.trim();
+  });
+}
+
+async function figUp() {
+  return await exec('fig up -d --no-recreate', { cwd: FIG_ROOT })
+}
+
+async function figKill() {
+  return await exec('fig kill', { cwd: FIG_ROOT });
+}
+
+async function figPort(service, sourcePort) {
+  let [ stdout ] = await exec(`fig port ${service} ${sourcePort}`, {
+    cwd: FIG_ROOT
+  });
+
+  let [ host, targetPort ] = stdout.split(':');
+  return parseInt(targetPort.trim(), 10);
+}
+
+suiteSetup(async function() {
+  // Since we may be operating docker over vagrant/remote/etc.. It is required
+  // to figure out where docker is hosted then
+  let dockerConfig = dockerOpts();
+
+  // In the case where docker is over a unix socket we fallback to 'localhost'
+  let dockerHost = (dockerConfig.host || 'localhost').replace('http://', '');
+
+  // Turn on fig (service names are hardcoded!)
+  await figUp();
+
+  // Fetch the ports we need to pass in...
+  let [
+    thapiPort,
+    redisPort,
+    rabbitmqPort
+  ] = await Promise.all([
+    // If your confused see test/fig.yml
+    figPort('thapi', 8000),
+    figPort('redis', 6379),
+    figPort('rabbitmq', 5672)
+  ]);
+
+  // We use a custom config file based on src/config/test.js
+  let config = require(__dirname + '/../src/config/test.js');
+  config.treeherder.apiUrl = `${dockerHost}:${thapiPort}/api/`;
+  config.redis.host = dockerHost;
+  config.redis.port = redisPort;
+  config.commitPublisher.connectionString =
+    `amqp://${dockerHost}:${rabbitmqPort}`;
+
+  // write out the custom config...
+  await fs.writeFile(GENERATED_CONFIG, JSON.stringify(config, null, 2));
+
+  this.config = await loadConfig(GENERATED_CONFIG);
   this.runtime = await loadRuntime(this.config);
 
   // Note listener is for messages/exchanges we generate...
