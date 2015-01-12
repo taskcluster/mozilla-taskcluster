@@ -1,6 +1,4 @@
 export default {
-  tryRoutePrefix: 'tc-try-test',
-
   kue: {
     prefix: 'test'
   },
@@ -11,6 +9,10 @@ export default {
 
   treeherder: {
     credentials: JSON.stringify(require('../../test/fixtures/treeherder.json'))
+  },
+
+  treeherderTaskcluster: {
+    routePrefix: 'tc-treeherder-test'
   },
 
   redis: {},

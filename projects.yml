@@ -31,5 +31,11 @@ projects:
   alder:
     scopes:
       - "*"
+
   b2g-inbound:
+    scopes:
+      - "*"
+
   mozilla-central:
+    scopes:
+      - "*"

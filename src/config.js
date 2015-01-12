@@ -9,10 +9,6 @@ const TREEHERDER_API = 'https://treeherder.mozilla.org/api/';
 // Schema used to ensure we have all the correct configuration values prior to
 // running any more complex logic...
 let schema = Joi.object().keys({
-
-  tryRoutePrefix: Joi.string().required().default('tc-try').
-    description('Route prefix task graph submissions'),
-
   documentdb: Joi.object().keys({
     host: Joi.string().required().description('documentdb hostname'),
     key: Joi.string().required().description('master or secondary read/write key'),
@@ -24,9 +20,16 @@ let schema = Joi.object().keys({
   }),
 
   treeherder: Joi.object().keys({
-    apiUrl: Joi.string().required(),
+    apiUrl: Joi.string().default(TREEHERDER_API),
     credentials: Joi.string().
       description('entire treeherder/etl/data/credentials.json file')
+  }),
+
+  treeherderTaskcluster: Joi.object().keys({
+    routePrefix: Joi.string().required().
+      description('routing key prefix for taskcluster-treehreder'),
+    queue: Joi.string(),
+    prefetch: 100
   }),
 
   taskcluster: Joi.object().keys({
