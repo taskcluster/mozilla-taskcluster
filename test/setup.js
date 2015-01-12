@@ -121,11 +121,8 @@ suiteTeardown(async function() {
   let Jobs = this.runtime.kue.Job;
   let jobs = this.runtime.jobs;
 
-  // Clear kue and ensure listener is closed...
-  await Promise.all([
-    this.listener.close(),
-    kueUtils.clear(this.runtime),
-  ]);
+  // Ensure listener is closed...
+  await this.listener.close(),
 
   // Ensure redis connection is shutdown...
   await denodeify(jobs.shutdown).call(jobs);

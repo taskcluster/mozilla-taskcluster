@@ -1,6 +1,7 @@
 import pushlog from './pushlog';
 import collectionSetup from './collection';
 import createProc from './process';
+import kueUtils from './kue';
 
 export default function setup(...processes) {
   collectionSetup();
@@ -30,6 +31,12 @@ export default function setup(...processes) {
       let r = createProc(path);
       return r;
     }));
+  });
+
+  teardown(async function() {
+    // ensure we clear old kue jobs between tests...
+    let now = Date.now();
+    await kueUtils.clear(this.runtime);
   });
 
   suiteTeardown(async function() {

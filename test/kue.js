@@ -24,7 +24,6 @@ export async function stats(runtime) {
   return { complete, incomplete, active };
 }
 
-
 export async function ensureFinished(runtime, count=1) {
   await waitFor(async function() {
     let details = await stats(runtime);
