@@ -97,4 +97,36 @@ suite('bin/treeherder_taskcluster.js', function() {
     assert.equal(job.result, 'testfailed');
   });
 
+  test('state transition -> pending -> running -> exception', async function() {
+    let route = [
+      this.config.treeherderTaskcluster.routePrefix,
+      'try',
+      revisionHash
+    ].join('.');
+
+    let taskId = await taskcluster.createTask({
+      routes: [route]
+    });
+
+    // Wait for task to be in the pending state...
+    await treeherder.waitForJobState(revisionHash, 'pending');
+
+    // Claim task so it is running...
+    await this.queue.claimTask(taskId, 0, {
+      workerGroup: 'test',
+      workerId: 'test'
+    });
+    await treeherder.waitForJobState(revisionHash, 'running');
+
+    // Report completed + success...
+    await this.queue.reportException(taskId, 0, {
+      reason: 'malformed-payload'
+    });
+
+    let job = await treeherder.waitForJobState(revisionHash, 'completed');
+    assert.equal(job.result, 'exception');
+  });
+
+
+
 });

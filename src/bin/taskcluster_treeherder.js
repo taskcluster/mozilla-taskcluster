@@ -29,7 +29,8 @@ cli(async function main(runtime, config) {
     listener.bind(queueEvents.taskPending(routingPattern)),
     listener.bind(queueEvents.taskRunning(routingPattern)),
     listener.bind(queueEvents.taskCompleted(routingPattern)),
-    listener.bind(queueEvents.taskFailed(routingPattern))
+    listener.bind(queueEvents.taskFailed(routingPattern)),
+    listener.bind(queueEvents.taskException(routingPattern))
   ]);
 
   // Spin up the handler and let it run...

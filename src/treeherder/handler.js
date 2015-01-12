@@ -10,7 +10,7 @@ const EVENT_MAP = {
   [events.taskRunning().exchange]: 'running',
   [events.taskCompleted().exchange]: 'completed',
   [events.taskFailed().exchange]: 'failed',
-  [events.taskException().exchange]: 'exchange'
+  [events.taskException().exchange]: 'exception'
 };
 
 /** Convert Date object or JSON date-time string to UNIX timestamp */
@@ -368,7 +368,7 @@ class Handler {
 
   async exception(project, revisionHash, payload, task) {
     var status = payload.status;
-    await project.postJobs(status.runs.map(function(run) {
+    await project.postJobs(status.runs.map((run) => {
       return {
         project:            project.project,
         revision_hash:      revisionHash,
