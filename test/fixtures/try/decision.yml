@@ -1,0 +1,39 @@
+scopes:
+  - 'queue:create-task:testme/testme'
+  - 'queue:define-task:testme/testme'
+  - 'queue:route:testme.{{ project  }}.{{ revision }}'
+tasks:
+  # A decision task
+  - taskId:           '{{#as_slugid}}decision-task{{/as_slugid}}'
+    task:
+      routes:
+        - 'testme.{{ project  }}.{{ revision }}'
+      provisionerId:  testme
+      workerType:     testme
+      created:        '{{ now }}'
+      deadline:       '{{#from_now }}5 minutes{{/from_now}}'
+      payload:
+        junk: true
+      extra:
+        owner: '{{owner}}'
+        source: '{{{source}}}'
+        comment: '{{comment}}'
+        project: '{{project}}'
+        revision: '{{revision}}'
+        revision_hash: '{{revision_hash}}'
+        pushlog_id: '{{pushlog_id}}'
+        url: '{{{url}}}'
+
+      metadata:
+        name:       "Make Decision based on flags"
+        description: |
+          Description of specific task...
+        owner:        '{{ owner }}'
+        source:       '{{{ source }}}'
+
+metadata:
+  name:           "My Test TaskGraph"
+  description: |
+    Some description of the test task in **markdown**.
+  owner:        '{{ owner }}'
+  source:       '{{{ source }}}'

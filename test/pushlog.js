@@ -28,6 +28,10 @@ class Pushlog {
     this.push();
   }
 
+  route(config) {
+    this.server.route(config);
+  }
+
   push(changesets={}, date=new Date(), user="xfoo@bar.com") {
     let push = this.pushes[++this.lastpushid] = {};
     push.changesets = changesets;

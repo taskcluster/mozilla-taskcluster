@@ -6,10 +6,10 @@
 #
 #   - alias: current key name
 #   - revision: revision of the change
-#   - repository_path: sub path to repository
-#   - domain: Domain of repository
+#   - path: sub path to repository
+#   - host: host of repository
 #
-defaultUrl: "{{domain}}/{{repository_path}}/raw-file/{{revision}}/testing/taskcluster/tasks/decision/{{alias}}.yml"
+defaultUrl: "{{{host}}}{{{path}}}/raw-file/{{revision}}/testing/taskcluster/tasks/decision/{{alias}}.yml"
 
 # Default scopes to use for projects which have no specific scopes of their own.
 defaultScopes:

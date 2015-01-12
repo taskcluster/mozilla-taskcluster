@@ -89,7 +89,7 @@ suite('instantiate', function() {
       revision:      'REVISION',
       revision_hash: 'RESULTSET',
       pushlog_id:    '1',
-      repository_url: 'http://xfoobar.com'
+      url: 'http://xfoobar.com'
     };
     let taskGraph = instantiate(input, params);
 

@@ -33,7 +33,6 @@ export default class TreeherderResultsetJob extends Base {
   }
 
   async work(job) {
-    try {
     let { repo, push } = job.data;
     let cred = this.credentials[repo.alias];
 
@@ -56,9 +55,6 @@ export default class TreeherderResultsetJob extends Base {
     // graph creation job...
     if (this.projects[repo.alias]) {
       await this.scheduleTaskGraphJob(resultset, repo, push);
-    }
-    } catch (e) {
-      console.log(e.stack, '<<!');
     }
   }
 }

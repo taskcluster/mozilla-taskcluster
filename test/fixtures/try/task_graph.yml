@@ -27,7 +27,7 @@ tasks:
         revision: '{{revision}}'
         revision_hash: '{{revision_hash}}'
         pushlog_id: '{{pushlog_id}}'
-        repository_url: '{{{repository_url}}}'
+        url: '{{{url}}}'
 
       metadata:
         name:       "Make Decision based on flags"

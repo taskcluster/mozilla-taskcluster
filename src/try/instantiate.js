@@ -42,6 +42,8 @@ export function relativeTime(time, to = new Date()) {
  *   comment:       'try: ...',          // Latest commit comment
  *   project:       'try',               // Treeherder project name
  *   revision_hash: '...',               // Revision hash for treeherder resultset
+ *   pushlog_id:    '...',               // Pushlog id based on json-pushes
+ *   url:           '...',               // Repository url
  * }
  *
  * In in addition to options provided above the following paramters is available
@@ -61,7 +63,7 @@ export default function instantiate(template, options) {
     revision_hash: Joi.string().required(),
     comment: Joi.string().default(""),
     pushlog_id: Joi.string().required(),
-    repository_url: Joi.string().required()
+    url: Joi.string().required()
   }));
 
   // Create label cache, so we provide the same slugids for the same label
@@ -93,7 +95,7 @@ export default function instantiate(template, options) {
     project: options.project,
     revision_hash: options.revision_hash,
     pushlog_id: options.pushlog_id,
-    repository_url: options.repository_url,
+    url: options.url,
     from_now: fromNow,
     as_slugid: asSlugId
   });

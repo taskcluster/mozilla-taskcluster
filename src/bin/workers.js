@@ -68,7 +68,7 @@ cli(async function main(runtime, config) {
   ));
 
   // Post task graphs...
-  runtime.jobs.process('taskcluser-graph', 100, work(
+  runtime.jobs.process('taskcluster-graph', 100, work(
     TaskclusterGraphJob,
     {
       runtime,
