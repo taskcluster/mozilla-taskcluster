@@ -10,9 +10,12 @@ export async function clear(runtime) {
   let active = await denodeify(jobs.active).call(jobs);
   let remove = denodeify(Jobs.remove.bind(Jobs));
 
+  // Note we don't really care about errors in this case as there are race
+  // conditions between when the workers complete tasks and when we attempt to
+  // clear them.
   await Promise.all(completed.concat(failed).concat(active).map((id) => {
     return remove(id);
-  }));
+  })).catch(() => {});
 }
 
 export async function stats(runtime) {

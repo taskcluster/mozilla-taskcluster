@@ -52,6 +52,6 @@ cli(async function main(runtime, config) {
   // Treeherder resultset pushes.
   let thCreds = JSON.parse(config.treeherder.credentials);
   runtime.jobs.process('treeherder-resultset', 100, work(
-    TreeherderResultsetJob.bind(this, thCreds, config.treeherder)
+    TreeherderResultsetJob.bind(this, runtime.jobs, thCreds, config.treeherder)
   ));
 });

@@ -2,7 +2,6 @@ import assert from 'assert';
 import eventToPromise from 'event-to-promise';
 import waitFor from '../wait_for';
 import testSetup from '../monitor';
-import * as kueUtils from '../kue';
 
 suite('jobs/publish_push', function() {
   let monitorSetup = testSetup('workers.js');
@@ -58,7 +57,5 @@ suite('jobs/publish_push', function() {
         return result;
       })
     );
-
-    await kueUtils.ensureFinished(this.runtime);
   });
 });

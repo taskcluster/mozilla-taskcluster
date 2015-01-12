@@ -122,7 +122,10 @@ suiteTeardown(async function() {
   let jobs = this.runtime.jobs;
 
   // Ensure listener is closed...
-  await this.listener.close(),
+  await Promise.all([
+    this.listener.close(),
+    this.runtime.db.destroy()
+  ]);
 
   // Ensure redis connection is shutdown...
   await denodeify(jobs.shutdown).call(jobs);

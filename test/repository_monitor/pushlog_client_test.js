@@ -1,5 +1,5 @@
 import Client from '../../src/repository_monitor/pushlog_client';
-import pushlog from './pushlog'
+import pushlog from '../pushlog'
 import assert from 'assert';
 
 suite('repository_monitor/pushlog_client', function() {

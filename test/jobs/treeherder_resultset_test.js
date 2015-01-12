@@ -2,7 +2,6 @@ import assert from 'assert';
 import eventToPromise from 'event-to-promise';
 import waitFor from '../wait_for';
 import testSetup from '../monitor';
-import * as kueUtils from '../kue';
 
 import createResultset from '../../src/treeherder/resultset';
 

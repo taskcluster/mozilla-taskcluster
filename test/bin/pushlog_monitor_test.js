@@ -69,8 +69,6 @@ suite('bin/pushlog_monitor_test.js', function() {
 
     let doc = await repos.findById(Repositories.hashUrl(monitorSetup.url));
     assert.equal(doc.lastChangeset, changesetsTwo[changesetsTwo.length - 1].node);
-
-    await kueUtils.ensureFinished(this.runtime, 2);
   });
 });
 

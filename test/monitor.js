@@ -1,11 +1,8 @@
 import pushlog from './pushlog';
-import collectionSetup from './collection';
 import createProc from './process';
 import kueUtils from './kue';
 
 export default function setup(...processes) {
-  collectionSetup();
-
   let results = {
     alias: 'try',
     pushlog: null,
@@ -20,17 +17,21 @@ export default function setup(...processes) {
 
   let repos, monitor, pushworker;
   suiteSetup(async function() {
-    repos = this.runtime.repositories;
-    await repos.create({
-      url: results.url,
-      alias: results.alias
-    });
+    try {
+      repos = this.runtime.repositories;
+      await repos.create({
+        url: results.url,
+        alias: results.alias
+      });
 
-    processes = ['pushlog_monitor.js'].concat(processes);
-    results.processes = await Promise.all(processes.map((path) => {
-      let r = createProc(path);
-      return r;
-    }));
+      processes = ['pushlog_monitor.js'].concat(processes);
+      results.processes = await Promise.all(processes.map((path) => {
+        let r = createProc(path);
+        return r;
+      }));
+    } catch (e) {
+      console.log('fucked up here', e, e.stack);
+    }
   });
 
   teardown(async function() {

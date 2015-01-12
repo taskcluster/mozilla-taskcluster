@@ -3,15 +3,13 @@ import * as Joi from 'joi';
 import uuid from 'uuid';
 import assert from 'assert';
 
-import collectionSetup from '../collection';
 import Repositories from '../../src/collections/repositories';
 
 suite('collections/repositories', function() {
-  collectionSetup(Repositories);
 
   let subject;
   setup(function() {
-    subject = new Repositories(this.connection);
+    subject = this.runtime.repositories;
   });
 
   test('create()', async function() {

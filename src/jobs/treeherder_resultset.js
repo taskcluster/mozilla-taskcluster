@@ -1,8 +1,9 @@
 import PushExchange from '../exchanges/push';
 import Treeherder from 'mozilla-treeherder/project';
 import formatResultset from '../treeherder/resultset';
+import denodeify from 'denodeify'
 
-export default async function(creds, config, job) {
+export default async function(jobs, creds, config, job) {
   let data = job.data;
   let cred = creds[data.repo.alias];
 
