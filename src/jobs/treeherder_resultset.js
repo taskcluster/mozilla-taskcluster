@@ -1,24 +1,64 @@
-import PushExchange from '../exchanges/push';
-import Treeherder from 'mozilla-treeherder/project';
 import formatResultset from '../treeherder/resultset';
 import denodeify from 'denodeify'
 
-export default async function(jobs, creds, config, job) {
-  let data = job.data;
-  let cred = creds[data.repo.alias];
+import PushExchange from '../exchanges/push';
+import Treeherder from 'mozilla-treeherder/project';
+import * as Joi from 'joi';
+import Base from './base';
 
-  if (!cred) {
-    throw new Error(
-      `Missing treeherder credentials for ${repo.alias} during push ${push.id}`
-    );
+export default class TreeherderResultsetJob extends Base {
+  constructor(opts = {}) {
+    super(opts);
+
+    // Treeherder repository credentials...
+    this.credentials = JSON.parse(this.config.treeherder.credentials);
+
+    // Project configuration (see projects.yml).
+    this.projects = this.config.try.projects;
   }
 
-  let project = new Treeherder(data.repo.alias, {
-    consumerKey: cred.consumer_key,
-    consumerSecret: cred.consumer_secret,
-    baseUrl: config.apiUrl
-  });
+  async scheduleTaskGraphJob(resultset, repo, push) {
+    // After we create the resultset it is safe to post over the taskcluster
+    // graph...
+    let job = this.createJob('taskcluster-graph', {
+      revision_hash: resultset.revision_hash,
+      repo,
+      push,
+    });
 
-  let resultset = formatResultset(data.repo.alias, data.push);
-  await project.postResultset([resultset]);
+    job.attempts(5);
+    job.searchKeys(['repo.alias', 'push.id']);
+    job.backoff({ type: 'exponential' });
+    await this.scheduleJob(job);
+  }
+
+  async work(job) {
+    try {
+    let { repo, push } = job.data;
+    let cred = this.credentials[repo.alias];
+
+    if (!cred) {
+      throw new Error(
+        `Missing treeherder credentials for ${repo.alias} during push ${push.id}`
+      );
+    }
+
+    let project = new Treeherder(repo.alias, {
+      consumerKey: cred.consumer_key,
+      consumerSecret: cred.consumer_secret,
+      baseUrl: this.config.treeherder.apiUrl
+    });
+
+    let resultset = formatResultset(repo.alias, push);
+    await project.postResultset([resultset]);
+
+    // If the repository has a project configuration schedule a task cluster
+    // graph creation job...
+    if (this.projects[repo.alias]) {
+      await this.scheduleTaskGraphJob(resultset, repo, push);
+    }
+    } catch (e) {
+      console.log(e.stack, '<<!');
+    }
+  }
 }

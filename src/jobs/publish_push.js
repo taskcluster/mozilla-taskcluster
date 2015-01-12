@@ -1,30 +1,42 @@
 import PushExchange from '../exchanges/push';
+import Base from './base';
+import * as Joi from 'joi';
 
-export default async function(publisher, job) {
-  let data = job.data;
-  let message = {
-    id: data.push.id,
-    url: data.repo.url,
-    alias: data.repo.alias,
-    date: new Date(data.push.date * 1000).toJSON(),
-    user: data.push.user,
-    changesets: data.push.changesets.map((cset) => {
-      return {
-        author: cset.author,
-        branch: cset.branch,
-        description: cset.desc,
-        files: cset.files,
-        node: cset.node,
-        tags: cset.tags
-      }
-    })
-  };
+export default class PushJob extends Base {
 
-  let routingKeys = {
-    alias: data.repo.alias
-  };
+  get configSchema() {
+    return {
+      publisher: Joi.object().required()
+    }
+  }
 
-  await publisher.publish(
-    PushExchange, routingKeys, message
-  );
+  async work(job) {
+    let { push, repo } = job.data;
+
+    let message = {
+      id: push.id,
+      url: repo.url,
+      alias: repo.alias,
+      date: new Date(push.date * 1000).toJSON(),
+      user: push.user,
+      changesets: push.changesets.map((cset) => {
+        return {
+          author: cset.author,
+          branch: cset.branch,
+          description: cset.desc,
+          files: cset.files,
+          node: cset.node,
+          tags: cset.tags
+        }
+      })
+    };
+
+    let routingKeys = {
+      alias: repo.alias
+    };
+
+    await this.publisher.publish(
+      PushExchange, routingKeys, message
+    );
+  }
 }

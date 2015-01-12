@@ -9,15 +9,19 @@ import publisher from '../publisher';
 
 import PushExchange from '../exchanges/push';
 import Monitor from '../repository_monitor/monitor';
+
 import PublishPushJob from '../jobs/publish_push';
 import TreeherderResultsetJob from '../jobs/treeherder_resultset';
+import TaskclusterGraphJob from '../jobs/taskcluster_graph';
 
 // Time allowed for running jobs to complete before killing...
 const KUE_SHUTDOWN_GRACE = 5000;
 
-function work(fn) {
+function work(jobClass, config = {}) {
+  let instance = new jobClass(config);
+
   return function(value, done) {
-    fn(value)
+    instance.work(value)
       .then((...args) => {
         done(null, ...args);
       })
@@ -42,16 +46,33 @@ cli(async function main(runtime, config) {
   });
 
   // Start interval promotion (should only run one of these)...
-  runtime.jobs.promote(config.treeherder.credentials);
+  runtime.jobs.promote();
 
   // Process the incoming pushes....
   runtime.jobs.process('publish-push', 100, work(
-    PublishPushJob.bind(this, commitPublisher)
+    PublishPushJob,
+    {
+      runtime,
+      config,
+      publisher: commitPublisher
+    }
   ));
 
-  // Treeherder resultset pushes.
-  let thCreds = JSON.parse(config.treeherder.credentials);
+  // Create resultsets on push...
   runtime.jobs.process('treeherder-resultset', 100, work(
-    TreeherderResultsetJob.bind(this, runtime.jobs, thCreds, config.treeherder)
+    TreeherderResultsetJob,
+    {
+      runtime,
+      config
+    }
+  ));
+
+  // Post task graphs...
+  runtime.jobs.process('taskcluser-graph', 100, work(
+    TaskclusterGraphJob,
+    {
+      runtime,
+      config
+    }
   ));
 });
