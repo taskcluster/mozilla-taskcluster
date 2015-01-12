@@ -1,4 +1,6 @@
 export default {
+  tryRoutePrefix: 'tc-try-test',
+
   kue: {
     prefix: 'test'
   },

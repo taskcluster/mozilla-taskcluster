@@ -5,7 +5,7 @@ import yaml from 'js-yaml';
 import fs from 'fs';
 
 // Import default repositories config.
-const TRY_CONFIG = `${__dirname}/../../repositories.yml`;
+const TRY_CONFIG = `${__dirname}/../../projects.yml`;
 
 export default {
   documentdb: {},

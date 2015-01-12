@@ -9,6 +9,10 @@ const TREEHERDER_API = 'https://treeherder.mozilla.org/api/';
 // Schema used to ensure we have all the correct configuration values prior to
 // running any more complex logic...
 let schema = Joi.object().keys({
+
+  tryRoutePrefix: Joi.string().required().default('tc-try').
+    description('Route prefix task graph submissions'),
+
   documentdb: Joi.object().keys({
     host: Joi.string().required().description('documentdb hostname'),
     key: Joi.string().required().description('master or secondary read/write key'),
