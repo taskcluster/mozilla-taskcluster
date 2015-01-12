@@ -17,21 +17,17 @@ export default function setup(...processes) {
 
   let repos, monitor, pushworker;
   suiteSetup(async function() {
-    try {
-      repos = this.runtime.repositories;
-      await repos.create({
-        url: results.url,
-        alias: results.alias
-      });
+    repos = this.runtime.repositories;
+    await repos.create({
+      url: results.url,
+      alias: results.alias
+    });
 
-      processes = ['pushlog_monitor.js'].concat(processes);
-      results.processes = await Promise.all(processes.map((path) => {
-        let r = createProc(path);
-        return r;
-      }));
-    } catch (e) {
-      console.log('fucked up here', e, e.stack);
-    }
+    processes = ['pushlog_monitor.js'].concat(processes);
+    results.processes = await Promise.all(processes.map((path) => {
+      let r = createProc(path);
+      return r;
+    }));
   });
 
   teardown(async function() {
