@@ -27,3 +27,9 @@ projects:
     # as locked down as possible.
     scopes:
       - "*"
+
+  alder:
+    scopes:
+      - "*"
+  b2g-inbound:
+  mozilla-central:
