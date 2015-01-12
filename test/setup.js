@@ -68,7 +68,7 @@ suiteSetup(async function() {
 
   // We use a custom config file based on src/config/test.js
   let config = require(__dirname + '/../src/config/test.js');
-  config.treeherder.apiUrl = `${dockerHost}:${thapiPort}/api/`;
+  config.treeherder.apiUrl = `http://${dockerHost}:${thapiPort}/api/`;
   config.redis.host = dockerHost;
   config.redis.port = redisPort;
   config.commitPublisher.connectionString =
@@ -101,6 +101,10 @@ suiteSetup(async function() {
   let commitPublisher = await publisher(this.config.commitPublisher);
   await commitPublisher.assertExchanges(PushExchange);
 
+  // We only need the connection to assert the exchanges after that we can
+  // shut it down...
+  await commitPublisher.close();
+
   let Client = taskcluster.createClient(commitPublisher.toSchema(
     PushExchange
   ));
@@ -117,5 +121,12 @@ suiteTeardown(async function() {
   let Jobs = this.runtime.kue.Job;
   let jobs = this.runtime.jobs;
 
-  await kueUtils.clear(this.runtime);
+  // Clear kue and ensure listener is closed...
+  await Promise.all([
+    this.listener.close(),
+    kueUtils.clear(this.runtime),
+  ]);
+
+  // Ensure redis connection is shutdown...
+  await denodeify(jobs.shutdown).call(jobs);
 });

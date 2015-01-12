@@ -1,4 +1,4 @@
-import pushlog from './repository_monitor/pushlog';
+import pushlog from './pushlog';
 import collectionSetup from './collection';
 import createProc from './process';
 
@@ -35,7 +35,7 @@ export default function setup(...processes) {
   suiteTeardown(async function() {
     await results.pushlog.stop();
     await results.processes.map((proc) => {
-      return proc;
+      return proc.kill();
     });
   });
 

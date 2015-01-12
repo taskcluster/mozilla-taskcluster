@@ -25,7 +25,7 @@ export default function start(name) {
       throw new Error(`Invalid (missing) binary ${binary}`);
     }
 
-    let config = `${__dirname}/../src/config/test.js`;
+    let config = `${__dirname}/test.json`;
 
     let proc = spawn(
       bin6to5,
