@@ -1,0 +1,13 @@
+documentdb:
+  database: treeherder-proxy-production
+
+config:
+  documentkey: production
+  files:
+    - production-treeherder-proxy.yml
+
+treeherderTaskcluster:
+  routePrefix: tc-treeherder
+
+kue:
+  prefix: production

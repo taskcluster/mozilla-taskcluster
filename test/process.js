@@ -1,6 +1,7 @@
 import eventToPromise from 'event-to-promise';
 import { spawn } from 'child_process';
 import fs from 'fs';
+import yaml from 'js-yaml';
 
 /**
 helper for running src/bin/* processes
@@ -25,11 +26,9 @@ export default function start(name) {
       throw new Error(`Invalid (missing) binary ${binary}`);
     }
 
-    let config = `${__dirname}/test.json`;
-
     let proc = spawn(
       bin6to5,
-      ['-r', binary, config],
+      ['-r', binary, 'test'],
       { stdio: 'pipe', env: process.env }
     );
 

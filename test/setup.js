@@ -7,6 +7,7 @@ import taskcluster from 'taskcluster-client';
 import fs from 'mz/fs';
 import * as kueUtils from './kue';
 import publisher from '../src/publisher';
+import yaml from 'js-yaml';
 import { exec } from 'mz/child_process';
 
 import URL from 'url';
@@ -14,7 +15,7 @@ import PushExchange from '../src/exchanges/push';
 import THProject from 'mozilla-treeherder/project';
 
 const FIG_ROOT = __dirname;
-const GENERATED_CONFIG = `${__dirname}/test.json`;
+const GENERATED_CONFIG = `${__dirname}/config.yml`;
 
 async function figPs() {
   let [stdout, stderr] = await exec('fig ps -q', {
@@ -67,7 +68,7 @@ suiteSetup(async function() {
   ]);
 
   // We use a custom config file based on src/config/test.js
-  let config = require(__dirname + '/../src/config/test.js');
+  let config = await loadConfig('test', { noRaise: true });
   config.treeherder.apiUrl = `http://${dockerHost}:${thapiPort}/api/`;
   config.redis.host = dockerHost;
   config.redis.port = redisPort;
@@ -75,9 +76,9 @@ suiteSetup(async function() {
     `amqp://${dockerHost}:${rabbitmqPort}`;
 
   // write out the custom config...
-  await fs.writeFile(GENERATED_CONFIG, JSON.stringify(config, null, 2));
+  await fs.writeFile(GENERATED_CONFIG, yaml.safeDump(config));
 
-  this.config = await loadConfig(GENERATED_CONFIG);
+  this.config = await loadConfig('test');
   this.runtime = await loadRuntime(this.config);
 
   // Note listener is for messages/exchanges we generate...

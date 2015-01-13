@@ -1,0 +1,13 @@
+documentdb:
+  database: treeherder-proxy-stage
+
+config:
+  documentkey: stage
+  files:
+    - stage-treeherder-proxy.yml
+
+treeherderTaskcluster:
+  routePrefix: tc-treeherder-stage
+
+kue:
+  prefix: stage

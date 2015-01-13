@@ -2,9 +2,20 @@ import { Provider } from 'nconf';
 import path from 'path';
 import fs from 'mz/fs';
 import denodeify from 'denodeify';
+import merge from 'lodash.merge';
+import yaml from 'js-yaml';
 import * as Joi from 'joi';
+import Debug from 'debug';
 
+const debug = Debug('config');
 const TREEHERDER_API = 'https://treeherder.mozilla.org/api/';
+
+async function loadYaml(location) {
+  let resolved = path.resolve(location);
+  let content = await fs.readFile(resolved, 'utf8');
+
+  return yaml.safeLoad(content);
+}
 
 // Schema used to ensure we have all the correct configuration values prior to
 // running any more complex logic...
@@ -15,13 +26,23 @@ let schema = Joi.object().keys({
     database: Joi.string().required().description('database name')
   }),
 
+  config: Joi.object().keys({
+    documentkey: Joi.string().
+      description('documentdb key of location to fetch additional configs'),
+
+    files: Joi.array().includes(Joi.string()).
+      description('list of additional files to load / merge')
+  }),
+
   treeherderProxy: Joi.object().keys({
-    port: Joi.number().default(process.env.PORT || 60025)
+    port: Joi.number().required()
   }),
 
   treeherder: Joi.object().keys({
-    apiUrl: Joi.string().default(TREEHERDER_API),
-    credentials: Joi.string().
+    apiUrl: Joi.string().required().
+      description('location of treeherder api (must end in /api/)'),
+
+    credentials: Joi.string().required().
       description('entire treeherder/etl/data/credentials.json file')
   }),
 
@@ -29,7 +50,7 @@ let schema = Joi.object().keys({
     routePrefix: Joi.string().required().
       description('routing key prefix for taskcluster-treehreder'),
     queue: Joi.string(),
-    prefetch: 100
+    prefetch: Joi.number().required()
   }),
 
   taskcluster: Joi.object().keys({
@@ -67,13 +88,13 @@ let schema = Joi.object().keys({
   }).unknown(true),
 
   repositoryMonitor: Joi.object().keys({
-    interval: Joi.number().default(2000).
+    interval: Joi.number().required().
       description(`
         Interval between when checking invidual repositories. When repositories
         are busy no checking occurs.
       `),
 
-    maxPushFetches: Joi.number().default(200).
+    maxPushFetches: Joi.number().required().
       description(`
         Number of missing pushes to fetch if current push id < then current
         changelog push id (most recent N are fetched in ascending order).
@@ -90,39 +111,40 @@ let schema = Joi.object().keys({
 
   commitPublisher: Joi.object().keys({
     connectionString: Joi.string().required(),
-    exchangePrefix: Joi.string(),
-    title: Joi.string().trim().default(`
-      Pushlog Commit Events
-    `),
-    description: Joi.string().default(`
-      The pushlog events can be used to hook various other components into
-      the act of commiting to a particuar repository (usually to kick off tests)
-      this exchange is hopefuly a short lived thing which abstracts polling the
-      pushlog for new data.
-
-      Pushes will be monitored (via polling) and events will be sent as new data
-      is available. If for some reason the service goes down previous commits
-      will also be fetched and any missing data (up to a particular amount) will
-      be sent as events...
-    `)
+    exchangePrefix: Joi.string().required(),
+    title: Joi.string().trim().required(),
+    description: Joi.string().required()
   })
 }).unknown(true);
 
-export default async function load(file) {
-  // Fallback to one of our preconfiged files...
-  if (!await fs.exists(file)) {
-    file = path.join(__dirname, 'config', file);
+export default async function load(profile, options = {}) {
+  let defaultConfig =
+    await loadYaml(path.join(__dirname, 'config', 'default.yml'));
+  let profileConfig =
+    await loadYaml(path.join(__dirname, 'config', `${profile}.yml`));
+
+  let baseConfig = merge({}, defaultConfig, profileConfig);
+
+  // extend the base config with additional parameters from files...
+  let extraYamlConfigFiles = (baseConfig.config.files || []);
+  debug('Loading additional configs', extraYamlConfigFiles);
+  for (let yamlConfigFile of extraYamlConfigFiles) {
+    // Convert the path to be relative to the root of the project...
+    let yamlConfigPath = path.join(__dirname, '..', yamlConfigFile);
+
+    // Skip any config files which do not exist they are not required...
+    if (!await fs.exists(yamlConfigPath)) {
+      debug('skip config', yamlConfigPath);
+      continue;
+    }
+
+    let config = await loadYaml(yamlConfigPath);
+    baseConfig = merge(baseConfig, config);
+    debug('added config', yamlConfigPath);
   }
 
-  let baseName = path.basename(file).split('.')[0];
-  let conf = new Provider().
-    file(path.join(process.cwd(), `${baseName}-treeherder-proxy.json`)).
-    overrides(require(file)).
-    defaults(require('./config/default'));
-
-  let initial = await denodeify(conf.load.bind(conf))();
   let result = Joi.validate(
-    initial,
+    baseConfig,
     schema,
     {
       context: {
@@ -131,7 +153,7 @@ export default async function load(file) {
     }
   );
 
-  if (result.error) {
+  if (!options.noRaise && result.error) {
     // Annotate give us _really_ pretty error messages.
     throw new Error(result.error.annotate());
   }
