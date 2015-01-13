@@ -116,6 +116,7 @@ if [ -e "$DEPLOYMENT_TARGET/package.json" ]; then
   cd "$DEPLOYMENT_TARGET"
   # NOTE: --ignore-scripts used to avoid trying to run node-gyp...
   eval $NPM_CMD install --production --ignore-scripts
+  eval $NPM_CMD run-script prepublish
   exitWithMessageOnError "npm failed"
   cd - > /dev/null
 fi
