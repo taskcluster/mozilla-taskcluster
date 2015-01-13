@@ -166,8 +166,6 @@ export default async function load(profile, options = {}) {
     }
   );
 
-  console.log(process.env);
-  console.log(JSON.stringify(result.value, null, 2));
   if (!options.noRaise && result.error) {
     // Annotate give us _really_ pretty error messages.
     throw new Error(result.error.annotate());

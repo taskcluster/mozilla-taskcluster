@@ -15,18 +15,17 @@ export default function setup(...processes) {
     results.url = results.pushlog.url;
   });
 
-  let repos, monitor, pushworker;
+  let repos, monitor, pushworker, repo;
   suiteSetup(async function() {
     repos = this.runtime.repositories;
-    await repos.create({
+    repo = await repos.create({
       url: results.url,
       alias: results.alias
     });
 
     processes = ['pushlog_monitor.js'].concat(processes);
     results.processes = await Promise.all(processes.map((path) => {
-      let r = createProc(path);
-      return r;
+      return createProc(path);
     }));
   });
 
@@ -37,6 +36,7 @@ export default function setup(...processes) {
   });
 
   suiteTeardown(async function() {
+    await repos.remove(repo.id);
     await results.pushlog.stop();
     await results.processes.map((proc) => {
       return proc.kill();

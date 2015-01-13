@@ -11,7 +11,8 @@ export default class PushJob extends Base {
   }
 
   async work(job) {
-    let { push, repo } = job.data;
+    let { pushref, repo } = job.data;
+    let push = await this.runtime.pushlog.getOne(repo.url, pushref.id);
 
     let message = {
       id: push.id,
@@ -40,3 +41,4 @@ export default class PushJob extends Base {
     );
   }
 }
+

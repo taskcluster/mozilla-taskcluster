@@ -18,14 +18,14 @@ export default class TreeherderResultsetJob extends Base {
     this.projects = this.config.try.projects;
   }
 
-  async scheduleTaskGraphJob(resultset, repo, push) {
+  async scheduleTaskGraphJob(resultset, repo, pushref) {
     // After we create the resultset it is safe to post over the taskcluster
     // graph...
     let job = this.createJob('taskcluster-graph', {
       title: `Create graph ${repo.alias}@${resultset.revision_hash}`,
       revision_hash: resultset.revision_hash,
       repo,
-      push,
+      pushref,
     });
 
     job.attempts(10);
@@ -35,8 +35,9 @@ export default class TreeherderResultsetJob extends Base {
   }
 
   async work(job) {
-    let { repo, push } = job.data;
+    let { repo, pushref } = job.data;
     let cred = this.credentials[repo.alias];
+    let push = await this.runtime.pushlog.getOne(repo.url, pushref.id);
 
     if (!cred) {
       job.log('No credentials for %s skipping', repo.alias);
@@ -55,7 +56,7 @@ export default class TreeherderResultsetJob extends Base {
     // If the repository has a project configuration schedule a task cluster
     // graph creation job...
     if (this.projects[repo.alias]) {
-      await this.scheduleTaskGraphJob(resultset, repo, push);
+      await this.scheduleTaskGraphJob(resultset, repo, pushref);
     }
   }
 }

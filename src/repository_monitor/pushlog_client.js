@@ -101,6 +101,11 @@ export default class PushlogClient {
     return this.formatBody(res.body);
   }
 
+  async getOne(url, id) {
+    let res = await this.get(url, id - 1, id);
+    return res.pushes[0];
+  }
+
   /**
   Iterate through all pushlog entires in chunks to not overload server.
 

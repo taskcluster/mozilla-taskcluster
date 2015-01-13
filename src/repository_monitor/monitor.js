@@ -75,7 +75,7 @@ export default class Monitor {
 
         let body = {
           repo,
-          push,
+          pushref: { id: push.id },
           title: title
         };
 

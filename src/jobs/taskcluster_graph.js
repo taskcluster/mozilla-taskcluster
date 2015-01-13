@@ -30,7 +30,8 @@ function parseUrl(url) {
 
 export default class TaskclusterGraphJob extends Base {
   async work(job) {
-    let { revision_hash, push, repo } = job.data;
+    let { revision_hash, pushref, repo } = job.data;
+    let push = await this.runtime.pushlog.getOne(repo.url, pushref.id);
     let tryConfig = this.config.try;
     let lastChangeset = push.changesets[push.changesets.length - 1];
 
