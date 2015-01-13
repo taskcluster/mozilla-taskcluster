@@ -84,6 +84,9 @@ export default class TaskclusterGraphJob extends Base {
       authorizedScopes: scopes
     });
 
+    // Assign maximum level of scopes to the graph....
+    graph.scopes = scopes;
+
     job.log('Posting job with id %s and scopes', id, graph.scopes.join(', '));
     await scheduler.createTaskGraph(id, graph);
   }
