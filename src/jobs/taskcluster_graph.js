@@ -72,7 +72,8 @@ export default class TaskclusterGraphJob extends Base {
       revision_hash,
       comment: lastChangeset.desc,
       pushlog_id: String(push.id),
-      url: repo.url
+      url: repo.url,
+      importScopes: true
     });
 
     let id = slugid.v4();

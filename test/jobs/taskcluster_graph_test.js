@@ -7,7 +7,7 @@ import taskcluster from 'taskcluster-client';
 import fs from 'mz/fs';
 import yaml from 'js-yaml';
 
-suite('jobs/publish_push', function() {
+suite('jobs/taskcluster_graph', function() {
   let monitorSetup = testSetup('workers.js');
   let changeset = slugid.v4();
 

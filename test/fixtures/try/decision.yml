@@ -1,11 +1,11 @@
 scopes:
-  - 'queue:create-task:testme/testme'
   - 'queue:define-task:testme/testme'
-  - 'queue:route:testme.{{ project  }}.{{ revision }}'
 tasks:
   # A decision task
   - taskId:           '{{#as_slugid}}decision-task{{/as_slugid}}'
     task:
+      scopes:
+        - 'queue:route:testme.{{ project  }}.{{ revision }}'
       routes:
         - 'testme.{{ project  }}.{{ revision }}'
       provisionerId:  testme

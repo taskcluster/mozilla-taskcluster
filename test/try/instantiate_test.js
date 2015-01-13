@@ -74,7 +74,7 @@ suite('instantiate', function() {
     assert(d3.getTime() === d2.getTime(), "Wrong date");
   });
 
-  test('instantiate task-graph.yml', function() {
+  test('instantiate task-graph.yml', async function() {
     // Load input file
     let input = fs.readFileSync(
       path.join(__dirname, '..', 'fixtures', 'try', 'task_graph.yml'), {
@@ -91,7 +91,10 @@ suite('instantiate', function() {
       pushlog_id:    '1',
       url: 'http://xfoobar.com'
     };
-    let taskGraph = instantiate(input, params);
+    let taskGraph = instantiate(input, Object.assign(
+      { importScopes: true },
+      params
+    ));
 
 
     // Do a little smoke testing
@@ -105,9 +108,8 @@ suite('instantiate', function() {
 
     // Create taskGraphId
     let taskGraphId = slugid.v4();
-
     debug("Creating taskGraphId: %s", taskGraphId);
-    return this.scheduler.createTaskGraph(taskGraphId, taskGraph);
+    await this.scheduler.createTaskGraph(taskGraphId, taskGraph);
   });
 });
 

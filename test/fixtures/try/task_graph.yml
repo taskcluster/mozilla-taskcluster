@@ -1,10 +1,13 @@
 scopes:
   - 'queue:define-task:aws-provisioner/v2'
-  - 'queue:route:xyz.{{ project  }}.{{ revision_hash }}'
+  # Note that the queue:route scope is not present here this is to test the
+  # importing of scopes from tasks into the graph level...
 tasks:
   # A decision task
   - taskId:           '{{#as_slugid}}decision-task{{/as_slugid}}'
     task:
+      scopes:
+        - 'queue:route:xyz.{{ project  }}.{{ revision_hash }}'
       routes:
         - 'xyz.{{ project  }}.{{ revision_hash }}'
       provisionerId:  aws-provisioner
