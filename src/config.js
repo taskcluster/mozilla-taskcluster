@@ -152,6 +152,7 @@ export default async function load(profile, options = {}) {
   if (baseConfig.config.documentkey) {
     let con = new Connection(baseConfig.documentdb);
     let configCollection = new Config(con);
+    debug('fetching document', baseConfig.config.documentkey);
     let doc = await configCollection.findById(baseConfig.config.documentkey);
     baseConfig = merge(baseConfig, doc);
   }
