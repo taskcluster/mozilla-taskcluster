@@ -24,6 +24,7 @@ suite('collections/repositories', function() {
     let found = await subject.findById(expected);
     assert.equal(create.lastPushId, 0);
     assert.equal(found._self, create._self);
+    await subject.remove(expected.id);
   });
 });
 
