@@ -120,11 +120,13 @@ let schema = Joi.object().keys({
 }).unknown(true);
 
 export default async function load(profile, options = {}) {
-  let defaultConfig =
-    await loadYaml(path.join(__dirname, 'config', 'default.yml'));
+  let defaultConfig = await loadYaml(
+    path.join(__dirname, '..', 'src', 'config', 'default.yml')
+  );
 
-  let profileConfig =
-    await loadYaml(path.join(__dirname, 'config', `${profile}.yml`));
+  let profileConfig = await loadYaml(
+    path.join(__dirname, '..', 'src', 'config', `${profile}.yml`)
+  );
 
   let baseConfig = merge({}, defaultConfig, profileConfig);
 
