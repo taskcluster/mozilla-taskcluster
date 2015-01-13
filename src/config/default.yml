@@ -53,28 +53,20 @@ try:
   # Default scopes to use for projects which have no specific scopes of their own.
   defaultScopes:
     - queue:*
-    - scheduler:create-task-graph:*
+    - docker-worker:*
+    - scheduler:*
 
   projects:
     # Try is the definitive example:
-    try: # Note the keys match the "alias" which treeherder defines.
+    try: {} # Note the keys match the "alias" which treeherder defines.
       # The url overrides the default url mapping and may include same mustache
       # parameters...
       # url: ...
 
       # The graph will be restricted to the following scopes this should ideally be
       # as locked down as possible.
-      scopes:
-        - "*"
+      # scopes: []
 
-    alder:
-      scopes:
-        - "*"
-
-    b2g-inbound:
-      scopes:
-        - "*"
-
-    mozilla-central:
-      scopes:
-        - "*"
+    alder: {}
+    b2g-inbound: {}
+    mozilla-central: {}
