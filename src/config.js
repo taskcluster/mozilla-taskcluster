@@ -23,10 +23,8 @@ async function loadYaml(location) {
 // running any more complex logic...
 let schema = Joi.object().keys({
   documentdb: Joi.object().keys({
-    host: Joi.string().description('documentdb hostname').
-      default(Joi.ref('$env.DOCUMENTDB_HOST')),
-    key: Joi.string().description('master or secondary read/write key').
-      default(Joi.ref('$env.DOCUMENTDB_KEY')),
+    host: Joi.string().description('documentdb hostname'),
+    key: Joi.string().description('master or secondary read/write key'),
     database: Joi.string().required().description('database name')
   }),
 
@@ -154,7 +152,6 @@ export default async function load(profile, options = {}) {
   if (baseConfig.config.documentkey) {
     let con = new Connection(baseConfig.documentdb);
     let configCollection = new Config(con);
-
     let doc = await configCollection.findById(baseConfig.config.documentkey);
     baseConfig = merge(baseConfig, doc);
   }
@@ -169,6 +166,8 @@ export default async function load(profile, options = {}) {
     }
   );
 
+  console.log(process.env);
+  console.log(JSON.stringify(result.value, null, 2));
   if (!options.noRaise && result.error) {
     // Annotate give us _really_ pretty error messages.
     throw new Error(result.error.annotate());
