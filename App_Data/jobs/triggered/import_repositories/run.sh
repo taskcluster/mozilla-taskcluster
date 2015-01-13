@@ -1,6 +1,6 @@
 #! /bin/bash
 
+echo 'starting .... do things!'
 set -ex
-DEBUG=* node.exe $WEBROOT_PATH/build/bin/import_repositories.js $CONFIG_TYPE
-
-
+export DEBUG=*
+node.exe $WEBROOT_PATH/build/bin/import_repositories.js $CONFIG_TYPE
