@@ -10,7 +10,7 @@ suite('test fixtures', function() {
     let changesets = require(`${FIXTURE_PREFIX}/${revisionHash}/push.json`);
     let push = {
       date: Date.now() / 1000,
-      author: 'me',
+      user: 'me',
       changesets
     }
 
@@ -18,7 +18,7 @@ suite('test fixtures', function() {
       let result = createResultset('try', push);
       assert.equal(result.revision_hash, revisionHash);
 
-      assert.equal(result.author, push.author);
+      assert.equal(result.author, push.user);
 
       let expectedChangesets = changesets.map((c) => {
         return {

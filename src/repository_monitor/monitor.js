@@ -10,6 +10,9 @@ import denodeify from 'denodeify';
 
 import PushlogClient from './pushlog_client';
 
+// 20 seconds...
+const JOB_RETRY_DELAY = 1000 * 30;
+
 let debug = Debug('treeherder-proxy:monitor');
 
 // Behold! The singleton this is done mostly to benefit form the maximum amount
@@ -20,9 +23,9 @@ let pushlog = new PushlogClient();
 // monitor.
 async function schedulePush(jobs, topic, body) {
   let msg = jobs.create(topic, body).
-    attempts(5).
+    attempts(30).
     searchKeys(['repo.alias']).
-    backoff({ type: 'exponential' });
+    backoff({ type: 'exponential', delay: JOB_RETRY_DELAY });
 
   await denodeify(msg.save.bind(msg))();
 }

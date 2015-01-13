@@ -21,14 +21,15 @@ export default class TreeherderResultsetJob extends Base {
     // After we create the resultset it is safe to post over the taskcluster
     // graph...
     let job = this.createJob('taskcluster-graph', {
+      title: `Create graph ${repo.alias}@${resultset.revision_hash}`,
       revision_hash: resultset.revision_hash,
       repo,
       push,
     });
 
-    job.attempts(5);
+    job.attempts(10);
     job.searchKeys(['repo.alias', 'push.id']);
-    job.backoff({ type: 'exponential' });
+    job.backoff({ type: 'exponential', delay: 1000 * 30 });
     await this.scheduleJob(job);
   }
 
@@ -37,9 +38,8 @@ export default class TreeherderResultsetJob extends Base {
     let cred = this.credentials[repo.alias];
 
     if (!cred) {
-      throw new Error(
-        `Missing treeherder credentials for ${repo.alias} during push ${push.id}`
-      );
+      job.log('No credentials for %s skipping', repo.alias);
+      return;
     }
 
     let project = new Treeherder(repo.alias, {

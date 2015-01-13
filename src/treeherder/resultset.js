@@ -17,7 +17,7 @@ export default function format(repository, push) {
   let result = {
     push_timestamp: push.date,
     revisions: [],
-    author: push.author,
+    author: push.user,
     active_status: push.active_status || 'active'
   };
 

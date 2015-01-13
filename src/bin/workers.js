@@ -59,7 +59,7 @@ cli(async function main(runtime, config) {
   ));
 
   // Create resultsets on push...
-  runtime.jobs.process('treeherder-resultset', 100, work(
+  runtime.jobs.process('treeherder-resultset', 50, work(
     TreeherderResultsetJob,
     {
       runtime,

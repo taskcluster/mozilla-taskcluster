@@ -55,7 +55,7 @@ export default class TaskclusterGraphJob extends Base {
       host: repositoryUrlParts.host
     });
 
-    job.log('Fetching url (%s) for %s push id %d ', url, repo.alais, push.id);
+    job.log('Fetching url (%s) for %s push id %d ', url, repo.alias, push.id);
 
     let rawGraphReq = await request.get(url).
       buffer(true).
@@ -64,7 +64,7 @@ export default class TaskclusterGraphJob extends Base {
     if (rawGraphReq.error) throw rawGraphReq.error;
 
     let graph = instantiate(rawGraphReq.text, {
-      owner: lastChangeset.author,
+      owner: push.user,
       source: url,
       revision: lastChangeset.node,
       project: repo.alias,
