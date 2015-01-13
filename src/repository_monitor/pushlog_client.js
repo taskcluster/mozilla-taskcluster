@@ -3,7 +3,7 @@ import urljoin from 'urljoin';
 import { Agent as HttpsAgent } from 'https';
 import { Agent as HttpAgent } from 'http';
 import Debug from 'debug';
-import * as Joi from 'joi';
+let Joi = require('joi');
 
 let debug = Debug('repository_monitor:pushlog_client');
 let ITERATE_CHUNKS = 10;

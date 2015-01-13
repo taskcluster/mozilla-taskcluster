@@ -1,10 +1,11 @@
 import exchange from '../src/exchange';
 import publisher from '../src/publisher';
-import * as Joi from 'joi';
 import toJSONSchema from 'joi-to-json-schema';
 import assert from 'assert';
 import { createClient, AMQPListener } from 'taskcluster-client';
 import waitFor from './wait_for';
+
+let Joi = require('joi');
 
 suite('publisher', function() {
 

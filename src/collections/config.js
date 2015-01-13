@@ -1,5 +1,5 @@
 import { Collection } from '../db';
-import * as Joi from 'joi';
+let Joi = require('joi');
 
 /**
 Contains configuration details for different environments...

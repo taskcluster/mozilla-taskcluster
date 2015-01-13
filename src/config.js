@@ -3,7 +3,7 @@ import fs from 'mz/fs';
 import denodeify from 'denodeify';
 import merge from 'lodash.merge';
 import yaml from 'js-yaml';
-import * as Joi from 'joi';
+let Joi = require('joi');
 
 import { Connection } from './db';
 import Debug from 'debug';

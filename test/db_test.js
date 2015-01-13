@@ -1,9 +1,10 @@
 import * as subject from '../src/db';
-import * as Joi from 'joi';
 import docdb from 'documentdb-q-promises';
 
 import uuid from 'uuid';
 import assert from 'assert';
+
+let Joi = require('joi');
 
 suite('db', function() {
   class Data extends subject.Collection {
@@ -26,11 +27,11 @@ suite('db', function() {
       { masterKey: this.config.documentdb.key }
     );
 
-    connection = new subject.Connection(
-      db,
-      this.config.documentdb.host,
-      { masterKey: this.config.documentdb.key }
-    );
+    connection = new subject.Connection({
+      database: db,
+      host: this.config.documentdb.host,
+      key: this.config.documentdb.key
+    });
 
     data = new Data(connection);
   });

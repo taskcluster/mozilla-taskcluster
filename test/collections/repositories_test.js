@@ -1,9 +1,10 @@
 import db from '../../src/db';
-import * as Joi from 'joi';
 import uuid from 'uuid';
 import assert from 'assert';
 
 import Repositories from '../../src/collections/repositories';
+
+let Joi = require('joi');
 
 suite('collections/repositories', function() {
 

@@ -1,10 +1,11 @@
-import * as Joi from 'joi';
 import slugid from 'slugid';
 import yaml from 'js-yaml';
 import mustache from 'mustache';
 
 // Regular expression matching: X days Y hours Z minutes
 let timeExp = /^(\s*(\d+)\s*d(ays?)?)?(\s*(\d+)\s*h(ours?)?)?(\s*(\d+)\s*m(in(utes?)?)?)?\s*$/;
+
+let Joi = require('joi');
 
 /** Parse time string */
 export function parseTime(str) {

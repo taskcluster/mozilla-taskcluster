@@ -1,11 +1,9 @@
-import * as Joi from 'joi';
 import assert from 'assert';
-import denodeify from 'denodeify';
 import * as docdb from 'documentdb-q-promises';
 import Debug from 'debug';
 
+let Joi = require('joi');
 let debug = Debug('taskcluster-proxy:db');
-let validate = denodeify(Joi.validate.bind(Joi));
 
 function sleep(n) {
   return new Promise((accept) => {
@@ -51,7 +49,9 @@ export class Collection {
   }
 
   async validateDocument(doc) {
-    return await validate(doc, this.schema);
+    let res = Joi.validate(doc, this.schema);
+    if (res.error) throw res.error;
+    return res.value;
   }
 
   async findById(id, opts={}) {

@@ -2,12 +2,12 @@
 AMQP Publisher
 */
 
-import * as Joi from 'joi';
 import Exchange from './exchange';
 import amqplib from 'amqplib';
 import toJSONSchema from 'joi-to-json-schema';
 import Debug from 'debug';
 
+let Joi = require('joi');
 let debug = Debug('publisher');
 
 class Publisher {

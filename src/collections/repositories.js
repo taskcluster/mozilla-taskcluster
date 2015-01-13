@@ -1,6 +1,6 @@
 import { Collection } from '../db';
-import * as Joi from 'joi';
 import { createHash } from 'crypto';
+let Joi = require('joi');
 
 /**
 The repositories collection contains the list of all repositories which should

@@ -1,6 +1,6 @@
 import PushExchange from '../exchanges/push';
 import Base from './base';
-import * as Joi from 'joi';
+let Joi = require('joi');
 
 export default class PushJob extends Base {
 

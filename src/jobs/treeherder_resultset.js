@@ -3,8 +3,9 @@ import denodeify from 'denodeify'
 
 import PushExchange from '../exchanges/push';
 import Treeherder from 'mozilla-treeherder/project';
-import * as Joi from 'joi';
 import Base from './base';
+
+let Joi = require('joi');
 
 export default class TreeherderResultsetJob extends Base {
   constructor(opts = {}) {

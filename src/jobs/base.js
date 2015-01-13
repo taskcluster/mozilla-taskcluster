@@ -1,5 +1,5 @@
-import * as Joi from 'joi';
 import denodeify from 'denodeify';
+let Joi = require('joi');
 
 /**
 Base class to wrap basic behaviours of every job.

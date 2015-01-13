@@ -1,4 +1,4 @@
-import * as Joi from 'joi';
+let Joi = require('joi');
 
 export default class Exchange {
   constructor(exchange) {
