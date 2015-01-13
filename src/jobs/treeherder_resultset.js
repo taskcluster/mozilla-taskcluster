@@ -56,6 +56,7 @@ export default class TreeherderResultsetJob extends Base {
     // If the repository has a project configuration schedule a task cluster
     // graph creation job...
     if (this.projects[repo.alias]) {
+      job.log('scheduling taskcluster jobs');
       await this.scheduleTaskGraphJob(resultset, repo, pushref);
     }
   }
