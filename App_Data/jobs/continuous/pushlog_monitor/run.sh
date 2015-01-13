@@ -1,4 +1,4 @@
 #! /bin/bash
 
 set -ex
-env
+DEBUG=* node.exe $WEBROOT_PATH/build/bin/pushlog_monitor.js production.js
