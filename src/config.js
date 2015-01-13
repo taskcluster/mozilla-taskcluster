@@ -23,8 +23,10 @@ async function loadYaml(location) {
 // running any more complex logic...
 let schema = Joi.object().keys({
   documentdb: Joi.object().keys({
-    host: Joi.string().required().description('documentdb hostname'),
-    key: Joi.string().required().description('master or secondary read/write key'),
+    host: Joi.string().description('documentdb hostname').
+      default(Joi.ref('$env.DOCUMENTDB_HOST')),
+    key: Joi.string().description('master or secondary read/write key').
+      default(Joi.ref('$env.DOCUMENTDB_KEY')),
     database: Joi.string().required().description('database name')
   }),
 
