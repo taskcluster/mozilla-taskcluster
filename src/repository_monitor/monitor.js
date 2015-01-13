@@ -68,7 +68,7 @@ export default class Monitor {
 
         let titleId = '(unknown)';
         if (push.changesets && push.changesets[0]) {
-          titleId = push.changesets[0].node;
+          titleId = push.changesets[0];
         }
 
         let title = `Push ${push.id} for ${repo.alias} cset ${titleId}`;

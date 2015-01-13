@@ -87,22 +87,28 @@ export default class PushlogClient {
   /**
   Issue a get request for a particular repository
   */
-  async get(url, start=0, end=1) {
+  async get(url, start=0, end=1, full=false) {
     Joi.assert(url, Joi.string().required(), 'must pass url');
     debug('get', url, start, end);
     let pushUrl = urljoin(url, '/json-pushes/');
+    let query = { version: 2, startID: start, endID: end };
+
+    if (full) {
+      query.full = 1;
+    }
+
     let req = request.
                 get(pushUrl).
                 agent(this.selectAgent(url)).
-                query({ version: 2, full: 1, startID: start, endID: end });
+                query(query);
 
     let res = await req.end();
     if (res.error) throw res.error;
     return this.formatBody(res.body);
   }
 
-  async getOne(url, id) {
-    let res = await this.get(url, id - 1, id);
+  async getOne(url, id, full=true) {
+    let res = await this.get(url, id - 1, id, full);
     return res.pushes[0];
   }
 
