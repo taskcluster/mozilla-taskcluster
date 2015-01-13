@@ -162,16 +162,19 @@ export class Connection {
   /**
   Create a connection to documentdb...
   */
-  constructor(database, host, options={}) {
+  constructor(options={}) {
     Joi.assert(options, Joi.object().keys({
-      masterKey: Joi.string().required()
+      database: Joi.string().required(),
+      host: Joi.string().required(),
+      key: Joi.string().required()
     }));
-    Joi.assert(host, Joi.string());
 
-    this.id = database;
-    this.host = host;
+    this.id = options.database;
+    this.host = options.host;
 
-    this.client = new docdb.DocumentClientWrapper(host, options);
+    this.client = new docdb.DocumentClientWrapper(this.host, {
+      masterKey: options.key
+    });
     this.links = { database: null, collections: {} };
   }
 

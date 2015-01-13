@@ -1,11 +1,13 @@
-import { Provider } from 'nconf';
 import path from 'path';
 import fs from 'mz/fs';
 import denodeify from 'denodeify';
 import merge from 'lodash.merge';
 import yaml from 'js-yaml';
 import * as Joi from 'joi';
+
+import { Connection } from './db';
 import Debug from 'debug';
+import Config from './collections/config';
 
 const debug = Debug('config');
 const TREEHERDER_API = 'https://treeherder.mozilla.org/api/';
@@ -120,6 +122,7 @@ let schema = Joi.object().keys({
 export default async function load(profile, options = {}) {
   let defaultConfig =
     await loadYaml(path.join(__dirname, 'config', 'default.yml'));
+
   let profileConfig =
     await loadYaml(path.join(__dirname, 'config', `${profile}.yml`));
 
@@ -141,6 +144,15 @@ export default async function load(profile, options = {}) {
     let config = await loadYaml(yamlConfigPath);
     baseConfig = merge(baseConfig, config);
     debug('added config', yamlConfigPath);
+  }
+
+  // Load additional configuration from the database...
+  if (baseConfig.config.documentkey) {
+    let con = new Connection(baseConfig.documentdb);
+    let configCollection = new Config(con);
+
+    let doc = await configCollection.findById(baseConfig.config.documentkey);
+    baseConfig = merge(baseConfig, doc);
   }
 
   let result = Joi.validate(

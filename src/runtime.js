@@ -5,12 +5,7 @@ import kue from 'kue';
 import Repos from './collections/repositories';
 
 export default async function(config) {
-  let db = new Connection(
-    config.documentdb.database,
-    config.documentdb.host,
-    { masterKey: config.documentdb.key }
-  );
-
+  let db = new Connection(config.documentdb);
   let jobs = kue.createQueue({
     prefix: config.kue.prefix,
     redis: config.redis

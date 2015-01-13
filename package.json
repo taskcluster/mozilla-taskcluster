@@ -39,7 +39,6 @@
     "mozilla-treeherder": "^0.4.2",
     "mustache": "^1.0.0",
     "mz": "^1.2.0",
-    "nconf": "^0.7.1",
     "promise": "^6.0.1",
     "slugid": "^1.0.3",
     "superagent": "^0.21.0",
