@@ -285,12 +285,13 @@ class Handler {
       // with no run...
       payload.status.runs[payload.runId] || { runId: 0 }
     );
-
-    await treeherderProject.postJobs([{
+    let result = [{
       revision_hash: revisionHash,
       project,
       job
-    }]);
+    }];
+    console.log(JSON.stringify(result, null, 2));
+    await treeherderProject.postJobs(result);
   }
 }
 
