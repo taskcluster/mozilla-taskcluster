@@ -35,7 +35,10 @@ const SCHEMA = Joi.object().keys({
   groupName: Joi.string().
     description('Treeherder group name (seen when hovering over group symbol)'),
   groupSymbol: Joi.string().
-    description('Treeherder group symbol'),
+    description('Treeherder group symbol').
+    // If the default is not set to ? 'unknown' is used in the UI which will
+    // trigger that to be displayed when ? is used no extra UI is present.
+    default('?'),
   productName: Joi.string().
     description('TODO: Figure out what this is for'),
 
