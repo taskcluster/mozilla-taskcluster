@@ -9,6 +9,8 @@ import slugid from 'slugid';
 import TreeherderHelper from '../treeherder';
 import TaskclusterHelper from '../taskcluster';
 
+let Joi = require('joi');
+
 
 suite('bin/treeherder_taskcluster.js', function() {
   let monitorSetup = testSetup('workers.js', 'taskcluster_treeherder.js');
@@ -41,6 +43,55 @@ suite('bin/treeherder_taskcluster.js', function() {
 
     monitorSetup.pushlog.push(changesets);
     await treeherder.waitForResultset(revisionHash);
+  });
+
+  test('symbol + machine customizations', async function() {
+    let route = [
+      this.config.treeherderTaskcluster.routePrefix,
+      'try',
+      revisionHash
+    ].join('.');
+
+    let taskId = await taskcluster.createTask({
+      routes: [route],
+      extra: {
+        treeherder: {
+          build: {
+            platform: 'zomgplatform',
+            os: 'zomg',
+            architecture: 'wootbar'
+          },
+          machine: {
+            platform: 'wootbar_machine',
+            os: 'madeup',
+            architecture: 'value'
+          },
+          symbol: 'ZZ',
+          collection: {
+            debug: true
+          }
+        }
+      }
+    });
+
+    // Wait for task to be in the pending state...
+    let job = await treeherder.waitForJobState(revisionHash, 'pending');
+
+    Joi.assert(job, Joi.object().keys({
+      who: Joi.string().valid('user@example.com'),
+      job_type_name: Joi.string().valid('Example Task'),
+      job_type_symbol: Joi.string().valid('ZZ'),
+
+      build_platform: Joi.string().valid('zomgplatform'),
+      build_os: Joi.string().valid('zomg'),
+      build_architecture: Joi.string().valid('wootbar'),
+
+      platform: Joi.string().valid('wootbar_machine'),
+      machine_platform_os: Joi.string().valid('madeup'),
+      machine_platform_architecture: Joi.string().valid('value'),
+
+      platform_option: Joi.string().valid('debug')
+    }).unknown(true))
   });
 
   test('state transition -> pending -> running -> completed', async function() {

@@ -7,7 +7,7 @@ Integrates taskcluster tasks / graphs with treeherder
 import '6to5/polyfill';
 import cli from '../cli';
 import taskcluster from 'taskcluster-client';
-import createHandler from '../../src/treeherder/handler';
+import createHandler from '../../src/treeherder/job_handler';
 
 cli(async function main(runtime, config) {
   let queueEvents = new taskcluster.QueueEvents();

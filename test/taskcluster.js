@@ -17,15 +17,12 @@ export default class {
       metadata: {
         name:         'Example Task',
         description:  'Markdown description of **what** this task does',
-        owner:        'jonasfj@mozilla.com',
+        owner:        'user@example.com',
         source:       'http://docs.taskcluster.net/tools/task-creator/'
       },
       extra: {
         treeherder: {
-          symbol:         'S',
-          groupName:      'MyGroupName',
-          groupSymbol:    'G',
-          productName:    'MyProductName'
+          symbol:         'S'
         }
       }
     };
