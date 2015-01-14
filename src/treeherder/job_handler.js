@@ -291,7 +291,8 @@ class Handler {
       job
     }];
     console.log(JSON.stringify(result, null, 2));
-    await treeherderProject.postJobs(result);
+    let out = await treeherderProject.postJobs(result);
+    console.log(JSON.stringify(out, null, 2));
   }
 }
 
