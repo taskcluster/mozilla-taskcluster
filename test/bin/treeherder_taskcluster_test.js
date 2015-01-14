@@ -79,7 +79,7 @@ suite('bin/treeherder_taskcluster.js', function() {
 
     Joi.assert(job, Joi.object().keys({
       who: Joi.string().valid('user@example.com'),
-      job_type_name: Joi.string().valid('Example Task'),
+      job_type_name: Joi.string().valid('Example Task name'),
       job_type_symbol: Joi.string().valid('ZZ'),
 
       build_platform: Joi.string().valid('zomgplatform'),

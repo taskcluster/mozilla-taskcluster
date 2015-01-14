@@ -33,7 +33,8 @@ const SCHEMA = Joi.object().keys({
   symbol: Joi.string().required().
     description('Treeherder job symbol'),
   groupName: Joi.string().
-    description('Treeherder group name (seen when hovering over group symbol)'),
+    description('Treeherder group name (seen when hovering over group symbol)').
+    default('unknown'),
   groupSymbol: Joi.string().
     description('Treeherder group symbol').
     // If the default is not set to ? 'unknown' is used in the UI which will
@@ -146,6 +147,7 @@ function jobFromTask(taskId, task, run) {
   let config = validate.value;
   let job = {
     job_guid: `${slugid.decode(taskId)}/${run.runId}`,
+    build_system_type: 'taskcluster',
     build_platform: config.build,
     machine_platform: config.machine,
     name: task.metadata.name,

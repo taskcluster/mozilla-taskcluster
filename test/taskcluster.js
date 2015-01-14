@@ -15,7 +15,7 @@ export default class {
       routes: [],
       payload: {},
       metadata: {
-        name:         'Example Task',
+        name:         'Example Task name',
         description:  'Markdown description of **what** this task does',
         owner:        'user@example.com',
         source:       'http://docs.taskcluster.net/tools/task-creator/'
