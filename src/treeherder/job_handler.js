@@ -2,10 +2,15 @@ import slugid from 'slugid';
 import merge from 'lodash.merge';
 import { Queue, QueueEvents } from 'taskcluster-client';
 import Project from 'mozilla-treeherder/project';
+import Debug from 'debug';
 
 let Joi = require('joi');
+let debug = Debug('treeherder:job_handler');
 
 let events = new QueueEvents();
+
+// XXX: Consider making this a configuration options?
+const TREEHERDER_INTERVAL = 1000;
 
 // Schema for the task.extra.treeherder field.
 const SCHEMA = Joi.object().keys({
@@ -50,6 +55,19 @@ const EVENT_MAP = {
   [events.taskFailed().exchange]: 'failed',
   [events.taskException().exchange]: 'exception'
 };
+
+function defer() {
+  let accept;
+  let reject;
+  let promise = new Promise((_accept, _reject) => {
+    accept = _accept;
+    reject = _reject;
+  });
+
+  promise.accept = accept;
+  promise.reject = reject;
+  return promise;
+}
 
 /** Convert Date object or JSON date-time string to UNIX timestamp */
 function timestamp(date) {
@@ -247,11 +265,105 @@ class Handler {
     }, {});
 
     listener.on('message', (message) => {
-      return this.handle(message);
+      return this.handleTaskEvent(message);
     });
+
+    // Pending pushes per repository...
+    this._pendingPushes = {
+      /**
+      example: {
+        active: false,
+        promise: Promise,
+        pushes: []
+      }
+      */
+    };
   }
 
-  async handle(message) {
+  addPush(push) {
+    let project = push.project;
+
+    // Create the state for the pending push if we don't have one yet...
+    if (!this._pendingPushes[project]) {
+      this._pendingPushes[project] = {
+        promise: defer(),
+        pushes: [],
+        active: false
+      };
+    }
+
+    // Note: the logic here is somewhat complicated and involves mutating
+    // "global" state it is intended that you use add push to return a promise
+    // and ignore most of these details (and these are all stored in a small
+    // number of locations)
+
+    let pending = this._pendingPushes[project];
+    pending.pushes.push(push);
+    return pending.promise;
+  }
+
+  async tryPush(projectName, pending) {
+    // Extract the mutable state for this push no matter what we are done with
+    // this data and it must be reset to allow for any ongoing pushes to add
+    // their pending data.
+    let { pushes, promise } = pending;
+
+    // Update state here so pending operations can continue to add data even
+    // while we are running pushes...
+    pending.active = true;
+    pending.promise = defer();
+    pending.pushes = [];
+
+    try {
+      debug('running push', { projectName, count: pushes.length })
+      let project  = this.projects[projectName];
+      let res = await project.postJobs(pushes);
+      // Ensure active is false so we can push again...
+      // // Ensure active is false so we can push again...
+      pending.active = false;
+      promise.accept(res);
+    } catch (err) {
+      // If anything goes wrong during the push we need to add the original
+      // pushes back to the list and mark the push inactive... Even if
+      // treeherder partially completed the push this is fine as duplicate data
+      // will simply be overridden.
+      pending.pushes = pushes.conact(pending.pushes);
+      pending.active = false;
+      debug('failed push to treeherder', e.stack);
+      promise.reject(err);
+    }
+  }
+
+  async check() {
+    // Pending push operations...
+    let ops = [];
+
+    for (let projectName of Object.keys(this._pendingPushes)) {
+      debug('run check for', { projectName });
+      let pending = this._pendingPushes[projectName];
+      if (!pending.active) {
+        debug('attempting push for', { projectName })
+        ops.push(this.tryPush(projectName, pending));
+        continue;
+      }
+      debug('skip push in progress', { projectName });
+    }
+    return await Promise.all(ops);
+  }
+
+  start() {
+    this._interval = setInterval(() => {
+      this.check().catch((e) => {
+        console.error('Error while attempting to push to treeherder', e.stack);
+      });
+    }, TREEHERDER_INTERVAL);
+  }
+
+  /**
+  Handle an incoming task event and convert it into a pending job push for
+  treeherder...
+  */
+  async handleTaskEvent(message) {
     let { payload, exchange, routes } = message;
 
     let route = routes.find((route) => {
@@ -285,18 +397,20 @@ class Handler {
       // with no run...
       payload.status.runs[payload.runId] || { runId: 0 }
     );
-    let result = [{
+
+    // Add a pending push this promise will not resolve until the actual push
+    // has occurred which happens every (TREEHERDER_INTERVAL) or so this may
+    // result in backup or large memory consumption...
+    await this.addPush({
       revision_hash: revisionHash,
       project,
       job
-    }];
-    console.log(JSON.stringify(result, null, 2));
-    let out = await treeherderProject.postJobs(result);
-    console.log(JSON.stringify(out, null, 2));
+    });
   }
 }
 
 export default async function(prefix, listener) {
   let instance = new Handler(prefix, listener);
+  instance.start();
   await listener.resume();
 }
