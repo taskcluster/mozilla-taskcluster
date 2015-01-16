@@ -42,6 +42,6 @@ rabbitmq:
     - "5672"
 
 redis:
-  image: redis
+  image: redis:2.8
   ports:
     - "6379"
