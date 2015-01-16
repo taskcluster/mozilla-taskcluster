@@ -1,0 +1,16 @@
+documentdb:
+  database: treeherder-proxy-local
+
+config:
+  files:
+    - local-treeherder-proxy.yml
+
+treeherderTaskcluster:
+  routePrefix: tc-treeherder-local
+
+commitPublisher:
+  connectionString: amqp://docker:5672
+  exchangePrefix: local/
+
+kue:
+  prefix: local

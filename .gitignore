@@ -5,6 +5,7 @@
 /stage-treeherder-proxy.yml
 /production-treeherder-proxy.json
 /production-treeherder-proxy.yml
+/local-treeherder-proxy.yml
 /build
 /npm-debug.log
 /test/test.json
