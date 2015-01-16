@@ -346,7 +346,7 @@ class Handler {
     for (let projectName of Object.keys(this._pendingPushes)) {
       debug('run check for', { projectName });
       let pending = this._pendingPushes[projectName];
-      if (!pending.active) {
+      if (!pending.active && pending.pushes.length) {
         debug('attempting push for', { projectName })
         ops.push(this.tryPush(projectName, pending));
         continue;
