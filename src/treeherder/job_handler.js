@@ -332,9 +332,9 @@ class Handler {
       // pushes back to the list and mark the push inactive... Even if
       // treeherder partially completed the push this is fine as duplicate data
       // will simply be overridden.
-      pending.pushes = pushes.conact(pending.pushes);
       pending.active = false;
-      debug('failed push to treeherder', e.stack);
+      pending.pushes = pushes.concat(pending.pushes);
+      debug('failed push to treeherder', err.stack);
       promise.reject(err);
     }
   }
