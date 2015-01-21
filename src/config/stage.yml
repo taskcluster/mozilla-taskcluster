@@ -8,6 +8,7 @@ config:
 
 treeherderTaskcluster:
   routePrefix: tc-treeherder-stage
+  queue: mozilla-taskcluster-stage
 
 kue:
   prefix: stage
