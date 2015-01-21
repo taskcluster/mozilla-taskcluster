@@ -328,12 +328,7 @@ class Handler {
       pending.active = false;
       promise.accept(res);
     } catch (err) {
-      // If anything goes wrong during the push we need to add the original
-      // pushes back to the list and mark the push inactive... Even if
-      // treeherder partially completed the push this is fine as duplicate data
-      // will simply be overridden.
       pending.active = false;
-      pending.pushes = pushes.concat(pending.pushes);
       debug('failed push to treeherder', err.stack);
       promise.reject(err);
     }
