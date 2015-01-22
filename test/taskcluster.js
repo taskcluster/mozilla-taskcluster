@@ -1,34 +1,51 @@
 import slugid from 'slugid';
+import merge from 'lodash.merge'
 
 export default class {
-  constructor(queue) {
-    this.queue = queue;
+  constructor(scheduler) {
+    this.scheduler = scheduler;
   }
 
-  async createTask(overrides = {}) {
-    let id = slugid.v4();
-    let template = {
-      provisionerId:  'not-a-real-provisioner',
-      workerType:     'test',
-      created:        new Date().toJSON(),
-      deadline:       new Date(new Date().getTime() + 60 * 60 * 5).toJSON(),
-      routes: [],
-      payload: {},
+  async createTaskGraph(overrides = {}) {
+    let taskId = slugid.v4();
+    let taskGraphId = slugid.v4();
+
+    let graph = merge({
       metadata: {
         name:         'Example Task name',
         description:  'Markdown description of **what** this task does',
         owner:        'user@example.com',
         source:       'http://docs.taskcluster.net/tools/task-creator/'
       },
-      extra: {
-        treeherder: {
-          symbol:         'S'
+      scopes: [
+        'queue:define-task:not-a-real-provisioner/test',
+        'queue:route:*'
+      ],
+      tasks: [{
+        taskId,
+        task: {
+          provisionerId:  'not-a-real-provisioner',
+          schedulerId:    'task-graph-scheduler',
+          workerType:     'test',
+          created:        new Date().toJSON(),
+          deadline:       new Date(new Date().getTime() + 60 * 60 * 5).toJSON(),
+          routes: [],
+          payload: {},
+          metadata: {
+            name:         'Example Task name',
+            description:  'Markdown description of **what** this task does',
+            owner:        'user@example.com',
+            source:       'http://docs.taskcluster.net/tools/task-creator/'
+          },
+          extra: {
+            treeherder: {
+              symbol:         'S'
+            }
+          }
         }
-      }
-    };
-
-    let task = Object.assign(template, overrides);
-    await this.queue.createTask(id, task);
-    return id;
+      }]
+    }, overrides);
+    await this.scheduler.createTaskGraph(taskGraphId, graph);
+    return [taskGraphId, taskId, graph]
   }
 }

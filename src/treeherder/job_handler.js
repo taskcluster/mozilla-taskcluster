@@ -1,6 +1,6 @@
 import slugid from 'slugid';
 import merge from 'lodash.merge';
-import { Queue, QueueEvents } from 'taskcluster-client';
+import { Queue, QueueEvents, Scheduler } from 'taskcluster-client';
 import Project from 'mozilla-treeherder/project';
 import Debug from 'debug';
 
@@ -187,75 +187,13 @@ function jobFromTask(taskId, task, run) {
   return job;
 }
 
-let HandlerTypes = {
-  defined: (queue, taskId, task, run) => {
-    return Object.assign(
-      jobFromTask(taskId, task, run),
-      {
-        state: 'pending',
-        result: 'unknown'
-      }
-    )
-  },
-
-  pending: (queue, taskId, task, run) => {
-    return Object.assign(
-      jobFromTask(taskId, task, run),
-      {
-        state: stateFromRun(run),
-        result: resultFromRun(run)
-      }
-    )
-  },
-
-  running: (queue, taskId, task, run) => {
-    return Object.assign(
-      jobFromTask(taskId, task, run),
-      {
-        state: stateFromRun(run),
-        result: resultFromRun(run)
-      }
-    )
-  },
-
-  exception: (queue, taskId, task, run) => {
-    return Object.assign(
-      jobFromTask(taskId, task, run),
-      {
-        state: stateFromRun(run),
-        result: resultFromRun(run)
-      }
-    )
-  },
-
-  completed: (queue, taskId, task, run) => {
-    return Object.assign(
-      jobFromTask(taskId, task, run),
-      {
-        state: stateFromRun(run),
-        result: resultFromRun(run),
-        log_references: createLogReferences(queue, taskId, run)
-      }
-    );
-  },
-
-  failed: (queue, taskId, task, run) => {
-    return Object.assign(
-      jobFromTask(taskId, task, run),
-      {
-        state: stateFromRun(run),
-        result: resultFromRun(run),
-        log_references: createLogReferences(queue, taskId, run)
-      }
-    );
-  }
-};
-
 class Handler {
   constructor(config, listener) {
     let credentials = JSON.parse(config.treeherder.credentials);
 
     this.queue = new Queue();
+    this.scheduler = new Scheduler();
+
     this.prefix = config.treeherderTaskcluster.routePrefix;
     this.listener = listener;
 
@@ -359,6 +297,159 @@ class Handler {
     }, TREEHERDER_INTERVAL);
   }
 
+  async handleTaskDefined(project, revisionHash, task, payload) {
+    let taskId = payload.status.taskId;
+    return await this.addPush({
+      revision_hash: revisionHash,
+      project,
+      job: Object.assign(
+      jobFromTask(taskId, task, { runId: 0 }),
+        {
+          state: 'pending',
+          result: 'unknown'
+        }
+      )
+    })
+  }
+
+  async handleTaskRerun(project, revisionHash, task, payload) {
+    let taskId = payload.status.taskId;
+    let run = payload.status.runs[payload.runId - 1];
+    let job = Object.assign(
+      jobFromTask(taskId, task, run),
+      {
+        state: 'completed',
+        result: 'retry'
+      }
+    );
+
+    await this.addPush({
+      revision_hash: revisionHash,
+      project,
+      job
+    });
+  }
+
+  /**
+  Post pending results to treeherder this method also handles the edge case of
+  marking previous runs of the task as "retries" if in a task graph with 
+  remaining retries.
+
+  @param {Object} project in treeherder.
+  @param {String} revisionHash for push.
+  @param {Object} task definition.
+  @param {Object} payload from event.
+  */
+  async handleTaskPending(project, revisionHash, task, payload) {
+    let taskId = payload.status.taskId;
+    let run = payload.status.runs[payload.runId];
+
+    // Specialized handling for reruns...
+    if (
+      // This only can be run when the runId is present and > 0
+      payload.runId &&
+      // Only issue this if the run was created for a rerun
+      run.reasonCreated === 'rerun'
+    ) {
+      await this.handleTaskRerun(project, revisionHash, task, payload);
+    }
+
+    await this.addPush({
+      revision_hash: revisionHash,
+      project,
+      job: Object.assign(
+        jobFromTask(taskId, task, run),
+        {
+          state: stateFromRun(run),
+          result: resultFromRun(run)
+        }
+      )
+    });
+  }
+
+  async handleTaskRunning(project, revisionHash, task, payload) {
+    let taskId = payload.status.taskId;
+    let run = payload.status.runs[payload.runId];
+    await this.addPush({
+      revision_hash: revisionHash,
+      project,
+      job: Object.assign(
+        jobFromTask(taskId, task, run),
+        {
+          state: stateFromRun(run),
+          result: resultFromRun(run)
+        }
+      )
+    });
+  }
+
+  async handleTaskException(project, revisionHash, task, payload) {
+    let taskId = payload.status.taskId;
+    let run = payload.status.runs[payload.runId];
+    await this.addPush({
+      revision_hash: revisionHash,
+      project,
+      job: Object.assign(
+        jobFromTask(taskId, task, run),
+        {
+          state: stateFromRun(run),
+          result: resultFromRun(run)
+        }
+      )
+    });
+  }
+
+  async handleTaskFailed(project, revisionHash, task, payload) {
+    let taskId = payload.status.taskId;
+    let run = payload.status.runs[payload.runId];
+
+    let state = stateFromRun(run);
+    let result = resultFromRun(run);
+
+    // To correctly handle the rerun case we must not mark jobs which will be
+    // marked as retry as 'completed' this means we must determine if this run
+    // will trigger a retry by querying the scheduler.
+    if (
+      task.schedulerId === 'task-graph-scheduler' &&
+      task.taskGroupId
+    ) {
+      let taskInfo = await this.scheduler.inspectTask(task.taskGroupId, taskId);
+      if (taskInfo.reruns > payload.runId) {
+        state = 'running';
+        result = 'unknown';
+      }
+    }
+
+    await this.addPush({
+      revision_hash: revisionHash,
+      project,
+      job: Object.assign(
+        jobFromTask(taskId, task, run),
+        {
+          state,
+          result
+        }
+      )
+    });
+  }
+
+  async handleTaskCompleted(project, revisionHash, task, payload) {
+    let taskId = payload.status.taskId;
+    let run = payload.status.runs[payload.runId];
+    await this.addPush({
+      revision_hash: revisionHash,
+      project,
+      job: Object.assign(
+        jobFromTask(taskId, task, run),
+        {
+          state: stateFromRun(run),
+          result: resultFromRun(run),
+          log_references: createLogReferences(this.queue, taskId, run)
+        }
+      )
+    });
+  }
+
   /**
   Handle an incoming task event and convert it into a pending job push for
   treeherder...
@@ -389,23 +480,33 @@ class Handler {
 
     let treeherderProject = this.projects[project];
     let task = await this.queue.getTask(payload.status.taskId);
-    let job = HandlerTypes[EVENT_MAP[exchange]](
-      this.queue,
-      payload.status.taskId,
-      task,
-      // fallback to runId zero for the case where we have a newly defined task
-      // with no run...
-      payload.status.runs[payload.runId] || { runId: 0 }
-    );
 
-    // Add a pending push this promise will not resolve until the actual push
-    // has occurred which happens every (TREEHERDER_INTERVAL) or so this may
-    // result in backup or large memory consumption...
-    await this.addPush({
-      revision_hash: revisionHash,
-      project,
-      job
-    });
+    switch (EVENT_MAP[exchange]) {
+      case 'defined':
+        return await this.handleTaskDefined(
+          project, revisionHash, task, payload
+        );
+      case 'running':
+        return await this.handleTaskRunning(
+          project, revisionHash, task, payload
+        );
+      case 'completed':
+        return await this.handleTaskCompleted(
+          project, revisionHash, task, payload
+        );
+      case 'exception':
+        return await this.handleTaskException(
+          project, revisionHash, task, payload
+        );
+      case 'pending':
+        return this.handleTaskPending(
+          project, revisionHash, task, payload
+        );
+      case 'failed':
+        return this.handleTaskFailed(
+          project, revisionHash, task, payload
+        );
+    }
   }
 }
 

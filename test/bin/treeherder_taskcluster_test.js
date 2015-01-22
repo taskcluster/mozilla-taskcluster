@@ -19,9 +19,10 @@ suite('bin/treeherder_taskcluster.js', function() {
   let treeherder;
   let taskcluster;
   let revisionHash;
+  let route;
   setup(async function() {
     treeherder = new TreeherderHelper(this.config.treeherder.apiUrl);
-    taskcluster = new TaskclusterHelper(this.queue);
+    taskcluster = new TaskclusterHelper(this.scheduler);
 
     let changesets = [
       {
@@ -43,39 +44,45 @@ suite('bin/treeherder_taskcluster.js', function() {
 
     monitorSetup.pushlog.push(changesets);
     await treeherder.waitForResultset(revisionHash);
-  });
 
-  test('symbol + machine customizations', async function() {
-    let route = [
+    route = [
       this.config.treeherderTaskcluster.routePrefix,
       'try',
       revisionHash
     ].join('.');
+  });
 
-    let taskId = await taskcluster.createTask({
-      routes: [route],
-      extra: {
-        treeherder: {
-          build: {
-            platform: 'zomgplatform',
-            os: 'zomg',
-            architecture: 'wootbar'
-          },
-          machine: {
-            platform: 'wootbar_machine',
-            os: 'madeup',
-            architecture: 'value'
-          },
-          symbol: 'ZZ',
-          collection: {
-            debug: true
+  test('symbol + machine customizations', async function() {
+    let [, taskId] = await taskcluster.createTaskGraph({
+      tasks: [{
+        task: {
+          routes: [route],
+          extra: {
+            treeherder: {
+              build: {
+                platform: 'zomgplatform',
+                os: 'zomg',
+                architecture: 'wootbar'
+              },
+              machine: {
+                platform: 'wootbar_machine',
+                os: 'madeup',
+                architecture: 'value'
+              },
+              symbol: 'ZZ',
+              collection: {
+                debug: true
+              }
+            }
           }
         }
-      }
+      }]
     });
 
     // Wait for task to be in the pending state...
-    let job = await treeherder.waitForJobState(revisionHash, 'pending');
+    let job = await treeherder.waitForJobState(
+      revisionHash, taskId, 0, 'pending'
+    );
 
     Joi.assert(job, Joi.object().keys({
       who: Joi.string().valid('user@example.com'),
@@ -94,90 +101,181 @@ suite('bin/treeherder_taskcluster.js', function() {
     }).unknown(true))
   });
 
-  test('state transition -> pending -> running -> completed', async function() {
-    let route = [
-      this.config.treeherderTaskcluster.routePrefix,
-      'try',
-      revisionHash
-    ].join('.');
-
-    let taskId = await taskcluster.createTask({
-      routes: [route]
+  test('state transition -> pending -> retry', async function() {
+    let [, taskId] = await taskcluster.createTaskGraph({
+      tasks: [{
+        reruns: 1,
+        task: {
+          routes: [route]
+        }
+      }]
     });
 
     // Wait for task to be in the pending state...
-    await treeherder.waitForJobState(revisionHash, 'pending');
+    await treeherder.waitForJobState(
+      revisionHash,
+      taskId,
+      0,
+      'pending'
+    );
+
+    // Claim/complete the task in its initial state
+    await this.queue.claimTask(taskId, 0, {
+      workerGroup: 'test',
+      workerId: 'test'
+    });
+    await this.queue.reportCompleted(taskId, 0, { success:  false });
+
+    // Issue the rerun
+    await this.queue.rerunTask(taskId);
+
+    // Reclaim the task with new run id
+    await this.queue.claimTask(taskId, 1, {
+      workerGroup: 'test',
+      workerId: 'test'
+    });
+
+    await waitFor(async function() {
+      let rerun = await treeherder.waitForJobState(
+        revisionHash,
+        taskId,
+        0,
+        'completed'
+      );
+      return rerun.result === 'retry';
+    });
+
+    await this.queue.reportCompleted(taskId, 1, { success:  false });
+
+    let finalRun = await treeherder.waitForJobState(
+      revisionHash,
+      taskId,
+      1,
+      'completed'
+    );
+    assert.equal(finalRun.result, 'testfailed');
+  });
+
+  test('state transition -> pending -> running -> completed', async function() {
+    let [, taskId] = await taskcluster.createTaskGraph({
+      tasks: [{
+        task: {
+          routes: [route]
+        }
+      }]
+    });
+
+    // Wait for task to be in the pending state...
+    await treeherder.waitForJobState(
+      revisionHash,
+      taskId,
+      0,
+      'pending'
+    );
 
     // Claim task so it is running...
     await this.queue.claimTask(taskId, 0, {
       workerGroup: 'test',
       workerId: 'test'
     });
-    await treeherder.waitForJobState(revisionHash, 'running');
+    await treeherder.waitForJobState(
+      revisionHash,
+      taskId,
+      0,
+      'running'
+    );
 
     // Report completed + success...
     await this.queue.reportCompleted(taskId, 0, { success: true });
-    let job = await treeherder.waitForJobState(revisionHash, 'completed');
+    let job = await treeherder.waitForJobState(
+      revisionHash,
+      taskId,
+      0,
+      'completed'
+    );
     assert.equal(job.result, 'success');
   });
 
   test('state transition -> pending -> running -> failed', async function() {
-    let route = [
-      this.config.treeherderTaskcluster.routePrefix,
-      'try',
-      revisionHash
-    ].join('.');
-
-    let taskId = await taskcluster.createTask({
-      routes: [route]
+    let [, taskId] = await taskcluster.createTaskGraph({
+      tasks: [{
+        task: {
+          routes: [route]
+        }
+      }]
     });
 
     // Wait for task to be in the pending state...
-    await treeherder.waitForJobState(revisionHash, 'pending');
+    await treeherder.waitForJobState(
+      revisionHash,
+      taskId,
+      0,
+      'pending'
+    );
 
     // Claim task so it is running...
     await this.queue.claimTask(taskId, 0, {
       workerGroup: 'test',
       workerId: 'test'
     });
-    await treeherder.waitForJobState(revisionHash, 'running');
+    await treeherder.waitForJobState(
+      revisionHash,
+      taskId,
+      0,
+      'running'
+    );
 
     // Report completed + success...
     await this.queue.reportCompleted(taskId, 0, { success: false });
-    let job = await treeherder.waitForJobState(revisionHash, 'completed');
+    let job = await treeherder.waitForJobState(
+      revisionHash,
+      taskId,
+      0,
+      'completed'
+    );
     assert.equal(job.result, 'testfailed');
   });
 
   test('state transition -> pending -> running -> exception', async function() {
-    let route = [
-      this.config.treeherderTaskcluster.routePrefix,
-      'try',
-      revisionHash
-    ].join('.');
-
-    let taskId = await taskcluster.createTask({
-      routes: [route]
+    let [, taskId] = await taskcluster.createTaskGraph({
+      tasks: [{
+        task: {
+          routes: [route]
+        }
+      }]
     });
 
     // Wait for task to be in the pending state...
-    await treeherder.waitForJobState(revisionHash, 'pending');
+    await treeherder.waitForJobState(
+      revisionHash,
+      taskId,
+      0,
+      'pending'
+    );
 
     // Claim task so it is running...
     await this.queue.claimTask(taskId, 0, {
       workerGroup: 'test',
       workerId: 'test'
     });
-    await treeherder.waitForJobState(revisionHash, 'running');
+    await treeherder.waitForJobState(
+      revisionHash,
+      taskId,
+      0,
+      'running'
+    );
 
     // Report completed + success...
     await this.queue.reportException(taskId, 0, {
       reason: 'malformed-payload'
     });
 
-    let job = await treeherder.waitForJobState(revisionHash, 'completed');
+    let job = await treeherder.waitForJobState(
+      revisionHash,
+      taskId,
+      0,
+      'completed'
+    );
     assert.equal(job.result, 'exception');
   });
-
-
-
 });

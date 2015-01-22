@@ -1,6 +1,7 @@
 import urlJoin from 'urljoin';
 import request from 'superagent-promise';
 import waitFor from './wait_for';
+import slugid from 'slugid';
 
 export default class {
   constructor(url) {
@@ -30,7 +31,7 @@ export default class {
     }.bind(this));
   }
 
-  async waitForJobState(revisionHash, state) {
+  async waitForJobState(revisionHash, taskId, runId, state) {
     return await waitFor(async function() {
       let resultset = (await this.getResultset(revisionHash));
 
@@ -39,12 +40,12 @@ export default class {
         return false;
       }
 
-      // Get the first job.
-      var job = resultset.platforms[0].groups[0].jobs[0];
-      if (job.state !== state) {
-        return false;
-      }
-      return job;
+      let jobGuid = `${slugid.decode(taskId)}/${runId}`
+      let jobs = resultset.platforms[0].groups[0].jobs;
+
+      return jobs.find((job) => {
+        return job.job_guid === jobGuid && job.state === state;
+      });
     }.bind(this));
   }
 }
