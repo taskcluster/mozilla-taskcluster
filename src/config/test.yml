@@ -12,6 +12,9 @@ repositoryMonitor:
   interval: 1000
   maxPushFetches: 100
 
+treeherderTaskcluster:
+  routePrefix: tc-treeherder-test
+
 commitPublisher:
   exchangePrefix: tests/
 
