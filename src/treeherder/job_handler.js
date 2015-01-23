@@ -286,7 +286,7 @@ class Handler {
         ops.push(this.tryPush(projectName, pending));
         continue;
       }
-      debug('skip push in progress', { projectName });
+      debug('skip push', { projectName, active: pending.active });
     }
     return await Promise.all(ops);
   }
