@@ -321,7 +321,8 @@ class Handler {
       jobFromTask(taskId, task, run),
       {
         state: 'completed',
-        result: 'retry'
+        result: 'retry',
+        log_references: createLogReferences(this.queue, taskId, run)
       }
     );
 
@@ -417,8 +418,8 @@ class Handler {
     ) {
       let taskInfo = await this.scheduler.inspectTask(task.taskGroupId, taskId);
       if (taskInfo.reruns > payload.runId) {
-        state = 'running';
-        result = 'unknown';
+        // Simply allow the rerun handle to update the task...
+        return;
       }
     }
 
