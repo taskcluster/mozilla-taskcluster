@@ -202,7 +202,9 @@ class Handler {
       result[key] = new Project(key, {
         consumerKey: cred.consumer_key,
         consumerSecret: cred.consumer_secret,
-        baseUrl: config.treeherder.apiUrl
+        baseUrl: config.treeherder.apiUrl,
+        // Issue up to 2 retries for 429 throttle issues.
+        throttleRetries: 2
       });
       return result;
     }, {});
@@ -263,12 +265,12 @@ class Handler {
       let res = await project.postJobs(pushes);
       // Ensure active is false so we can push again...
       // // Ensure active is false so we can push again...
-      pending.active = false;
       promise.accept(res);
-    } catch (err) {
       pending.active = false;
+    } catch (err) {
       debug('failed push to treeherder', err.stack);
       promise.reject(err);
+      pending.active = false;
     }
   }
 

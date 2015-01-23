@@ -6,6 +6,7 @@ import * as kueUtils from '../kue';
 import createResultset from '../../src/treeherder/resultset';
 import slugid from 'slugid';
 
+import Project from 'mozilla-treeherder/project';
 import TreeherderHelper from '../treeherder';
 import TaskclusterHelper from '../taskcluster';
 
@@ -50,6 +51,62 @@ suite('bin/treeherder_taskcluster.js', function() {
       'try',
       revisionHash
     ].join('.');
+  });
+
+  async function throttle(config) {
+    let proj = new Project('try', {
+      consumerKey: 'try',
+      consumerSecret: 'try',
+      baseUrl: config.treeherder.apiUrl
+    });
+
+    try {
+      while (true) {
+        let job = await Promise.all([
+          proj.postJobs([]),
+          proj.postJobs([]),
+          proj.postJobs([]),
+          proj.postJobs([]),
+          proj.postJobs([]),
+          proj.postJobs([]),
+          proj.postJobs([]),
+          proj.postJobs([]),
+          proj.postJobs([]),
+          proj.postJobs([]),
+          proj.postJobs([]),
+          proj.postJobs([]),
+          proj.postJobs([]),
+          proj.postJobs([]),
+          proj.postJobs([]),
+          proj.postJobs([]),
+        ]);
+      }
+    } catch (e) {
+      return e;
+    }
+  }
+
+  test('throttle handling', async function() {
+    this.timeout('2min');
+    // First throttle treeherder so it refused to respond....
+    let throttleErr = await throttle(this.config);
+
+    // Create our task this should fail without throttle retries.
+    let [, taskId] = await taskcluster.createTaskGraph({
+      tasks: [{
+        task: {
+          routes: [route]
+        }
+      }]
+    });
+
+    // Wait for task to be in the pending state...
+    await treeherder.waitForJobState(
+      revisionHash,
+      taskId,
+      0,
+      'pending'
+    );
   });
 
   test('symbol + machine customizations', async function() {

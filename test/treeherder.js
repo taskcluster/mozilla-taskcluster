@@ -32,7 +32,7 @@ export default class {
   }
 
   async waitForJobState(revisionHash, taskId, runId, state) {
-    return await waitFor(async function() {
+    return await waitFor({ sleep: 125, maxTries: 600 }, async function() {
       let resultset = (await this.getResultset(revisionHash));
 
       // If there is no job yet wait until a job is available.
