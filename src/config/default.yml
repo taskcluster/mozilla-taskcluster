@@ -9,7 +9,7 @@ taskcluster:
 
 treeherderTaskcluster:
   routePrefix: tc-treeherder
-  prefetch: 100
+  prefetch: 200
 
 treeherderProxy:
   port: 60025
