@@ -429,7 +429,8 @@ class Handler {
         jobFromTask(taskId, task, run),
         {
           state,
-          result
+          result,
+          log_references: createLogReferences(this.queue, taskId, run)
         }
       )
     });
