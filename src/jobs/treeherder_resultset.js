@@ -57,6 +57,7 @@ export default class TreeherderResultsetJob extends Base {
 
     // If the repository has a project configuration schedule a task cluster
     // graph creation job...
+    console.log(JSON.stringify(lastRev), '< last rev');
     if (
       // Hack for load testing so we only run jobs with +tc in the try desc
       lastRev && lastRev.comment.indexOf('+tc') !== -1 &&
