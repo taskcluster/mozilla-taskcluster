@@ -53,9 +53,15 @@ export default class TreeherderResultsetJob extends Base {
     let resultset = formatResultset(repo.alias, push);
     await project.postResultset([resultset]);
 
+    let lastRev = resultset.revisions[resultset.revisions.length - 1];
+
     // If the repository has a project configuration schedule a task cluster
     // graph creation job...
-    if (this.projects[repo.alias]) {
+    if (
+      // Hack for load testing so we only run jobs with +tc in the try desc
+      lastRev && lastRev.comment.indexOf('+tc') !== -1 &&
+      this.projects[repo.alias]
+    ) {
       job.log('scheduling taskcluster jobs');
       await this.scheduleTaskGraphJob(resultset, repo, pushref);
     }
