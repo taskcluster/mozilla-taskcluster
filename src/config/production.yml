@@ -11,4 +11,5 @@ treeherderTaskcluster:
   queue: mozilla-taskcluster-production
 
 kue:
+  purgeCompleted: true
   prefix: production

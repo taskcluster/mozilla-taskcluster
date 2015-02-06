@@ -83,6 +83,7 @@ let schema = Joi.object().keys({
   }).unknown(true),
 
   kue: Joi.object().keys({
+    purgeCompleted: Joi.boolean(),
     prefix: Joi.string().required(),
     admin: Joi.object().keys({
       port: Joi.number().default(60024)
