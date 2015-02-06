@@ -74,7 +74,8 @@ let schema = Joi.object().keys({
 
     projects: Joi.object().pattern(/.*/, Joi.object({
       scopes: Joi.array(),
-      url: Joi.string()
+      url: Joi.string(),
+      contains: Joi.string()
     }))
   }),
 

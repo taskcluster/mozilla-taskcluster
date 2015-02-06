@@ -116,6 +116,10 @@ suiteSetup(async function() {
     consumerSecret: 'try',
     baseUrl: this.config.treeherder.apiUrl
   });
+
+  this.runtime.jobs.on('failed attempt', function(result) {
+    console.error('Failed job', result);
+  });
 });
 
 suiteTeardown(async function() {

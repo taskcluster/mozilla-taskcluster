@@ -44,25 +44,26 @@ export default class TreeherderResultsetJob extends Base {
       return;
     }
 
-    let project = new Treeherder(repo.alias, {
+    let treeherderProject = new Treeherder(repo.alias, {
       consumerKey: cred.consumer_key,
       consumerSecret: cred.consumer_secret,
       baseUrl: this.config.treeherder.apiUrl
     });
 
     let resultset = formatResultset(repo.alias, push);
-    await project.postResultset([resultset]);
+    await treeherderProject.postResultset([resultset]);
 
     let lastRev = resultset.revisions[resultset.revisions.length - 1];
+    let tryProject = this.projects[repo.alias];
 
-    // If the repository has a project configuration schedule a task cluster
-    // graph creation job...
-    console.log(JSON.stringify(lastRev), '< last rev');
-    if (
-      // Hack for load testing so we only run jobs with +tc in the try desc
-      lastRev && lastRev.comment.indexOf('+tc') !== -1 &&
-      this.projects[repo.alias]
-    ) {
+    if (tryProject) {
+      if (
+        tryProject.contains &&
+        lastRev.comment.indexOf(tryProject.contains) === -1
+      ) {
+        job.log(`skipping graph project does not contain ${tryProject.contains}`)
+        return;
+      }
       job.log('scheduling taskcluster jobs');
       await this.scheduleTaskGraphJob(resultset, repo, pushref);
     }

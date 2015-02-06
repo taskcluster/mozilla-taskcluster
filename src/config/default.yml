@@ -58,10 +58,13 @@ try:
 
   projects:
     # Try is the definitive example:
-    try: {} # Note the keys match the "alias" which treeherder defines.
+    try: # Note the keys match the "alias" which treeherder defines.
       # The url overrides the default url mapping and may include same mustache
       # parameters...
       # url: ...
+
+      # The commit _must_ contain +tc to be scheduled...
+      contains: '+tc'
 
       # The graph will be restricted to the following scopes this should ideally be
       # as locked down as possible.
