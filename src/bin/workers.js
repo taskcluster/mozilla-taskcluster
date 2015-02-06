@@ -47,6 +47,9 @@ cli(async function main(runtime, config) {
 
   // Start interval promotion (should only run one of these)...
   runtime.jobs.promote();
+  // Ensure we don't let jobs get stuck in idle state somehow for long periods
+  // of time...
+  runtime.jobs.watchStuckJobs();
 
   // Clear any completed jobs from the redis queue we only care about errors...
   if (config.kue.purgeCompleted) {
