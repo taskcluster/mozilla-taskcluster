@@ -150,7 +150,8 @@ function jobFromTask(taskId, task, run) {
     build_system_type: 'taskcluster',
     build_platform: config.build,
     machine_platform: config.machine,
-    name: task.metadata.name,
+    // Maximum job name length is 100 chars...
+    name: task.metadata.name.slice(0, 99),
     reason: 'scheduled',  // use reasonCreated or reasonResolved
     job_symbol: task.extra.treeherder.symbol,
     submit_timestamp: timestamp(task.created),
