@@ -126,7 +126,7 @@ suite('bin/treeherder_taskcluster.js', function() {
                 os: 'madeup',
                 architecture: 'value'
               },
-              symbol: 'ZZ',
+              symbol: 7,
               collection: {
                 debug: true
               }
@@ -144,7 +144,7 @@ suite('bin/treeherder_taskcluster.js', function() {
     Joi.assert(job, Joi.object().keys({
       who: Joi.string().valid('user@example.com'),
       job_type_name: Joi.string().valid('Example Task name'),
-      job_type_symbol: Joi.string().valid('ZZ'),
+      job_type_symbol: Joi.string().valid('7'),
 
       build_platform: Joi.string().valid('zomgplatform'),
       build_os: Joi.string().valid('zomg'),

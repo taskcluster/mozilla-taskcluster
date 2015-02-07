@@ -137,6 +137,12 @@ function jobFromTask(taskId, task, run) {
     treeherder.collection = { opt: true };
   }
 
+  // Chunks are often numbers type cast here so we don't need to enforce
+  // this everywhere...
+  if (typeof treeherder.symbol === 'number') {
+    treeherder.symbol = String(treeherder.symbol);
+  }
+
   // Validation is useful primarily for use with kue viewer as you can easily
   // see what failed during the validation.
   let validate = Joi.validate(treeherder, SCHEMA);
@@ -153,7 +159,7 @@ function jobFromTask(taskId, task, run) {
     // Maximum job name length is 100 chars...
     name: task.metadata.name.slice(0, 99),
     reason: 'scheduled',  // use reasonCreated or reasonResolved
-    job_symbol: task.extra.treeherder.symbol,
+    job_symbol: config.symbol,
     submit_timestamp: timestamp(task.created),
     start_timestamp: (run.started ? timestamp(run.started) : undefined),
     end_timestamp: (run.resolved ? timestamp(run.resolved) : undefined),
