@@ -64,7 +64,7 @@ try:
       # url: ...
 
       # The commit _must_ contain +tc to be scheduled...
-      contains: '+tc'
+      contains: 'try:'
 
       # The graph will be restricted to the following scopes this should ideally be
       # as locked down as possible.
