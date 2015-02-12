@@ -71,4 +71,6 @@ try:
       # scopes: []
     b2g-inbound:
       url: "{{{host}}}{{{path}}}/raw-file/{{revision}}/testing/taskcluster/tasks/decision/branch.yml"
+    mozilla-inbound:
+      url: "{{{host}}}{{{path}}}/raw-file/{{revision}}/testing/taskcluster/tasks/decision/branch.yml"
 
