@@ -52,7 +52,6 @@ const SCHEMA = Joi.object().keys({
 });
 
 const EVENT_MAP = {
-  [events.taskDefined().exchange]: 'defined',
   [events.taskPending().exchange]: 'pending',
   [events.taskRunning().exchange]: 'running',
   [events.taskCompleted().exchange]: 'completed',
@@ -306,21 +305,6 @@ class Handler {
     }, TREEHERDER_INTERVAL);
   }
 
-  async handleTaskDefined(project, revisionHash, task, payload) {
-    let taskId = payload.status.taskId;
-    return await this.addPush({
-      revision_hash: revisionHash,
-      project,
-      job: Object.assign(
-      jobFromTask(taskId, task, { runId: 0 }),
-        {
-          state: 'pending',
-          result: 'unknown'
-        }
-      )
-    })
-  }
-
   async handleTaskRerun(project, revisionHash, task, payload) {
     let taskId = payload.status.taskId;
     let run = payload.status.runs[payload.runId - 1];
@@ -493,8 +477,8 @@ class Handler {
     let task = await this.queue.getTask(payload.status.taskId);
 
     switch (EVENT_MAP[exchange]) {
-      case 'defined':
-        return await this.handleTaskDefined(
+      case 'pending':
+        return this.handleTaskPending(
           project, revisionHash, task, payload
         );
       case 'running':
@@ -507,10 +491,6 @@ class Handler {
         );
       case 'exception':
         return await this.handleTaskException(
-          project, revisionHash, task, payload
-        );
-      case 'pending':
-        return this.handleTaskPending(
           project, revisionHash, task, payload
         );
       case 'failed':

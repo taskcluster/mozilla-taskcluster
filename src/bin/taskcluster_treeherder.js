@@ -25,7 +25,6 @@ cli(async function main(runtime, config) {
   ].join('.');
 
   await Promise.all([
-    listener.bind(queueEvents.taskDefined(routingPattern)),
     listener.bind(queueEvents.taskPending(routingPattern)),
     listener.bind(queueEvents.taskRunning(routingPattern)),
     listener.bind(queueEvents.taskCompleted(routingPattern)),
