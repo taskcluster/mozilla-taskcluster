@@ -26,13 +26,13 @@ this is enabled by adding the appriopriate route. The route is
 constructed in the following form:
 
 ```
-<prefix>.<revision_hash>.<project>
+<prefix>.<project>.<revision_hash>
 ```
 
 An example being:
 
 ```
-tc-treeherder.e7e718507b7bcb1cebfb99a0ef6d170fa7ac4acd.b2g-inbound
+tc-treeherder.b2g-inbound.e7e718507b7bcb1cebfb99a0ef6d170fa7ac4acd
 ```
 
 (The above is the real resultset from https://treeherder.mozilla.org/ui/#/jobs?repo=b2g-inbound&revision=8fed85cc71d5)
