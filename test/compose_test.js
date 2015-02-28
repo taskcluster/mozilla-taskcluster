@@ -32,4 +32,29 @@ suite('compose', function() {
     });
   });
 
+  suite('life cycle', () => {
+    let subject;
+    let fixturePwd = fsPath.join(__dirname, 'fixtures', 'compose');
+    setup(async function() {
+      subject = await install();
+    });
+
+    test('up / kill / ps', async () => {
+      await subject.up(fixturePwd);
+      let containers = await subject.ps(fixturePwd);
+      assert.equal(containers.length, 1);
+
+      let state = await subject.inspect(containers[0])
+      assert.equal(state.Args[1], 'sleep infinity', 'is using right container');
+
+      await subject.kill(fixturePwd);
+
+      let killedState = await subject.inspect(containers[0]);
+      assert.equal(killedState.State.Running, false);
+
+      await subject.up(fixturePwd);
+      let runningState = await subject.inspect(containers[0]);
+      assert.equal(runningState.State.Running, true);
+    });
+  });
 });

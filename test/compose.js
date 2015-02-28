@@ -1,5 +1,6 @@
 import os from 'os';
 import fs from 'mz/fs';
+import URL from 'url';
 import { exec } from 'mz/child_process';
 import request from 'superagent';
 import fsPath from 'path';
@@ -41,8 +42,40 @@ Docker compose related utilities...
 
 class Compose {
   constructor(composeBin) {
+    let dockerConf = dockerOpts();
+    // Use remote host if given otherwise assume localhost...
+    this.host = dockerConf.host || 'localhost';
     this.bin = composeBin;
-    this.docker = new Docker(dockerOpts());
+    this.docker = new Docker(dockerConf);
+  }
+
+  /**
+  Bring a docker-compose yaml stack online...
+  */
+  async up(cwd) {
+    return exec(`${this.bin} up -d --no-recreate`, { cwd });
+  }
+
+  async kill(cwd) {
+    return exec(`${this.bin} kill`, { cwd });
+  }
+
+  async ps(cwd) {
+    let [stdout] = await exec(`${this.bin} ps -q`, {
+      cwd
+    });
+
+    return stdout.trim().split('\n').map((v) => {
+      return v.trim();
+    });
+  }
+
+  /**
+  Inspect a container given it's container id (note you can get this via ps)
+  */
+  async inspect(containerId) {
+    let container = this.docker.getContainer(containerId);
+    return await container.inspect();
   }
 
   async version() {
