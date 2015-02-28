@@ -5,17 +5,26 @@ import { exec } from 'mz/child_process';
 import request from 'superagent';
 import fsPath from 'path';
 import eventToPromise from 'event-to-promise';
+import denodeify from 'denodeify';
+import _mkdirp from 'mkdirp';
 
 import dockerOpts from 'dockerode-options';
 import Docker from 'dockerode-promise'
 import Debug from 'debug';
 
 const debug = Debug('compose');
+const mkdirp = denodeify(_mkdirp);
 
 // Compose binary name...
 export const COMPOSE_VERSION = '1.1.0';
 const COMPOSE_BASE_URL = 'https://github.com/docker/compose/releases/download';
 const COMPOSE_INSTALL_ROOT = fsPath.join(__dirname, '.compose');
+
+async function execDebug(...args) {
+  let cmd = args[0];
+  debug('exec', cmd)
+  return await exec.apply(this, args);
+}
 
 function composeLocationConfig() {
   // urls are formatted as Darwin/Linux/etc..
@@ -43,28 +52,36 @@ Docker compose related utilities...
 class Compose {
   constructor(composeBin) {
     let dockerConf = dockerOpts();
+
+    if (dockerConf.host) {
+      let parsedHost = URL.parse(dockerConf.host);
+      this.host = parsedHost.host;
+    } else {
+      this.host = 'localhost';
+    }
+
     // Use remote host if given otherwise assume localhost...
-    this.host = dockerConf.host || 'localhost';
     this.bin = composeBin;
     this.docker = new Docker(dockerConf);
+    debug('compose initialized', { bin: composeBin, host: this.host });
   }
 
   /**
   Bring a docker-compose yaml stack online...
   */
   async up(cwd) {
-    return exec(`${this.bin} up -d --no-recreate`, { cwd });
+    return execDebug(`${this.bin} up -d --no-recreate`, { cwd });
   }
 
   async killAll(cwd) {
-    return exec(`${this.bin} kill`, { cwd });
+    return execDebug(`${this.bin} kill`, { cwd });
   }
 
   /**
   Start running a single instance of a given service.
   */
   async run(cwd, service) {
-    let [service] = await exec(`${this.bin} run -d --service-ports ${service}`, {
+    let [service] = await execDebug(`${this.bin} run -d --service-ports ${service}`, {
       cwd
     });
 
@@ -72,11 +89,11 @@ class Compose {
   }
 
   async portByName(cwd, service, port) {
-    let [result] = await exec(`${this.bin} port ${service} ${port}`, {
+    let [result] = await execDebug(`${this.bin} port ${service} ${port}`, {
       cwd
     });
 
-    let [host, port] = host.trim().split(':');
+    let [host, port] = result.trim().split(':');
     if (port) {
       return parseInt(port, 10);
     }
@@ -104,7 +121,7 @@ class Compose {
   }
 
   async ps(cwd) {
-    let [stdout] = await exec(`${this.bin} ps -q`, {
+    let [stdout] = await execDebug(`${this.bin} ps -q`, {
       cwd
     });
 
@@ -122,7 +139,7 @@ class Compose {
   }
 
   async version() {
-    let [version] = await exec(`${this.bin} --version`);
+    let [version] = await execDebug(`${this.bin} --version`);
     let [, number] = version.trim().split(' ');
     return number;
   }
@@ -138,9 +155,7 @@ export async function install(installPath = COMPOSE_INSTALL_ROOT) {
   debug('compose install', { url, slug });
 
   // Ensure compose install root exists...
-  if (!await fs.exists(installPath)) {
-    await fs.mkdir(installPath);
-  }
+  await mkdirp(installPath);
 
   let composeBin = fsPath.join(installPath, slug);
 

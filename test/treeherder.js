@@ -26,7 +26,7 @@ export default class {
   }
 
   async waitForResultset(revisionHash) {
-    return await waitFor(async function() {
+    return await waitFor({ sleep: 125, maxTries: 600 }, async function() {
       return await this.getResultset(revisionHash);
     }.bind(this));
   }

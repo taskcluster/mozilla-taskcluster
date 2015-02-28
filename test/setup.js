@@ -1,9 +1,10 @@
 import * as documentdb from 'documentdb';
-import dockerOpts from 'dockerode-options';
+import { install as installCompose } from './compose';
 import loadConfig from '../src/config';
 import loadRuntime from '../src/runtime';
 import denodeify from 'denodeify';
 import taskcluster from 'taskcluster-client';
+import _waitForPort from 'wait-for-port';
 import fs from 'mz/fs';
 import * as kueUtils from './kue';
 import publisher from '../src/publisher';
@@ -14,46 +15,15 @@ import URL from 'url';
 import PushExchange from '../src/exchanges/push';
 import THProject from 'mozilla-treeherder/project';
 
-const FIG_ROOT = __dirname;
+const COMPOSE_ROOT = __dirname;
 const GENERATED_CONFIG = `${__dirname}/config.yml`;
-
-async function figPs() {
-  let [stdout, stderr] = await exec('fig ps -q', {
-    cwd: FIG_ROOT
-  });
-
-  return stdout.trim().split('\n').map((v) => {
-    return v.trim();
-  });
-}
-
-async function figUp() {
-  return await exec('fig up -d --no-recreate', { cwd: FIG_ROOT })
-}
-
-async function figKill() {
-  return await exec('fig kill', { cwd: FIG_ROOT });
-}
-
-async function figPort(service, sourcePort) {
-  let [ stdout ] = await exec(`fig port ${service} ${sourcePort}`, {
-    cwd: FIG_ROOT
-  });
-
-  let [ host, targetPort ] = stdout.split(':');
-  return parseInt(targetPort.trim(), 10);
-}
+const waitForPort = denodeify(_waitForPort);
 
 suiteSetup(async function() {
-  // Since we may be operating docker over vagrant/remote/etc.. It is required
-  // to figure out where docker is hosted then
-  let dockerConfig = dockerOpts();
-
-  // In the case where docker is over a unix socket we fallback to 'localhost'
-  let dockerHost = (dockerConfig.host || 'localhost').replace('http://', '');
+  let compose = this.compose = await installCompose();
 
   // Turn on fig (service names are hardcoded!)
-  await figUp();
+  await compose.up(COMPOSE_ROOT);
 
   // Fetch the ports we need to pass in...
   let [
@@ -61,19 +31,19 @@ suiteSetup(async function() {
     redisPort,
     rabbitmqPort
   ] = await Promise.all([
-    // If your confused see test/fig.yml
-    figPort('thapi', 8000),
-    figPort('redis', 6379),
-    figPort('rabbitmq', 5672)
+    // If your confused see test/docker-compose.yml
+    compose.portByName(COMPOSE_ROOT, 'thapi', 8000),
+    compose.portByName(COMPOSE_ROOT, 'redis', 6379),
+    compose.portByName(COMPOSE_ROOT, 'rabbitmq', 5672)
   ]);
 
   // We use a custom config file based on src/config/test.js
   let config = await loadConfig('test', { noRaise: true });
-  config.treeherder.apiUrl = `http://${dockerHost}:${thapiPort}/api/`;
-  config.redis.host = dockerHost;
+  config.treeherder.apiUrl = `http://${compose.host}:${thapiPort}/api/`;
+  config.redis.host = compose.host;
   config.redis.port = redisPort;
   config.commitPublisher.connectionString =
-    `amqp://${dockerHost}:${rabbitmqPort}`;
+    `amqp://${compose.host}:${rabbitmqPort}`;
 
   // write out the custom config...
   await fs.writeFile(GENERATED_CONFIG, yaml.safeDump(config));

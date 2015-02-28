@@ -45,3 +45,9 @@ redis:
   image: redis:2.8
   ports:
     - "6379"
+
+pushlog:
+  image: taskcluster/mozilla-hg-pushlog
+  ports:
+    - "8000"
+
