@@ -20,6 +20,10 @@ const GENERATED_CONFIG = `${__dirname}/config.yml`;
 const waitForPort = denodeify(_waitForPort);
 
 suiteSetup(async function() {
+  // This might take a long time since we install compose and potentially pull
+  // docker images etc...
+  this.timeout('2m');
+
   let compose = this.compose = await installCompose();
 
   // Turn on fig (service names are hardcoded!)
@@ -36,6 +40,31 @@ suiteSetup(async function() {
     compose.portByName(COMPOSE_ROOT, 'redis', 6379),
     compose.portByName(COMPOSE_ROOT, 'rabbitmq', 5672)
   ]);
+
+  // The treeherder init process is far from fast so we increase the default
+  // timeout values to give ourselves a better chance for success...
+  let portRetryOpts = {
+    numRetries: 2000,
+    retryInterval: 100
+  };
+
+  // Ensure all these ports are accessible before running tests...
+  try {
+    await Promise.all([
+      waitForPort(compose.host, thapiPort, portRetryOpts),
+      waitForPort(compose.host, redisPort, portRetryOpts),
+      waitForPort(compose.host, rabbitmqPort, portRetryOpts)
+    ]);
+  } catch (e) {
+    throw new Error(`
+      Could not connect to one or more docker-compose services for tests this
+      probably indicates a problem with docker or docker-compose setup.
+
+      Raw Error:
+
+      ${e.stack}
+    `);
+  }
 
   // We use a custom config file based on src/config/test.js
   let config = await loadConfig('test', { noRaise: true });
