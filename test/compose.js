@@ -56,8 +56,51 @@ class Compose {
     return exec(`${this.bin} up -d --no-recreate`, { cwd });
   }
 
-  async kill(cwd) {
+  async killAll(cwd) {
     return exec(`${this.bin} kill`, { cwd });
+  }
+
+  /**
+  Start running a single instance of a given service.
+  */
+  async run(cwd, service) {
+    let [service] = await exec(`${this.bin} run -d --service-ports ${service}`, {
+      cwd
+    });
+
+    return service.trim();
+  }
+
+  async portByName(cwd, service, port) {
+    let [result] = await exec(`${this.bin} port ${service} ${port}`, {
+      cwd
+    });
+
+    let [host, port] = host.trim().split(':');
+    if (port) {
+      return parseInt(port, 10);
+    }
+    throw new Error(`Unknown port ${port} for service ${service}`);
+  }
+
+  async portById(containerId, port) {
+    let inspect = await this.inspect(containerId);
+    let ports = inspect.NetworkSettings.Ports;
+    let port = ports[`${port}/tcp`];
+
+    if (!port) {
+      throw new Error(`Unknown port ${port} for container ${containerId}`);
+    }
+    return parseInt(port[0].HostPort, 10);
+  }
+
+  /**
+  Ensure container is both killed and removed.
+  */
+  async destroy(containerId) {
+    let container = this.docker.getContainer(containerId);
+    await container.kill({});
+    await container.remove({});
   }
 
   async ps(cwd) {
