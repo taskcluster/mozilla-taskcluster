@@ -77,6 +77,8 @@ try:
       url: "{{{host}}}{{{path}}}/raw-file/{{revision}}/testing/taskcluster/tasks/decision/branch.yml"
     mozilla-central:
       url: "{{{host}}}{{{path}}}/raw-file/{{revision}}/testing/taskcluster/tasks/decision/branch.yml"
+    cedar:
+      url: "{{{host}}}{{{path}}}/raw-file/{{revision}}/testing/taskcluster/tasks/decision/branch.yml"
     cypress:
       url: "{{{host}}}{{{path}}}/raw-file/{{revision}}/testing/taskcluster/tasks/decision/branch.yml"
 
