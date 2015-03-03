@@ -1,6 +1,6 @@
 import pushlog from './pushlog';
 import createProc from './process';
-import kueUtils from './kue';
+import * as kueUtils from './kue';
 
 export default function setup(...processes) {
   let results = {
