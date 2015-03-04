@@ -42,7 +42,7 @@ suite('jobs/taskcluster_graph', function() {
       {
        author: 'user@example.com',
        branch: 'default',
-       desc: 'desc +tc',
+       desc: 'try: desc +tc',
        files: [
         'xfoobar'
        ],

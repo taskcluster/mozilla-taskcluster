@@ -335,4 +335,5 @@ suite('bin/treeherder_taskcluster.js', function() {
     );
     assert.equal(job.result, 'exception');
   });
+
 });

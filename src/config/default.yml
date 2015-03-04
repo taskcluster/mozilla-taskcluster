@@ -4,6 +4,9 @@ documentdb:
 treeherder:
   apiUrl: https://treeherder.mozilla.org/api/
 
+treeherderActions:
+  prefetch: 200
+
 taskcluster:
   credentials: {}
 

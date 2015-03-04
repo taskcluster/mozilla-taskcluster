@@ -1,6 +1,9 @@
 documentdb:
   database: treeherder-proxy-testing
 
+treeherderActions:
+  exchange: test
+
 config:
   files:
     - test-treeherder-proxy.yml

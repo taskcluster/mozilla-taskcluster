@@ -64,6 +64,7 @@ export default class TreeherderResultsetJob extends Base {
         job.log(`skipping graph project does not contain ${tryProject.contains}`)
         return;
       }
+      console.log('schedule me')
       job.log('scheduling taskcluster jobs');
       await this.scheduleTaskGraphJob(resultset, repo, pushref);
     }

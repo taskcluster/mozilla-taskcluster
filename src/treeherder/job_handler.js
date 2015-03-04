@@ -501,8 +501,8 @@ class Handler {
   }
 }
 
-export default async function(prefix, listener) {
-  let instance = new Handler(prefix, listener);
+export default async function(config, listener) {
+  let instance = new Handler(config, listener);
   instance.start();
   await listener.resume();
 }

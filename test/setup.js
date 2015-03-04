@@ -1,3 +1,4 @@
+import assert from 'assert';
 import * as documentdb from 'documentdb';
 import { install as installCompose } from './compose';
 import loadConfig from '../src/config';
@@ -68,11 +69,17 @@ suiteSetup(async function() {
 
   // We use a custom config file based on src/config/test.js
   let config = await loadConfig('test', { noRaise: true });
+  let amqpConnectionString =
+    `amqp://guest:guest@${compose.host}:${rabbitmqPort}`;
+
   config.treeherder.apiUrl = `http://${compose.host}:${thapiPort}/api/`;
   config.redis.host = compose.host;
   config.redis.port = redisPort;
-  config.commitPublisher.connectionString =
-    `amqp://${compose.host}:${rabbitmqPort}`;
+
+  // The commit publisher and the treeherder consumers need messages from within
+  // the docker network so configure those accordingly.
+  config.commitPublisher.connectionString = amqpConnectionString;
+  config.treeherderActions.connectionString = amqpConnectionString;
 
   // write out the custom config...
   await fs.writeFile(GENERATED_CONFIG, yaml.safeDump(config));
@@ -87,7 +94,7 @@ suiteSetup(async function() {
 
   // Pulse is for things external components generate...
   this.pulse = new taskcluster.PulseListener({
-    credentials: this.config.pulse
+    credentials: this.config.treeherderTaskcluster.connectionString
   });
 
   this.queue = new taskcluster.Queue({

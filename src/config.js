@@ -48,7 +48,17 @@ let schema = Joi.object().keys({
       description('entire treeherder/etl/data/credentials.json file')
   }),
 
+  treeherderActions: Joi.object().keys({
+    buildSystemType: Joi.string().default('taskcluster'),
+    connectionString: Joi.string().required(),
+    exchange: Joi.string().required().
+      description('Exchange to listen on'),
+    queue: Joi.string(),
+    prefetch: Joi.number().required()
+  }),
+
   treeherderTaskcluster: Joi.object().keys({
+    connectionString: Joi.string().required(),
     routePrefix: Joi.string().required().
       description('routing key prefix for taskcluster-treehreder'),
     queue: Joi.string(),
@@ -103,14 +113,6 @@ let schema = Joi.object().keys({
         Number of missing pushes to fetch if current push id < then current
         changelog push id (most recent N are fetched in ascending order).
       `.trim())
-  }),
-
-  // Note pulse is _only_ used for consuming messages and not publishing them
-  pulse: Joi.object().keys({
-    username: Joi.string().
-      default(Joi.ref('$env.PULSE_USERNAME')),
-    password: Joi.string().
-      default(Joi.ref('$env.PULSE_PASSWORD'))
   }),
 
   commitPublisher: Joi.object().keys({
