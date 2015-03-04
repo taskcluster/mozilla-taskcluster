@@ -1,4 +1,4 @@
-import Exchange from '../src/exchange';
+import exchange from '../src/exchange';
 import publisher from '../src/publisher';
 import toJSONSchema from 'joi-to-json-schema';
 import assert from 'assert';
@@ -9,7 +9,7 @@ let Joi = require('joi');
 
 suite('publisher', function() {
 
-  let TestExchange = new Exchange('magicfoo').
+  let Exchange = exchange('magicfoo').
     name('doMagicFoo').
     title('I am the magic foo').
     description('wootbar').
@@ -32,7 +32,7 @@ suite('publisher', function() {
     });
 
     // create the exchange each time to ensure we are in known state.
-    await subject.assertExchanges(TestExchange);
+    await subject.assertExchanges(Exchange);
 
     listener = new AMQPListener({
       connectionString: this.config.commitPublisher.connectionString
@@ -44,35 +44,35 @@ suite('publisher', function() {
   });
 
   test('toSchema()', function() {
-    let schema = subject.toSchema(TestExchange);
+    let schema = subject.toSchema(Exchange);
     let expected = {
       title: subject.title,
       description: subject.description,
       exchangePrefix: subject.exchangePrefix,
       entries: [{
         type: 'topic-exchange',
-        exchange: TestExchange.config.exchange,
-        name: TestExchange.config.name,
-        title: TestExchange.config.title,
-        description: TestExchange.config.description,
+        exchange: Exchange.config.exchange,
+        name: Exchange.config.name,
+        title: Exchange.config.title,
+        description: Exchange.config.description,
         routingKey: [
           { name: 'first', summary: 'yup', multipleWords: false, required: true },
           { name: 'second', summary: 'sum', multipleWords: true, required: false }
         ],
-        schema: toJSONSchema(TestExchange.config.schema)
+        schema: toJSONSchema(Exchange.config.schema)
       }]
     };
     assert.deepEqual(schema, expected);
   });
 
   test('publish()', async function() {
-    let XfooEvents = createClient(subject.toSchema(TestExchange));
+    let XfooEvents = createClient(subject.toSchema(Exchange));
     let events = new XfooEvents();
     assert.ok(events.doMagicFoo);
 
     let publish = async function() {
       await subject.publish(
-        TestExchange,
+        Exchange,
         { first: 'first', second: 'second' },
         { wootbar: 'is wootbar', number: 5 }
       );
@@ -90,7 +90,7 @@ suite('publisher', function() {
     await listener.resume();
 
     await subject.publish(
-      TestExchange,
+      Exchange,
       { first: 'first', second: 'second' },
       { wootbar: 'is wootbar', number: 5 }
     );

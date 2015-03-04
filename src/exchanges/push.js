@@ -1,7 +1,7 @@
-import Exchange from '../exchange';
+import exchange from '../exchange';
 let Joi = require('joi');
 
-export default new Exchange('pushlog').
+export default exchange('pushlog').
   title('Mozilla repository commit exchange').
   name('push').
   description(`

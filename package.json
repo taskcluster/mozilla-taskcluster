@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "mocha $(find test -name '*_test.js') --reporter spec",
-    "prepublish": "babel -s -m common -e src --out-dir build"
+    "prepublish": "6to5 -s -m common -e src --out-dir build"
   },
   "repository": {
     "type": "git",
@@ -18,9 +18,9 @@
   },
   "homepage": "https://github.com/lightsofapollo/treeherder-proxy",
   "dependencies": {
+    "6to5": "^2.11.3",
     "amqplib": "^0.3.0",
     "argparse": "^0.1.16",
-    "babel": "^4.6.1",
     "debug": "^2.1.0",
     "denodeify": "^1.2.0",
     "dockerode-options": "^0.1.0",
@@ -41,17 +41,13 @@
     "mz": "^1.2.0",
     "promise": "^6.0.1",
     "slugid": "^1.0.3",
-    "superagent": "git://github.com/visionmedia/superagent#e6c302c2e83cbf76182ea10b6a1ef6fd0d4e0b2b",
+    "superagent": "^0.21.0",
     "superagent-promise": "^0.2.0",
     "taskcluster-client": "^0.19.4",
     "urljoin": "^0.1.5",
     "uuid": "^2.0.1"
   },
   "devDependencies": {
-    "dockerode": "^2.0.7",
-    "dockerode-promise": "0.0.1",
-    "mkdirp": "^0.5.0",
-    "mocha": "^2.0.1",
-    "wait-for-port": "0.0.1"
+    "mocha": "^2.0.1"
   }
 }

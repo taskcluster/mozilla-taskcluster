@@ -17,7 +17,7 @@ mysql:
 # The bootstrap step is special in that it should be run prior to any of the
 # "real" processes which need to use the database.
 thbootstrap:
-  image: treeherder/treeherder-service
+  image: lightsofapollo/treeherder
   links:
     - mysql
     - rabbitmq
@@ -25,7 +25,7 @@ thbootstrap:
   command: ./docker/init.sh
 
 thapi:
-  image: treeherder/treeherder-service
+  image: lightsofapollo/treeherder
   links:
     - mysql
     - rabbitmq
@@ -45,9 +45,3 @@ redis:
   image: redis:2.8
   ports:
     - "6379"
-
-pushlog:
-  image: taskcluster/mozilla-hg-pushlog
-  ports:
-    - "8000"
-

@@ -20,7 +20,7 @@ class Process {
 
 export default function start(name) {
   return new Promise((accept, reject) => {
-    let bin6to5 = __dirname + '/../node_modules/.bin/babel-node';
+    let bin6to5 = __dirname + '/../node_modules/.bin/6to5-node';
     let binary = `${__dirname}/../src/bin/${name}`;
     if (!fs.existsSync(binary)) {
       throw new Error(`Invalid (missing) binary ${binary}`);

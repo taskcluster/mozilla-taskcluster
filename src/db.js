@@ -1,5 +1,5 @@
 import assert from 'assert';
-import docdb from 'documentdb-q-promises';
+import * as docdb from 'documentdb-q-promises';
 import Debug from 'debug';
 
 let Joi = require('joi');
@@ -197,8 +197,7 @@ export class Connection {
         return this.links.database;
       }
 
-      let db;
-      db = await this.client.queryDatabases(
+      let db = await this.client.queryDatabases(
         `SELECT * FROM root WHERE root.id = "${this.id}"`
       ).toArrayAsync();
 
@@ -206,7 +205,7 @@ export class Connection {
         return this.links.database = db.feed[0]._self;
       }
 
-      db = await this.client.createDatabaseAsync({
+      let db = await this.client.createDatabaseAsync({
         id: this.id
       });
 
@@ -221,8 +220,7 @@ export class Connection {
       }
 
       let dbLink = await this.ensureDatabase();
-      let collection;
-      collection = await this.client.queryCollections(
+      let collection = await this.client.queryCollections(
         dbLink,
         `SELECT * FROM root WHERE root.id = "${id}"`
       ).toArrayAsync();
@@ -232,7 +230,7 @@ export class Connection {
         return this.links.collections[id];
       }
 
-      collection = await this.client.createCollectionAsync(
+      let collection = await this.client.createCollectionAsync(
         dbLink,
         { id: id }
       );

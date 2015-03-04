@@ -1,8 +1,0 @@
-sleep:
-  image: ubuntu:14.04
-  ports:
-    - "8000"
-  command:
-    - /bin/bash
-    - -c
-    - sleep infinity

@@ -34,7 +34,7 @@ export default class Repositories extends Collection {
 
   async validateDocument(doc) {
     // Await + super don't seem to play nice hack around it!
-    let v = super.validateDocument(doc);
+    let v = super(doc);
     doc = await v;
     doc.id = Repositories.hashUrl(doc.url);
     return doc;

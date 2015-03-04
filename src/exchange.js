@@ -2,6 +2,10 @@ let Joi = require('joi');
 
 export default class Exchange {
   constructor(exchange) {
+    if (!(this instanceof Exchange)) {
+      return new Exchange(exchange);
+    }
+
     Joi.assert(exchange, Joi.string());
     this.config = {
       exchange,

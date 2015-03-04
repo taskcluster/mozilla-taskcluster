@@ -1,5 +1,5 @@
 process.$start = Date.now();
-require('babel/register')({
+require('6to5/register')({
   cache: true,
   experimental: true
 });
