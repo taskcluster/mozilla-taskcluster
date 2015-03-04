@@ -49,7 +49,7 @@ let schema = Joi.object().keys({
   }),
 
   treeherderActions: Joi.object().keys({
-    buildSystemType: Joi.string().default('taskcluster'),
+    routePrefix: Joi.string().required(),
     connectionString: Joi.string().required(),
     exchange: Joi.string().required().
       description('Exchange to listen on'),

@@ -5,6 +5,7 @@ treeherder:
   apiUrl: https://treeherder.mozilla.org/api/
 
 treeherderActions:
+  routePrefix: taskcluster
   prefetch: 200
 
 taskcluster:

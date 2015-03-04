@@ -24,14 +24,14 @@ async function setupActionHandler(runtime, config) {
 
   let binding = {
     exchange: config.treeherderActions.exchange,
-    routingKeyPattern: routingKeyPattern
+    routingKeyPattern: routingPattern
   };
 
   await Promise.all([
     listener.bind(binding)
   ]);
 
-  await createActionHandler(listener);
+  await createActionHandler(config, listener);
 }
 
 async function setupJobHandler(runtime, config) {
@@ -63,6 +63,7 @@ async function setupJobHandler(runtime, config) {
 
 cli(async function main(runtime, config) {
   await Promise.all([
-    setupJobHandler(runtime, config)
+    setupJobHandler(runtime, config),
+    setupActionHandler(runtime, config)
   ])
 });
