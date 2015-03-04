@@ -87,16 +87,6 @@ suiteSetup(async function() {
   this.config = await loadConfig('test');
   this.runtime = await loadRuntime(this.config);
 
-  // Note listener is for messages/exchanges we generate...
-  this.listener = new taskcluster.AMQPListener({
-    connectionString: this.config.commitPublisher.connectionString
-  });
-
-  // Pulse is for things external components generate...
-  this.pulse = new taskcluster.PulseListener({
-    credentials: this.config.treeherderTaskcluster.connectionString
-  });
-
   this.queue = new taskcluster.Queue({
     credentials: this.config.taskcluster.credentials
   });
@@ -126,6 +116,25 @@ suiteSetup(async function() {
   this.runtime.jobs.on('failed attempt', function(result) {
     console.error('Failed job', result);
   });
+});
+
+setup(function() {
+  // Note listener is for messages/exchanges we generate...
+  this.listener = new taskcluster.AMQPListener({
+    connectionString: this.config.commitPublisher.connectionString
+  });
+
+  // Pulse is for things external components generate...
+  this.pulse = new taskcluster.PulseListener({
+    credentials: this.config.treeherderTaskcluster.connectionString
+  });
+});
+
+teardown(async function() {
+  await Promise.all([
+    this.listener.close(),
+    this.pulse.close()
+  ]);
 });
 
 suiteTeardown(async function() {
