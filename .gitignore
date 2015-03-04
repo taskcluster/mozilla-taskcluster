@@ -10,3 +10,4 @@
 /npm-debug.log
 /test/test.json
 /test/config.yml
+/test/.compose

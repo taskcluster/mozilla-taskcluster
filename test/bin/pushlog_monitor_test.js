@@ -51,23 +51,25 @@ suite('bin/pushlog_monitor_test.js', function() {
     ];
 
     monitorSetup.pushlog.push(changesetsOne);
-    let result = await waitFor(async function() {
-      let doc = await repos.findById(Repositories.hashUrl(monitorSetup.url));
+    let result;
+    let doc;
+    result = await waitFor(async function() {
+      doc = await repos.findById(Repositories.hashUrl(monitorSetup.url));
       return doc.lastPushId === 1;
     });
 
-    let doc = await repos.findById(Repositories.hashUrl(monitorSetup.url));
+    doc = await repos.findById(Repositories.hashUrl(monitorSetup.url));
     assert.equal(
       doc.lastChangeset, changesetsOne[changesetsOne.length - 1].node
     );
 
     monitorSetup.pushlog.push(changesetsTwo);
-    let result = await waitFor(async function() {
+    result = await waitFor(async function() {
       let doc = await repos.findById(Repositories.hashUrl(monitorSetup.url));
       return doc.lastPushId === 2;
     });
 
-    let doc = await repos.findById(Repositories.hashUrl(monitorSetup.url));
+    doc = await repos.findById(Repositories.hashUrl(monitorSetup.url));
     assert.equal(doc.lastChangeset, changesetsTwo[changesetsTwo.length - 1].node);
   });
 });
