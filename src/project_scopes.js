@@ -8,7 +8,7 @@ import Joi from 'joi';
 const URL_SCHEMA = Joi.object().keys({
   alias: Joi.string().required(),
   revision: Joi.string().required(),
-  path: Joi.string().required(),
+  path: Joi.string().allow(''),
   host: Joi.string().required()
 });
 
