@@ -1,11 +1,11 @@
 # Treeherder Integration
 
 The core of mozilla-taskcluster is integrating with the pushlog and
-treeherder. Treeherder integration is split into two parts:
+treeherder. Treeherder integration is split into three parts:
 
- - [pushlog -> resultset monitoring]
- - [task routes]
-
+ - [Pushlog monitoring](Pushlog)
+ - [Actions](Actions)
+ - [Task routes](Task Routing)
 
 ## Pushlog monitoring
 
@@ -18,6 +18,34 @@ associated graph.
 The Repositories collection contains the list of monitored repositories
 (Note that this only is supported for repositories which live under the
 hg.mozilla.org/* host with the pushlog extension.
+
+## Actions
+
+Treeherder UI presents the user with a number of options the two
+important ones are retrigger and cancel. Whenever these actions are
+requsted treeherder emits a pulse message in roughly the following form:
+
+```
+exchange: treeherder/v1/job-actions
+routing key: <build_system_type>.<project>.<action>
+schema: https://github.com/mozilla/treeherder-service/blob/e889dd1c951b925d621d6c4220a3566f834e0cfa/schemas/job-action-message.json
+````
+
+### The "retrigger" action
+
+When a job requests a retrigger we duplicate it's graph dependant on
+it's state:
+
+##### Failed/Exception States
+
+The node in the graph is duplicated as well as all _dependant_ nodes
+this means if a build fails and you retrigger it the tests along with
+the build are constructed into a new graph.
+
+#### Other cases (pending/running/etc...)
+
+We duplicte _only_ the single node in the graph (so retrigger completed
+builds will not retrigger tests for that build)
 
 ## Task routes
 
