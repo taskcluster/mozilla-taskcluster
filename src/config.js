@@ -95,6 +95,7 @@ let schema = Joi.object().keys({
 
   kue: Joi.object().keys({
     purgeCompleted: Joi.boolean(),
+    logFailedJobs: Joi.boolean(),
     prefix: Joi.string().required(),
     admin: Joi.object().keys({
       port: Joi.number().default(60024)

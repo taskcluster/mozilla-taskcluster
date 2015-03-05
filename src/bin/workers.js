@@ -5,14 +5,15 @@ Works the "kue" for pushes and emits amqp events.
 
 import '6to5/polyfill';
 import cli from '../cli';
-import publisher from '../publisher';
+import createPublisher from '../publisher';
 
 import PushExchange from '../exchanges/push';
-import Monitor from '../repository_monitor/monitor';
+import RetriggerExchange from '../exchanges/retrigger';
 
 import PublishPushJob from '../jobs/publish_push';
 import TreeherderResultsetJob from '../jobs/treeherder_resultset';
 import TaskclusterGraphJob from '../jobs/taskcluster_graph';
+import TaskRetriggerJob from '../jobs/retrigger';
 
 // Time allowed for running jobs to complete before killing...
 const KUE_SHUTDOWN_GRACE = 5000;
@@ -30,9 +31,9 @@ function work(jobClass, config = {}) {
 }
 
 cli(async function main(runtime, config) {
-  let commitPublisher = await publisher(config.commitPublisher);
-  await commitPublisher.assertExchanges(
-    PushExchange
+  let publisher = await createPublisher(config.commitPublisher);
+  await publisher.assertExchanges(
+    PushExchange, RetriggerExchange
   );
 
   // graceful shutdown
@@ -65,13 +66,21 @@ cli(async function main(runtime, config) {
     });
   }
 
+  if (config.kue.logFailedJobs) {
+    runtime.jobs.on('job failed attempt', function(id) {
+      runtime.kue.Job.get(id, function(err, job) {
+        console.error('Failed job', job, err);
+      });
+    });
+  }
+
   // Process the incoming pushes....
   runtime.jobs.process('publish-push', 100, work(
     PublishPushJob,
     {
       runtime,
       config,
-      publisher: commitPublisher
+      publisher
     }
   ));
 
@@ -92,4 +101,14 @@ cli(async function main(runtime, config) {
       config
     }
   ));
+
+  // Task retriggers...
+  runtime.jobs.process('retrigger', 300, work(
+    TaskRetriggerJob,
+    {
+      runtime,
+      config,
+      publisher
+    }
+  ))
 });

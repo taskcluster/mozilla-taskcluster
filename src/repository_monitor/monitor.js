@@ -10,7 +10,7 @@ import denodeify from 'denodeify';
 
 import PushlogClient from './pushlog_client';
 
-// 20 seconds...
+// 30 seconds...
 const JOB_RETRY_DELAY = 1000 * 30;
 
 let debug = Debug('treeherder-proxy:monitor');
@@ -127,7 +127,7 @@ export default class Monitor {
       lock.active = true;
       await this.runCheck(repo, lock);
     } catch (e) {
-      console.log(`Error processing run ${repo.url}\n ${e.stack}`);
+      //console.log(`Error processing run ${repo.url}\n ${e.stack}`);
       lock.active = false;
     } finally {
       lock.active = false;

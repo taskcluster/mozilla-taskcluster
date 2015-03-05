@@ -15,11 +15,13 @@ import { exec } from 'mz/child_process';
 
 import URL from 'url';
 import PushExchange from '../src/exchanges/push';
+import RetriggerExchange from '../src/exchanges/retrigger';
 import THProject from 'mozilla-treeherder/project';
 
 const COMPOSE_ROOT = __dirname;
 const GENERATED_CONFIG = `${__dirname}/config.yml`;
 const waitForPort = denodeify(_waitForPort);
+
 
 suiteSetup(async function() {
   // This might take a long time since we install compose and potentially pull
@@ -100,25 +102,24 @@ suiteSetup(async function() {
   });
 
   let commitPublisher = await publisher(this.config.commitPublisher);
-  await commitPublisher.assertExchanges(PushExchange);
+  await commitPublisher.assertExchanges(
+    PushExchange, RetriggerExchange
+
+  );
 
   // We only need the connection to assert the exchanges after that we can
   // shut it down...
   await commitPublisher.close();
 
-  let Client = taskcluster.createClient(commitPublisher.toSchema(
-    PushExchange
-  ));
+  this.events = new (taskcluster.createClient(commitPublisher.toSchema(
+    PushExchange,
+    RetriggerExchange
+  )))();
 
-  this.pushEvents = new Client();
   this.treeherder = new THProject('try', {
     consumerKey: 'try',
     consumerSecret: 'try',
     baseUrl: this.config.treeherder.apiUrl
-  });
-
-  this.runtime.jobs.on('failed attempt', function(result) {
-    console.error('Failed job', result);
   });
 });
 

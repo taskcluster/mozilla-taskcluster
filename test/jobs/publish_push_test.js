@@ -31,7 +31,7 @@ suite('jobs/publish_push', function() {
 
     // Bind the queue...
     await this.listener.connect();
-    await this.listener.bind(this.pushEvents.push());
+    await this.listener.bind(this.events.push());
 
     monitorSetup.pushlog.push(changesets);
 
