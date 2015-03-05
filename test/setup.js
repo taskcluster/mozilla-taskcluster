@@ -9,6 +9,7 @@ import _waitForPort from 'wait-for-port';
 import fs from 'mz/fs';
 import * as kueUtils from './kue';
 import publisher from '../src/publisher';
+import slugid from 'slugid';
 import yaml from 'js-yaml';
 import { exec } from 'mz/child_process';
 
@@ -80,6 +81,9 @@ suiteSetup(async function() {
   // the docker network so configure those accordingly.
   config.commitPublisher.connectionString = amqpConnectionString;
   config.treeherderActions.connectionString = amqpConnectionString;
+
+  // start with new kue each time...
+  config.kue.prefix = slugid.v4();
 
   // write out the custom config...
   await fs.writeFile(GENERATED_CONFIG, yaml.safeDump(config));
