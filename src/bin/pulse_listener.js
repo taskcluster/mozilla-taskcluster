@@ -12,7 +12,9 @@ import createActionHandler from '../../src/treeherder/action_handler';
 
 async function setupActionHandler(runtime, config) {
   let listener = new taskcluster.PulseListener({
-    credentials: config.treeherderActions.connectionString,
+    credentials: {
+      connectionString: config.treeherderActions.connectionString
+    },
     queueName: config.treeherderActions.queue,
     prefetch: config.treeherderActions.prefetch
   });
@@ -37,7 +39,9 @@ async function setupActionHandler(runtime, config) {
 async function setupJobHandler(runtime, config) {
   let queueEvents = new taskcluster.QueueEvents();
   let listener = new taskcluster.PulseListener({
-    credentials: config.treeherderTaskcluster.connectionString,
+    credentials: {
+      connectionString: config.treeherderTaskcluster.connectionString
+    },
     queueName: config.treeherderTaskcluster.queue,
     prefetch: config.treeherderTaskcluster.prefetch
   });

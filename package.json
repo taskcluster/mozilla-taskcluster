@@ -43,7 +43,7 @@
     "slugid": "^1.0.3",
     "superagent": "git://github.com/visionmedia/superagent#e6c302c2e83cbf76182ea10b6a1ef6fd0d4e0b2b",
     "superagent-promise": "^0.2.0",
-    "taskcluster-client": "^0.19.4",
+    "taskcluster-client": "^0.21.0",
     "urljoin": "^0.1.5",
     "uuid": "^2.0.1"
   },
