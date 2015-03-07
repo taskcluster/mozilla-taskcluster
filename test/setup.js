@@ -131,7 +131,9 @@ setup(function() {
 
   // Pulse is for things external components generate...
   this.pulse = new taskcluster.PulseListener({
-    credentials: this.config.treeherderTaskcluster.connectionString
+    credentials: {
+      connectionString: this.config.treeherderTaskcluster.connectionString
+    }
   });
 });
 
