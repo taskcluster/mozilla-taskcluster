@@ -122,7 +122,7 @@ suite('action handler', function() {
       },
       scopes: [
         'queue:define-task:test/test',
-        'queue:route:*'
+        'queue:route:tc-treeherder-test.*'
       ],
       tasks: [nodeOne, nodeTwo]
     };
@@ -153,7 +153,7 @@ suite('action handler', function() {
       },
       scopes: [
         'queue:define-task:test/test',
-        'queue:route:*'
+        'queue:route:tc-treeherder-test.*'
       ],
       tasks: [nodeOne, nodeTwo]
     };
@@ -196,7 +196,7 @@ suite('action handler', function() {
       },
       scopes: [
         'queue:define-task:test/test',
-        'queue:route:*'
+        'queue:route:tc-treeherder-test.*'
       ],
       tasks: [
         nodeOne, nodeTwo, nodeThree, nodeFour,

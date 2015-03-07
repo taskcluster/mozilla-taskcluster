@@ -1,5 +1,6 @@
 scopes:
   - 'queue:define-task:test/test'
+  - 'queue:create-task:test/test'
 tasks:
   # A decision task
   - taskId:           '{{#as_slugid}}decision-task{{/as_slugid}}'
@@ -7,7 +8,7 @@ tasks:
       scopes:
         - 'queue:route:test.{{ project  }}.{{ revision }}'
       routes:
-        - 'testme.{{ project  }}.{{ revision }}'
+        - 'test.{{ project  }}.{{ revision }}'
       provisionerId:  test
       workerType:     test
       created:        '{{ now }}'

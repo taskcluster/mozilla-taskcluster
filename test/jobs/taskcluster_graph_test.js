@@ -56,7 +56,7 @@ suite('jobs/taskcluster_graph', function() {
     let queueEvents = new taskcluster.QueueEvents();
 
     await this.pulse.connect();
-    let route = `route.testme.try.${lastChangeset.node}`
+    let route = `route.test.try.${lastChangeset.node}`
     this.pulse.bind(queueEvents.taskPending(route));
 
     monitorSetup.pushlog.push(changesets);

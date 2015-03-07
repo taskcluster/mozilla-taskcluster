@@ -77,6 +77,11 @@ export default class TaskclusterGraphJob extends Base {
     graph.scopes = scopes;
 
     job.log('Posting job with id %s and scopes', id, graph.scopes.join(', '));
-    await scheduler.createTaskGraph(id, graph);
+    try {
+      await scheduler.createTaskGraph(id, graph);
+    } catch (e) {
+      console.log(JSON.stringify(e, null, 2))
+      throw e;
+    }
   }
 }

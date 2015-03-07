@@ -1,5 +1,6 @@
 scopes:
   - 'queue:define-task:test/test'
+  - 'queue:create-task:test/test'
   # Note that the queue:route scope is not present here this is to test the
   # importing of scopes from tasks into the graph level...
 tasks:
@@ -7,9 +8,9 @@ tasks:
   - taskId:           '{{#as_slugid}}decision-task{{/as_slugid}}'
     task:
       scopes:
-        - 'queue:route:xyz.{{ project  }}.{{ revision_hash }}'
+        - 'queue:route:test.{{ project  }}.{{ revision_hash }}'
       routes:
-        - 'xyz.{{ project  }}.{{ revision_hash }}'
+        - 'test.{{ project  }}.{{ revision_hash }}'
       provisionerId:  test
       workerType:     test
       created:        '{{ now }}'
@@ -89,4 +90,3 @@ metadata:
     Some description of the test task in **markdown**.
   owner:        '{{ owner }}'
   source:       '{{{ source }}}'
-

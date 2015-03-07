@@ -7,10 +7,6 @@ import createResultset from '../../src/treeherder/resultset';
 
 suite('jobs/treeherder_resultset', function() {
   let monitorSetup = testSetup('workers.js');
-  let repos;
-  setup(function() {
-    repos = this.runtime.repositories;
-  });
 
   test('update after a push', async function() {
     let author = 'me';
