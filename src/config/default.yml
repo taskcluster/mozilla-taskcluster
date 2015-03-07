@@ -1,3 +1,4 @@
+mongo: {}
 documentdb:
   database: treeherder-proxy
 

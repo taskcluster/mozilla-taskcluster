@@ -1,5 +1,7 @@
-import * as subject from '../src/db';
-import docdb from 'documentdb-q-promises';
+import {
+  default as createConnection,
+  Collection
+} from '../src/db';
 
 import uuid from 'uuid';
 import assert from 'assert';
@@ -7,7 +9,16 @@ import assert from 'assert';
 let Joi = require('joi');
 
 suite('db', function() {
-  class Data extends subject.Collection {
+  class Data extends Collection {
+    get indexes() {
+      return {
+        id: {
+          w: 'majority',
+          unique: true
+        }
+      };
+    }
+
     get id() {
       return 'data';
     }
@@ -21,23 +32,13 @@ suite('db', function() {
   }
 
   let connection, db = uuid.v4(), client, data;
-  suiteSetup(function() {
-    client = new docdb.DocumentClientWrapper(
-      this.config.documentdb.host,
-      { masterKey: this.config.documentdb.key }
-    );
-
-    connection = new subject.Connection({
-      database: db,
-      host: this.config.documentdb.host,
-      key: this.config.documentdb.key
-    });
-
-    data = new Data(connection);
+  suiteSetup(async function() {
+    connection = await createConnection(this.config.mongo.connectionString);
+    data = await Data.create(connection);
   });
 
   suiteTeardown(async function() {
-    await connection.destroy();
+    await connection.dropDatabase();
   });
 
   suite('collections', function() {
@@ -71,56 +72,58 @@ suite('db', function() {
         await data.remove(id);
       });
 
+      test('index uniqueness', async function() {
+        try {
+          await data.create({
+            id: id,
+            url: 'baz'
+          });
+        } catch (e) {
+          assert.ok(e.message.indexOf('duplicate') !== -1);
+          return e;
+        }
+        throw new Error('Should throw uniqueness error...');
+      });
+
       test('#findById', async function() {
         let result = await data.findById(id);
         assert.equal(result.id, id);
         assert.equal(result.url, 'baz');
       });
 
-      test('update - no conflict', async function() {
-        let result = await data.update(id, async function(doc) {
-          doc.url = 'new';
-          return doc;
+      test('#remove', async function() {
+        // Attempt to remove something that does not exist...
+        assert.equal(await data.remove('thefoo'), 0);
+
+        await data.create({
+          id: 'thefoo',
+          url: 'baz'
         });
+
+        // Remove something that does...
+        assert.equal(await data.remove('thefoo'), 1);
+      });
+
+      test('#replace', async function() {
+        let newDoc = await data.findById(id);
+        newDoc.url = 'new';
+        await data.replace({ id }, newDoc);
 
         let doc = await data.findById(id);
         assert.equal(doc.url, 'new');
-        assert.equal(doc._etag, result._etag);
-      });
 
-      test('update - with existing doc', async function() {
-        let doc = await data.findById(id);
-
-        doc = await data.update(doc, function(doc) {
-          doc.url = 'new';
-          return doc;
-        });
-
-        doc = await data.update(doc, function(doc) {
-          doc.url = 'another';
-          return doc;
-        });
-
-        assert.equal(doc.url, 'another');
-        let foundDoc = await data.findById(id);
-        assert.equal(doc._etag, foundDoc._etag);
-        assert.equal(doc.url, foundDoc.url);
-      });
-
-      test('update - conflict', async function() {
-        let currentTry = 0;
-        let result = await data.update(id, async function(doc) {
-          doc.url = 'new';
-          if (currentTry++ < 3) {
-            await client.replaceDocumentAsync(doc._self, doc);
-          }
-          return doc;
-        });
-
-        let doc = await data.findById(id);
-        assert.equal(currentTry, 4, 'ran for 4 tries');
-        assert.equal(doc.url, 'new');
-        assert.equal(doc._etag, result._etag);
+        try {
+          await data.replace({ id, url: 'old' }, {
+            id,
+            url: 'TEH FOO'
+          });
+        } catch (e) {
+          // Did not find anything to update...
+          assert.ok(e);
+          assert.equal(e.result.value, null);
+          return e;
+        }
+        throw new Error('Should have thrown...');
       });
     });
   });

@@ -51,3 +51,7 @@ pushlog:
   ports:
     - "8000"
 
+mongo:
+  image: mongo:3
+  ports:
+    - "27017"

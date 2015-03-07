@@ -15,6 +15,13 @@ export default class Repositories extends Collection {
     return 'repositories';
   }
 
+  get indexes() {
+    return {
+      id: { w: 'majority', unique: true },
+      url: { w: 'majority', unique: true },
+    };
+  }
+
   get schema() {
     return Joi.object().keys({
       id: Joi.string(),

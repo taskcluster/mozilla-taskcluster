@@ -5,7 +5,7 @@ import merge from 'lodash.merge';
 import yaml from 'js-yaml';
 let Joi = require('joi');
 
-import { Connection } from './db';
+import createConnection from './db';
 import Debug from 'debug';
 import Config from './collections/config';
 
@@ -22,6 +22,12 @@ async function loadYaml(location) {
 // Schema used to ensure we have all the correct configuration values prior to
 // running any more complex logic...
 let schema = Joi.object().keys({
+
+  mongo: Joi.object().keys({
+    connectionString: Joi.string().required().
+      description('Mongodb connection string')
+  }),
+
   documentdb: Joi.object().keys({
     collectionPrefix: Joi.string().description('prefix to use before collection name'),
     host: Joi.string().description('documentdb hostname'),
@@ -155,9 +161,9 @@ export default async function load(profile, options = {}) {
   }
 
   // Load additional configuration from the database...
-  if (baseConfig.config.documentkey) {
-    let con = new Connection(baseConfig.documentdb);
-    let configCollection = new Config(con);
+  if (baseConfig.config.documentkey && baseConfig.mongo.connectionString) {
+    let db = await createConnection(baseConfig.mongo.connectionString)
+    let configCollection = Config.create(db);
     debug('fetching document', baseConfig.config.documentkey);
     let doc = await configCollection.findById(baseConfig.config.documentkey);
     baseConfig = merge(baseConfig, doc);

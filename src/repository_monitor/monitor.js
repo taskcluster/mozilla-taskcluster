@@ -45,8 +45,8 @@ export default class Monitor {
   }
 
   async fetchRepositories() {
-    let repos = await this.repos.query(`SELECT * FROM r`);
-    for (let repo of repos.feed) {
+    let repos = await this.repos.find();
+    for (let repo of repos) {
       this.list[repo.id] = repo;
     }
   }
@@ -63,14 +63,41 @@ export default class Monitor {
 
     if (startID < endID) {
       await pushlog.iterate(repo.url, startID, endID, async function(push) {
-        // Messages are sent "at least once" this means in edge cases or crashes
-        // the messages may be sent more then once...
+        let doc = await this.repos.findById(repo.id);
+        // In theory it's possible for multiple monitors to be running and
+        // fighting over state... If doc.lastPushId is > then push.id set it to
+        // the push id...
+        if (doc.lastPushId > push.id) {
+          console.error(`
+            Potential data race between multiple monitors or database mutations.
 
-        let titleId = '(unknown)';
-        if (push.changesets && push.changesets[0]) {
-          titleId = push.changesets[0];
+            Current push id ${push.id} is less than last documented push ${doc.lastPushId}
+          `);
+
+          // This is moderately sane since we are moving to a known state...
+          lock.lastPushId = doc.lastPushId;
+          return;
         }
 
+
+        // If the push.id is anymore then +1 of doc.lastPushId there is some
+        // other kind of data race or bug in our iteration abort with an error.
+        if (doc.lastPushId + 1 !== push.id) {
+          throw new Error(`
+            Unexpected push id for repository ${doc.url}
+
+              Current push.id is more then one value greater then documented
+              push id indicating a error which would cause missing pushes...
+
+              last push id : ${doc.lastPushId}
+              push id : ${push.id}
+          `)
+        }
+
+        // Messages are sent "at least once" this means in edge cases or crashes
+        // the messages may be sent more then once...
+        let lastChangeset = push.changesets[push.changesets.length - 1];
+        let titleId = lastChangeset.node;
         let title = `Push ${push.id} for ${repo.alias} cset ${titleId}`;
 
         let body = {
@@ -84,30 +111,13 @@ export default class Monitor {
           schedulePush(this.jobs, 'treeherder-resultset', body)
         ]);
 
-        // TODO: Do something with each push...
-        // Update after each push...
-        let update = await this.repos.update(repo, async function(doc) {
-          assert(
-            push.id > doc.lastPushId,
-            `
-            Race detected in push id update ${repo.alias} \n
-              Current push id ${doc.lastPushId} is greater than push ${push.id}
-            `
-          )
+        // For additional safety only update the row if we are sure of it's
+        // lastPushId is exactly one less then the new value.
+        let query = { id: doc.id, lastPushId: doc.lastPushId };
+        doc.lastPushId = push.id;
+        doc.lastChangeset = lastChangeset.node;
 
-          // The changeset could be useful in the case where we need to poll in
-          // a fashion after the pushlog is destroyed for some reason...
-          doc.lastChangeset = push.changesets[push.changesets.length - 1].node;
-
-          // Last push id is the ideal method and is more reliable unless
-          // pushlog is destroyed, etc...
-          doc.lastPushId = push.id;
-          return doc;
-        });
-
-        // Update our cached copy to the new etag allowing updates to skip
-        // looking up the current document if the state is consistent already.
-        repo._etag = update._etag;
+        await this.repos.replace(query, doc);
 
         lock.lastPushId = push.id;
         debug('Updated push %s now at %d', repo.alias, lock.lastPushId);

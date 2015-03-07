@@ -37,12 +37,14 @@ suiteSetup(async function() {
   let [
     thapiPort,
     redisPort,
-    rabbitmqPort
+    rabbitmqPort,
+    mongoPort
   ] = await Promise.all([
     // If your confused see test/docker-compose.yml
     compose.portByName(COMPOSE_ROOT, 'thapi', 8000),
     compose.portByName(COMPOSE_ROOT, 'redis', 6379),
-    compose.portByName(COMPOSE_ROOT, 'rabbitmq', 5672)
+    compose.portByName(COMPOSE_ROOT, 'rabbitmq', 5672),
+    compose.portByName(COMPOSE_ROOT, 'mongo', 27017)
   ]);
 
   // The treeherder init process is far from fast so we increase the default
@@ -57,7 +59,8 @@ suiteSetup(async function() {
     await Promise.all([
       waitForPort(compose.host, thapiPort, portRetryOpts),
       waitForPort(compose.host, redisPort, portRetryOpts),
-      waitForPort(compose.host, rabbitmqPort, portRetryOpts)
+      waitForPort(compose.host, rabbitmqPort, portRetryOpts),
+      waitForPort(compose.host, mongoPort, portRetryOpts)
     ]);
   } catch (e) {
     throw new Error(`
@@ -78,6 +81,8 @@ suiteSetup(async function() {
   config.treeherder.apiUrl = `http://${compose.host}:${thapiPort}/api/`;
   config.redis.host = compose.host;
   config.redis.port = redisPort;
+
+  config.mongo.connectionString = `mongodb://${compose.host}:${mongoPort}`;
 
   // Documentdb collections should have unique prefixes per test process...
   config.documentdb.collectionPrefix = slugid.v4() + '-';
@@ -107,7 +112,6 @@ suiteSetup(async function() {
   let commitPublisher = await publisher(this.config.commitPublisher);
   await commitPublisher.assertExchanges(
     PushExchange, RetriggerExchange
-
   );
 
   // We only need the connection to assert the exchanges after that we can
@@ -151,7 +155,7 @@ suiteTeardown(async function() {
   let Jobs = this.runtime.kue.Job;
   let jobs = this.runtime.jobs;
 
-  await this.runtime.db.deleteSeenCollections();
+  await this.runtime.db.dropDatabase();
   await this.listener.close();
   // Ensure redis connection is shutdown...
   await denodeify(jobs.shutdown).call(jobs);
