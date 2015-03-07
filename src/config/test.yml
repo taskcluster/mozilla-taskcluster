@@ -2,7 +2,7 @@ documentdb:
   database: treeherder-proxy-testing
 
 treeherderActions:
-  exchange: test
+  exchange: tests/treeherder-job-actions
 
 config:
   files:

@@ -111,7 +111,14 @@ suiteSetup(async function() {
 
   let commitPublisher = await publisher(this.config.commitPublisher);
   await commitPublisher.assertExchanges(
-    PushExchange, RetriggerExchange
+    PushExchange,
+    RetriggerExchange,
+    // Dummy exchange for test messages from treeherder...
+    {
+      config: {
+        exchange: 'treeherder-job-actions'
+      }
+    }
   );
 
   // We only need the connection to assert the exchanges after that we can
