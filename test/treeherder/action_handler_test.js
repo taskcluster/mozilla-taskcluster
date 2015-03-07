@@ -43,8 +43,8 @@ suite('action handler', function() {
 
   async function failTask(ctx, taskId) {
     await ctx.queue.claimTask(taskId, 0, {
-      workerId: 'xxtest',
-      workerGroup: 'xxtest',
+      workerId: 'test',
+      workerGroup: 'test',
     });
     await ctx.queue.reportFailed(taskId, 0);
   }
@@ -70,7 +70,7 @@ suite('action handler', function() {
     return merge({
         taskId: slugid.v4(),
         task: {
-          provisionerId:  'not-a-real-provisioner',
+          provisionerId:  'test',
           schedulerId:    'task-graph-scheduler',
           workerType:     'test',
           created:        new Date().toJSON(),
@@ -121,7 +121,7 @@ suite('action handler', function() {
         source:       'http://docs.taskcluster.net/tools/task-creator/'
       },
       scopes: [
-        'queue:define-task:not-a-real-provisioner/test',
+        'queue:define-task:test/test',
         'queue:route:*'
       ],
       tasks: [nodeOne, nodeTwo]
@@ -152,7 +152,7 @@ suite('action handler', function() {
         source:       'http://docs.taskcluster.net/tools/task-creator/'
       },
       scopes: [
-        'queue:define-task:not-a-real-provisioner/test',
+        'queue:define-task:test/test',
         'queue:route:*'
       ],
       tasks: [nodeOne, nodeTwo]
@@ -195,7 +195,7 @@ suite('action handler', function() {
         source:       'http://docs.taskcluster.net/tools/task-creator/'
       },
       scopes: [
-        'queue:define-task:not-a-real-provisioner/test',
+        'queue:define-task:test/test',
         'queue:route:*'
       ],
       tasks: [

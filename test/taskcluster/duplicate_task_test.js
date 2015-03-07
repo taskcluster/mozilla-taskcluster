@@ -13,7 +13,7 @@ suite('duplicate task', function() {
 
   function getTask(overrides = {}) {
     let task = {
-      provisionerId:  'not-a-real-provisioner',
+      provisionerId:  'test',
       schedulerId:    'task-graph-scheduler',
       workerType:     'test',
       created:        initalDate.toJSON(),
