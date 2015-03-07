@@ -39,7 +39,7 @@ suite('compose', function() {
       subject = await install();
     });
 
-    test('run() / destroy()', async () => {
+    test('run() / destroy() @ci-skip', async () => {
       let service = await subject.run(fixturePwd, 'sleep');
       let state = await subject.inspect(service);
 
@@ -60,7 +60,7 @@ suite('compose', function() {
       throw new Error('No error thrown during inspect');
     });
 
-    test('up / killAll / ps', async () => {
+    test('up / killAll / ps @ci-skip', async () => {
       await subject.up(fixturePwd);
       let containers = await subject.ps(fixturePwd);
       assert.equal(containers.length, 1);
