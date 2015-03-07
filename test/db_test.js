@@ -37,7 +37,7 @@ suite('db', function() {
   });
 
   suiteTeardown(async function() {
-    await connection.deleteSeenCollections();
+    await connection.destroy();
   });
 
   suite('collections', function() {
