@@ -23,6 +23,7 @@ async function loadYaml(location) {
 // running any more complex logic...
 let schema = Joi.object().keys({
   documentdb: Joi.object().keys({
+    collectionPrefix: Joi.string().description('prefix to use before collection name'),
     host: Joi.string().description('documentdb hostname'),
     key: Joi.string().description('master or secondary read/write key'),
     database: Joi.string().required().description('database name')

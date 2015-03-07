@@ -39,7 +39,7 @@ function lock(name, fn, ctx) {
 export class Collection {
   constructor(connection) {
     Joi.assert(connection, Joi.object().type(Connection));
-    Joi.assert(this.name, Joi.string(), 'Subclass must set name');
+    Joi.assert(this.id, Joi.required(), 'Subclass must set name');
     Joi.assert(this.schema, Joi.object(), 'Subclass must set schema');
 
     this.con = connection;
@@ -174,11 +174,13 @@ export class Connection {
     Joi.assert(opts, Joi.object().keys({
       database: Joi.string().required(),
       host: Joi.string().required(),
-      key: Joi.string().required()
+      key: Joi.string().required(),
+      collectionPrefix: Joi.string().allow("").default("")
     }));
 
     this.id = opts.database;
     this.host = opts.host;
+    this.collectionPrefix = opts.collectionPrefix;
 
     this.client = new docdb.DocumentClientWrapper(this.host, {
       masterKey: opts.key
@@ -189,6 +191,18 @@ export class Connection {
   async destroy(opts={}) {
     let link = await this.ensureDatabase();
     return this.client.deleteDatabaseAsync(link, opts);
+  }
+
+  /**
+  Primarily a test helper to delete any collection which we have used...
+  */
+  async deleteSeenCollections(opts = {}) {
+    await Promise.all(Object.keys(this.links.collections).map(async (id) => {
+      // ensure all pending create operations are done...
+      await this.ensureCollection(id);
+      let link = this.links.collections[id];
+      await this.client.deleteCollectionAsync(link, opts);
+    }));
   }
 
   async ensureDatabase() {
@@ -221,10 +235,12 @@ export class Connection {
       }
 
       let dbLink = await this.ensureDatabase();
+      let realId = this.collectionPrefix + id;
+
       let collection;
       collection = await this.client.queryCollections(
         dbLink,
-        `SELECT * FROM root WHERE root.id = "${id}"`
+        `SELECT * FROM root WHERE root.id = "${realId}"`
       ).toArrayAsync();
 
       if (collection.feed[0]) {
@@ -234,7 +250,7 @@ export class Connection {
 
       collection = await this.client.createCollectionAsync(
         dbLink,
-        { id: id }
+        { id: realId }
       );
       return this.links.collections[id] = collection.resource._self;
     }, this);

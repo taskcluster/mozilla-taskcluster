@@ -79,6 +79,9 @@ suiteSetup(async function() {
   config.redis.host = compose.host;
   config.redis.port = redisPort;
 
+  // Documentdb collections should have unique prefixes per test process...
+  config.documentdb.collectionPrefix = slugid.v4() + '-';
+
   // The commit publisher and the treeherder consumers need messages from within
   // the docker network so configure those accordingly.
   config.commitPublisher.connectionString = amqpConnectionString;
@@ -151,7 +154,7 @@ suiteTeardown(async function() {
   // Ensure listener is closed...
   await Promise.all([
     this.listener.close(),
-    this.runtime.db.destroy()
+    this.runtime.db.deleteSeenCollections()
   ]);
 
   // Ensure redis connection is shutdown...
