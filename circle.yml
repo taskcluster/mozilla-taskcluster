@@ -1,8 +1,12 @@
 machine:
+  environment:
+    DOCUMENTDB_KEY: ${DOCUMENTDB_KEY}
+    DOCUMENTDB_HOST: ${DOCUMENTDB_HOST}
+    PULSE_USERNAME: ${PULSE_USERNAME}
+    PULSE_PASSWORD: ${PULSE_PASSWORD}
   services:
     - docker
 
 dependencies:
   pre:
     - ./test/circleci.js
-
