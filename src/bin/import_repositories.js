@@ -4,7 +4,7 @@ Import repositories from treeherder proper and output the json structure the
 the proxy service uses...
 */
 
-import '6to5/polyfill';
+import 'babel/polyfill';
 import cli from '../cli';
 import request from 'superagent-promise';
 import urljoin from 'urljoin';

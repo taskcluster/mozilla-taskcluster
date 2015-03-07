@@ -3,7 +3,7 @@
 Works the "kue" for pushes and emits amqp events.
 */
 
-import '6to5/polyfill';
+import 'babel/polyfill';
 import cli from '../cli';
 import createPublisher from '../publisher';
 

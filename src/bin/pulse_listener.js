@@ -4,7 +4,7 @@
 Integrates taskcluster tasks / graphs with treeherder
 */
 
-import '6to5/polyfill';
+import 'babel/polyfill';
 import cli from '../cli';
 import taskcluster from 'taskcluster-client';
 import createJobHandler from '../../src/treeherder/job_handler';

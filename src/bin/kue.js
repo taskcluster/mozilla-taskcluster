@@ -4,7 +4,7 @@
 Starts kue admin interface.
 */
 
-import '6to5/polyfill';
+import 'babel/polyfill';
 import cli from '../cli';
 import kue from 'kue';
 
