@@ -9,7 +9,7 @@ machine:
 
 test:
   override:
-    - "./test/circleci.js && ./node_modules/.bin/mocha --reporter spec  ":
+    - "./test/ci-run-tests.sh":
         parallel: true
         files:
           - test/**/*_test.js
