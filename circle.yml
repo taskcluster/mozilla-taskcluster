@@ -2,3 +2,7 @@ machine:
   services:
     - docker
 
+dependencies:
+  pre:
+    - ./test/circleci.js
+
