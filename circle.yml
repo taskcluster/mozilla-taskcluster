@@ -7,6 +7,12 @@ machine:
   services:
     - docker
 
-dependencies:
+test:
   pre:
     - ./test/circleci.js
+  override:
+    - "./node_modules/.bin/mocha --reporter spec ":
+        parallel: true
+        files:
+          - test/**/*_test.js
+

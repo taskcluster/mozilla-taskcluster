@@ -19,7 +19,7 @@ var config = {
   },
 
   treeherderTaskcluster: {
-    connectionString: 'amqps://' + process.env.PULSE_USERNAME + ':' + 
+    connectionString: 'amqps://' + process.env.PULSE_USERNAME + ':' +
                       process.env.PULSE_PASSWORD + '@pulse.mozilla.org:5671'
   }
 };
