@@ -79,21 +79,6 @@ export default class Monitor {
           return;
         }
 
-
-        // If the push.id is anymore then +1 of doc.lastPushId there is some
-        // other kind of data race or bug in our iteration abort with an error.
-        if (doc.lastPushId + 1 !== push.id) {
-          throw new Error(`
-            Unexpected push id for repository ${doc.url}
-
-              Current push.id is more then one value greater then documented
-              push id indicating a error which would cause missing pushes...
-
-              last push id : ${doc.lastPushId}
-              push id : ${push.id}
-          `)
-        }
-
         // Messages are sent "at least once" this means in edge cases or crashes
         // the messages may be sent more then once...
         let lastChangeset = push.changesets[push.changesets.length - 1];
@@ -137,7 +122,7 @@ export default class Monitor {
       lock.active = true;
       await this.runCheck(repo, lock);
     } catch (e) {
-      //console.log(`Error processing run ${repo.url}\n ${e.stack}`);
+      console.log(`Error processing run ${repo.url}\n ${e.stack}`);
       lock.active = false;
     } finally {
       lock.active = false;
