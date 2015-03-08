@@ -19,7 +19,7 @@ export default class {
       },
       scopes: [
         'queue:define-task:test/test',
-        'queue:route:tc-treeherder-test.*'
+        'queue:route:test*'
       ],
       tasks: [{
         taskId,

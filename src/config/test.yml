@@ -30,7 +30,7 @@ try:
   projects:
     try:
       scopes:
-        - queue:route:test.*
+        - queue:route:test*
         - scheduler:create-task-graph
         - queue:create-task:test/test
         - queue:define-task:test/test

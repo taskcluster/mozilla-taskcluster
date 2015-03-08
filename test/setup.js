@@ -91,6 +91,7 @@ suiteSetup(async function() {
   // the docker network so configure those accordingly.
   config.commitPublisher.connectionString = amqpConnectionString;
   config.treeherderActions.connectionString = amqpConnectionString;
+  config.treeherderTaskcluster.routePrefix = `test-tc-${slugid.v4()}`
 
   // start with new kue each time...
   config.kue.prefix = slugid.v4();
