@@ -24,9 +24,9 @@ async function loadYaml(location) {
 let schema = Joi.object().keys({
 
   mongo: Joi.object().keys({
-    connectionString: Joi.string().required().
+    connectionString: Joi.string().
       description('Mongodb connection string').
-        default(Joi.ref('$env.TASKCLUSTER_CLIENT_ID')),
+        default(Joi.ref('$env.MONGO_URL')),
   }),
 
   documentdb: Joi.object().keys({
@@ -162,7 +162,7 @@ export default async function load(profile, options = {}) {
   }
 
   // Load additional configuration from the database...
-  if (baseConfig.config.documentkey && baseConfig.mongo.connectionString) {
+  if (baseConfig.config.documentkey) {
     let db = await createConnection(baseConfig.mongo.connectionString)
     let configCollection = await Config.create(db);
     debug('fetching document', baseConfig.config.documentkey);

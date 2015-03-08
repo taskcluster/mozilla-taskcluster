@@ -107,5 +107,6 @@ export class Collection {
 }
 
 export default async function createConnection(connectionString) {
+  connectionString = connectionString || process.env.MONGO_URL;
   return ppo(await mongo.connect(connectionString))
 }
