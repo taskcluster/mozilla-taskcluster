@@ -3,6 +3,7 @@ documentdb:
 
 treeherderActions:
   exchange: exchange/treeherder-stage/v1/job-actions
+  queue: mozilla-taskcluster-stage-actions
 
 config:
   documentkey: stage

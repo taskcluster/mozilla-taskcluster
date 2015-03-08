@@ -6,6 +6,10 @@ config:
   files:
     - production-treeherder-proxy.yml
 
+treeherderActions:
+  exchange: exchange/treeherder/v1/job-actions
+  queue: mozilla-taskcluster-production-actions
+
 treeherderTaskcluster:
   routePrefix: tc-treeherder
   queue: mozilla-taskcluster-production
