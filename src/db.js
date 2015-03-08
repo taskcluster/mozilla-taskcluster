@@ -66,11 +66,11 @@ export class Collection {
 
   async createIfNotExists(doc) {
     doc = await this.validateDocument(doc);
-    return await this.collection.findOneAndUpdate(
+    return await this.collection.update(
       { id: doc.id },
+      { $setOnInsert: doc },
       {
-        upsert: true,
-        $setOnInsert: doc
+        upsert: true
       }
     );
   }

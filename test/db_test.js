@@ -85,6 +85,25 @@ suite('db', function() {
         throw new Error('Should throw uniqueness error...');
       });
 
+      test('#createIfNotExists', async function() {
+        await data.createIfNotExists({
+          id: 'magicbar',
+          url: 'value'
+        });
+
+        let found = await data.findById('magicbar');
+        assert.equal(found.url, 'value');
+
+        await data.createIfNotExists({
+          id: 'magicbar',
+          url: 'zomgwhat'
+        });
+
+        // Value should not have been updated...
+        let found2 = await data.findById('magicbar');
+        assert.equal(found2.url, 'value');
+      });
+
       test('#findById', async function() {
         let result = await data.findById(id);
         assert.equal(result.id, id);

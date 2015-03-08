@@ -25,7 +25,8 @@ let schema = Joi.object().keys({
 
   mongo: Joi.object().keys({
     connectionString: Joi.string().required().
-      description('Mongodb connection string')
+      description('Mongodb connection string').
+        default(Joi.ref('$env.TASKCLUSTER_CLIENT_ID')),
   }),
 
   documentdb: Joi.object().keys({
@@ -163,7 +164,7 @@ export default async function load(profile, options = {}) {
   // Load additional configuration from the database...
   if (baseConfig.config.documentkey && baseConfig.mongo.connectionString) {
     let db = await createConnection(baseConfig.mongo.connectionString)
-    let configCollection = Config.create(db);
+    let configCollection = await Config.create(db);
     debug('fetching document', baseConfig.config.documentkey);
     let doc = await configCollection.findById(baseConfig.config.documentkey);
     baseConfig = merge(baseConfig, doc);
