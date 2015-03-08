@@ -47,6 +47,7 @@ class Pushlog {
 
     let endID = intOrUndefined(request.query.endID) || this.lastpushid;
     let startID = intOrUndefined(request.query.startID);
+    let full = !!request.query.full || false;
 
     if (!startID) {
       startID = endID - DEFAULT_PUSHES;
@@ -59,8 +60,19 @@ class Pushlog {
     // http://mozilla-version-control-tools.readthedocs.org/en/latest/hgmo/pushlog.html
     for (let pushid = startID + 1; pushid <= endID; pushid++) {
       if (!(pushid in this.pushes)) continue;
-      pushes[pushid] = this.pushes[pushid];
+      // Do not return the actual record only a shallow clone...
+      let pushDetails = Object.assign({}, this.pushes[pushid]);
+      pushes[pushid] = pushDetails;
+
+      // If full was not requested flatten the changesets into just the node.
+      if (!full) {
+        pushes[pushid].changesets = pushDetails.changesets.map((v) => {
+          return v.node;
+        });
+      }
+
     }
+
     reply({ lastpushid: this.lastpushid, pushes });
   }
 

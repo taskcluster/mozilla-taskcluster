@@ -97,7 +97,7 @@ export default class Monitor {
         // Messages are sent "at least once" this means in edge cases or crashes
         // the messages may be sent more then once...
         let lastChangeset = push.changesets[push.changesets.length - 1];
-        let titleId = lastChangeset.node;
+        let titleId = lastChangeset;
         let title = `Push ${push.id} for ${repo.alias} cset ${titleId}`;
 
         let body = {
@@ -115,7 +115,7 @@ export default class Monitor {
         // lastPushId is exactly one less then the new value.
         let query = { id: doc.id, lastPushId: doc.lastPushId };
         doc.lastPushId = push.id;
-        doc.lastChangeset = lastChangeset.node;
+        doc.lastChangeset = lastChangeset;
 
         await this.repos.replace(query, doc);
 
