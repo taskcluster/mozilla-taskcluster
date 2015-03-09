@@ -56,7 +56,7 @@ export default class TreeherderResultsetJob extends Base {
     let lastRev = resultset.revisions[resultset.revisions.length - 1];
     let tryProject = this.projects[repo.alias];
 
-    if (tryProject) {
+    if (this.config.try.enabled && tryProject) {
       if (
         tryProject.contains &&
         lastRev.comment.indexOf(tryProject.contains) === -1
