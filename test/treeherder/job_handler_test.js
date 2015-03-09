@@ -6,6 +6,7 @@ import * as kueUtils from '../kue';
 import createResultset from '../../src/treeherder/resultset';
 import slugid from 'slugid';
 
+import PushlogClient from '../../src/repository_monitor/pushlog_client';
 import Project from 'mozilla-treeherder/project';
 import TreeherderHelper from '../treeherder';
 import TaskclusterHelper from '../taskcluster';
@@ -25,25 +26,17 @@ suite('bin/treeherder_taskcluster.js', function() {
     treeherder = new TreeherderHelper(this.config.treeherder.apiUrl);
     taskcluster = new TaskclusterHelper(this.scheduler);
 
-    let changesets = [
-      {
-       author: 'Author <user@domain.com>',
-       branch: 'default',
-       desc: 'desc',
-       files: [
-        'xfoobar'
-       ],
-       node: slugid.v4(),
-       tags: []
-      }
-    ];
+    await monitorSetup.hg.write('xfoobar', `xfoo ${Date.now()}`);
+    await monitorSetup.hg.commit();
+    await monitorSetup.hg.push();
 
+    let pushlog = new PushlogClient();
+    let push = await pushlog.getOne(monitorSetup.url, 1);
     let resultset = createResultset('try', {
-      changesets
+      changesets: push.changesets
     });
     revisionHash = resultset.revision_hash;
 
-    monitorSetup.pushlog.push(changesets);
     await treeherder.waitForResultset(revisionHash);
 
     route = [
