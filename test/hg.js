@@ -82,6 +82,19 @@ export default async function(compose) {
   });
 
   let path = temp.path();
-  await exec(`hg clone ${url} ${path}`);
+
+  // XXX: Simply waiting for the socket does not seem to be enough retry clone
+  // if it fails.
+  let retries = 5;
+  while (--retries) {
+    try {
+      await exec(`hg clone ${url} ${path}`);
+      break;
+    } catch (e) {
+      if (!retries) throw e;
+      await new Promise(accept => setTimeout(accept, 100));
+    }
+  }
+
   return new Hg(compose, containerId, url, path);
 }
