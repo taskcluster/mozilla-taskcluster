@@ -26,7 +26,7 @@ export default new Exchange('pushlog').
         Joi.object().keys({
           author: Joi.string().description('Author of changeset'),
           branch: Joi.string().description('Branch pushed to'),
-          description: Joi.string().description('Commit message'),
+          desc: Joi.string().description('Commit message'),
           files: Joi.array().includes(Joi.string()).description('Files changed'),
           node: Joi.string().description('Changeset'),
           tags: Joi.array().description('tags for changeset')
