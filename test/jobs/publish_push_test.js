@@ -2,38 +2,25 @@ import assert from 'assert';
 import eventToPromise from 'event-to-promise';
 import waitFor from '../wait_for';
 import testSetup from '../monitor';
+import PushlogClient from '../../src/repository_monitor/pushlog_client';
 
 suite('jobs/publish_push', function() {
   let monitorSetup = testSetup('workers.js');
-  test('update after a push', async function() {
-    let changesets = [
-      {
-       author: 'Author <user@domain.com>',
-       branch: 'default',
-       desc: 'desc',
-       files: [
-        'xfoobar'
-       ],
-       node: 'commit-0',
-       tags: []
-      },
-      {
-       author: 'Author <user@domain.com>',
-       branch: 'default',
-       desc: 'desc',
-       files: [
-        'xfoobar'
-       ],
-       node: 'commit-1',
-       tags: []
-      },
-    ];
+  let pushlog = new PushlogClient();
 
+  test('update after a push', async function() {
     // Bind the queue...
     await this.listener.connect();
     await this.listener.bind(this.events.push());
 
-    monitorSetup.pushlog.push(changesets);
+    // Create the push...
+    let commits = 3;
+    while (--commits) {
+      await monitorSetup.hg.write('stuff');
+      await monitorSetup.hg.commit();
+    }
+    await monitorSetup.hg.push();
+    let push = await pushlog.getOne(monitorSetup.url, 1);
 
     // Consume the queue now that the event has been sent...
     let [ message ] = await Promise.all([
@@ -45,12 +32,7 @@ suite('jobs/publish_push', function() {
     assert.equal(message.payload.url, monitorSetup.url);
     assert.deepEqual(
       message.payload.changesets,
-      changesets.map((v) => {
-        let result = Object.assign({}, v);
-        result.description = result.desc;
-        delete result.desc;
-        return result;
-      })
+      push.changesets
     );
   });
 });
