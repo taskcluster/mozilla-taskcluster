@@ -1,8 +1,8 @@
-import Client from '../../src/repository_monitor/pushlog_client';
+import Client from '../../src/pushlog/client';
 import createHg from '../hg'
 import assert from 'assert';
 
-suite('repository_monitor/pushlog_client', function() {
+suite('pushlog/client', function() {
 
   let range = (start, end) => {
     let result = [];

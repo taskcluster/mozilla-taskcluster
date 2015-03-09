@@ -4,7 +4,7 @@ import waitFor from '../wait_for';
 import testSetup from '../monitor';
 
 import createResultset from '../../src/treeherder/resultset';
-import PushlogClient from '../../src/repository_monitor/pushlog_client';
+import PushlogClient from '../../src/pushlog/client';
 
 suite('jobs/treeherder_resultset', function() {
   let monitorSetup = testSetup('workers.js');

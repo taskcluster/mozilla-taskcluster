@@ -8,7 +8,7 @@ import Debug from 'debug';
 import assert from 'assert';
 import denodeify from 'denodeify';
 
-import PushlogClient from './pushlog_client';
+import PushlogClient from './client';
 
 // 30 seconds...
 const JOB_RETRY_DELAY = 1000 * 30;

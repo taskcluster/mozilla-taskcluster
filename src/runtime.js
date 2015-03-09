@@ -2,7 +2,7 @@ import createConnection from './db';
 import kue from 'kue';
 
 import Repos from './collections/repositories';
-import PushlogClient from './repository_monitor/pushlog_client';
+import PushlogClient from './pushlog/client';
 
 export default async function(config) {
 

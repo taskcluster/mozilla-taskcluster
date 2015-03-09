@@ -6,7 +6,7 @@ import * as kueUtils from '../kue';
 import createResultset from '../../src/treeherder/resultset';
 import slugid from 'slugid';
 
-import PushlogClient from '../../src/repository_monitor/pushlog_client';
+import PushlogClient from '../../src/pushlog/client';
 import Project from 'mozilla-treeherder/project';
 import TreeherderHelper from '../treeherder';
 import TaskclusterHelper from '../taskcluster';

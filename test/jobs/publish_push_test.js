@@ -2,7 +2,7 @@ import assert from 'assert';
 import eventToPromise from 'event-to-promise';
 import waitFor from '../wait_for';
 import testSetup from '../monitor';
-import PushlogClient from '../../src/repository_monitor/pushlog_client';
+import PushlogClient from '../../src/pushlog/client';
 
 suite('jobs/publish_push', function() {
   let monitorSetup = testSetup('workers.js');
