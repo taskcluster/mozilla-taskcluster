@@ -4,12 +4,14 @@ import denodeify from 'denodeify';
 import fsPath from 'path';
 import fs from 'mz/fs';
 import { exec } from 'mz/child_process';
+import Debug from 'debug';
 
 // Name of the hg/pushlog service in docker-compose.yml
 const SERVICE = 'pushlog';
 const COMPOSE_DIR = __dirname;
 const LOG_TEMPLATE = '{node} {author} {desc}\n';
 
+const debug = Debug('hg');
 const waitForPort = denodeify(_waitForPort);
 
 class Hg {
@@ -21,6 +23,7 @@ class Hg {
   }
 
   async write(path, content='') {
+    debug('write', path);
     await fs.writeFile(fsPath.join(this.path, path), content);
   }
 
@@ -36,10 +39,12 @@ class Hg {
   }
 
   async push() {
+    debug('push');
     await exec(`hg push ${this.url}`, { cwd: this.path });
   }
 
-  async commit(message, user='user@example.com') {
+  async commit(message='commit', user='user@example.com') {
+    debug('commit', message, user);
     return exec(`hg commit -u "${user}" -A -m "${message}"`, {
       cwd: this.path
     });
