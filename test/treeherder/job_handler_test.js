@@ -196,15 +196,17 @@ suite('bin/treeherder_taskcluster.js', function() {
       return rerun.result === 'retry';
     });
 
-    await this.queue.reportCompleted(taskId, 1, { success:  false });
+    await this.queue.reportFailed(taskId, 1);
 
-    let finalRun = await treeherder.waitForJobState(
-      revisionHash,
-      taskId,
-      1,
-      'completed'
-    );
-    assert.equal(finalRun.result, 'testfailed');
+    await waitFor(async function() {
+      let finalRun = await treeherder.waitForJobState(
+        revisionHash,
+        taskId,
+        1,
+        'completed'
+      );
+      return finalRun.result === 'testfailed';
+    });
   });
 
   test('state transition -> pending -> running -> completed', async function() {
