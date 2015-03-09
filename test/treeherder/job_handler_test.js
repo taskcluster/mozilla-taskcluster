@@ -152,6 +152,7 @@ suite('bin/treeherder_taskcluster.js', function() {
   });
 
   test('state transition -> pending -> retry', async function() {
+    this.timeout('2min');
     let [, taskId] = await taskcluster.createTaskGraph({
       tasks: [{
         reruns: 1,
