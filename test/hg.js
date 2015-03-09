@@ -92,6 +92,8 @@ export default async function(compose) {
       break;
     } catch (e) {
       if (!retries) throw e;
+      // Ensure clone is not in partial or weird state...
+      await exec(`rm -Rf ${path}`);
       await new Promise(accept => setTimeout(accept, 100));
     }
   }
