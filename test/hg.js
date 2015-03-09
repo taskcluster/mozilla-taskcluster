@@ -22,9 +22,13 @@ class Hg {
     this.url = url;
   }
 
-  async write(path, content='') {
-    debug('write', path);
-    await fs.writeFile(fsPath.join(this.path, path), content);
+  async write(path, content=Date.now()) {
+    let writePath = fsPath.join(this.path, path);
+    let dir = fsPath.dirname(writePath);
+
+    debug('write', writePath);
+    await exec(`mkdir -p ${dir}`);
+    await fs.writeFile(writePath, content);
   }
 
   async log() {
