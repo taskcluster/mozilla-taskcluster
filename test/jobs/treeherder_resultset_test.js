@@ -4,47 +4,30 @@ import waitFor from '../wait_for';
 import testSetup from '../monitor';
 
 import createResultset from '../../src/treeherder/resultset';
+import PushlogClient from '../../src/pushlog/client';
 
 suite('jobs/treeherder_resultset', function() {
   let monitorSetup = testSetup('workers.js');
-  let repos;
-  setup(function() {
-    repos = this.runtime.repositories;
-  });
+  let pushlog = new PushlogClient();
 
   test('update after a push', async function() {
-    let author = 'me';
-    let date = Math.floor(Date.now() / 1000);
-    let changesets = [
-      {
-       author: 'Author <user@domain.com>',
-       branch: 'default',
-       desc: 'desc',
-       files: [
-        'xfoobar'
-       ],
-       node: `commit-0-${Date.now()}`,
-       tags: []
-      },
-      {
-       author: 'Author <user@domain.com>',
-       branch: 'default',
-       desc: 'desc',
-       files: [
-        'xfoobar'
-       ],
-       node: `commit-1-${Date.now()}`,
-       tags: []
-      },
-    ];
+    // Stage the commits with some interesting data...
+    await monitorSetup.hg.write('a/with/path');
+    await monitorSetup.hg.write('b/path');
+    await monitorSetup.hg.write('c');
+    await monitorSetup.hg.commit();
+
+    await monitorSetup.hg.write('next', 'did a commit!');
+    await monitorSetup.hg.commit();
+    await monitorSetup.hg.push();
+
+    let push = await pushlog.getOne(monitorSetup.url, 1);
 
     let expectedResultset = createResultset('try', {
-      author,
-      date,
-      changesets
-    })
-
-    monitorSetup.pushlog.push(changesets);
+      user: push.user,
+      date: push.date,
+      changesets: push.changesets
+    });
 
     await waitFor(async function() {
       let res = await this.treeherder.getResultset();

@@ -36,14 +36,17 @@
     "js-yaml": "^3.2.5",
     "kue": "^0.8.11",
     "lodash.merge": "^2.4.1",
+    "mongodb": "^2.0.14",
     "mozilla-treeherder": "^0.5.0",
     "mustache": "^1.0.0",
     "mz": "^1.2.0",
     "promise": "^6.0.1",
+    "promised-temp": "^0.1.0",
+    "proxied-promise-object": "^0.2.0",
     "slugid": "^1.0.3",
     "superagent": "git://github.com/visionmedia/superagent#e6c302c2e83cbf76182ea10b6a1ef6fd0d4e0b2b",
     "superagent-promise": "^0.2.0",
-    "taskcluster-client": "^0.19.4",
+    "taskcluster-client": "^0.21.1",
     "urljoin": "^0.1.5",
     "uuid": "^2.0.1"
   },
@@ -52,6 +55,7 @@
     "dockerode-promise": "0.0.1",
     "mkdirp": "^0.5.0",
     "mocha": "^2.0.1",
-    "wait-for-port": "0.0.1"
+    "wait-for-port": "0.0.1",
+    "amqplib": "^0.3.1"
   }
 }

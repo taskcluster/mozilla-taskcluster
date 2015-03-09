@@ -1,15 +1,16 @@
 scopes:
-  - 'queue:define-task:testme/testme'
+  - 'queue:define-task:test/test'
+  - 'queue:create-task:test/test'
 tasks:
   # A decision task
   - taskId:           '{{#as_slugid}}decision-task{{/as_slugid}}'
     task:
       scopes:
-        - 'queue:route:testme.{{ project  }}.{{ revision }}'
+        - 'queue:route:test.{{ project  }}.{{ revision }}'
       routes:
-        - 'testme.{{ project  }}.{{ revision }}'
-      provisionerId:  testme
-      workerType:     testme
+        - 'test.{{ project  }}.{{ revision }}'
+      provisionerId:  test
+      workerType:     test
       created:        '{{ now }}'
       deadline:       '{{#from_now }}5 minutes{{/from_now}}'
       payload:

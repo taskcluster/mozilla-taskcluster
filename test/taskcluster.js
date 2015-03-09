@@ -18,13 +18,13 @@ export default class {
         source:       'http://docs.taskcluster.net/tools/task-creator/'
       },
       scopes: [
-        'queue:define-task:not-a-real-provisioner/test',
-        'queue:route:*'
+        'queue:define-task:test/test',
+        'queue:route:test*'
       ],
       tasks: [{
         taskId,
         task: {
-          provisionerId:  'not-a-real-provisioner',
+          provisionerId:  'test',
           schedulerId:    'task-graph-scheduler',
           workerType:     'test',
           created:        new Date().toJSON(),

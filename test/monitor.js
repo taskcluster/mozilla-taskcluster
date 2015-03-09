@@ -1,18 +1,18 @@
-import pushlog from './pushlog';
 import createProc from './process';
 import * as kueUtils from './kue';
+import createHg from './hg';
 
 export default function setup(...processes) {
   let results = {
     alias: 'try',
-    pushlog: null,
+    hg: null,
     processes: []
   };
 
   let url;
   suiteSetup(async function() {
-    results.pushlog = await pushlog();
-    results.url = results.pushlog.url;
+    results.hg = await createHg(this.compose);
+    results.url = results.hg.url;
   });
 
   let repos, monitor, pushworker, repo;
@@ -37,7 +37,7 @@ export default function setup(...processes) {
 
   suiteTeardown(async function() {
     await repos.remove(repo.id);
-    await results.pushlog.stop();
+    await results.hg.destroy();
     await results.processes.map((proc) => {
       return proc.kill();
     });

@@ -5,7 +5,7 @@ import { Agent as HttpAgent } from 'http';
 import Debug from 'debug';
 let Joi = require('joi');
 
-let debug = Debug('repository_monitor:pushlog_client');
+let debug = Debug('pushlog:client');
 let ITERATE_CHUNKS = 10;
 
 export default class PushlogClient {

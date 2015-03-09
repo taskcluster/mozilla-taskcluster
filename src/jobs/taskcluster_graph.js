@@ -3,6 +3,7 @@ import instantiate from '../try/instantiate'
 import request from 'superagent-promise';
 import slugid from 'slugid';
 import taskcluster from 'taskcluster-client';
+import * as projectConfig from '../project_scopes';
 
 import Path from 'path';
 import Base from './base';
@@ -32,23 +33,11 @@ export default class TaskclusterGraphJob extends Base {
   async work(job) {
     let { revision_hash, pushref, repo } = job.data;
     let push = await this.runtime.pushlog.getOne(repo.url, pushref.id);
-    let tryConfig = this.config.try;
     let lastChangeset = push.changesets[push.changesets.length - 1];
-
-    // We need to figure out where the task graph template is...
-    let project = tryConfig.projects[repo.alias];
-    if (!project) {
-      // Jobs should never be scheduled in this case this is some sort of error
-      // or misconfiguration which will cause congestion.
-      throw new Error(
-        `Missing configuration in task graph push for repo ${repo.alais}`
-      );
-    }
 
     let repositoryUrlParts = parseUrl(repo.url);
 
-    let urlTemplate = project.url || tryConfig.defaultUrl;
-    let url = mustache.render(urlTemplate, {
+    let url = projectConfig.url(this.config.try, repo.alias, {
       // These values are defined in projects.yml
       alias: repo.alias,
       revision: lastChangeset.node,
@@ -77,7 +66,7 @@ export default class TaskclusterGraphJob extends Base {
     });
 
     let id = slugid.v4();
-    let scopes = project.scopes || tryConfig.defaultScopes;
+    let scopes = projectConfig.scopes(this.config.try, repo.alias);
 
     let scheduler = new taskcluster.Scheduler({
       credentials: this.config.taskcluster.credentials,
@@ -88,6 +77,11 @@ export default class TaskclusterGraphJob extends Base {
     graph.scopes = scopes;
 
     job.log('Posting job with id %s and scopes', id, graph.scopes.join(', '));
-    await scheduler.createTaskGraph(id, graph);
+    try {
+      await scheduler.createTaskGraph(id, graph);
+    } catch (e) {
+      console.log(JSON.stringify(e, null, 2))
+      throw e;
+    }
   }
 }

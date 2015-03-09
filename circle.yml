@@ -1,0 +1,23 @@
+machine:
+  environment:
+    PULSE_USERNAME: ${PULSE_USERNAME}
+    PULSE_PASSWORD: ${PULSE_PASSWORD}
+    TASKCLUSTER_CLIENT_ID: ${TASKCLUSTER_CLIENT_ID}
+    TASKCLUSTER_ACCESS_TOKEN: ${TASKCLUSTER_ACCESS_TOKEN}
+  services:
+    - docker
+
+
+dependencies:
+  # The test setup steps downloads the correct version of compose but it does
+  # take some time and is worth caching...
+  cache_directories:
+    - "test/.compose"
+
+test:
+  override:
+    - "./test/ci-run-tests.sh":
+        parallel: true
+        files:
+          - test/**/*_test.js
+

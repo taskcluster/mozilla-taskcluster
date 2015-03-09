@@ -100,7 +100,7 @@ suite('instantiate', function() {
     // Do a little smoke testing
     assert(taskGraph.metadata);
     assert(taskGraph.metadata.owner === 'user@example.com');
-    assert(taskGraph.tasks[0].task.routes.indexOf('xyz.try.RESULTSET') !== -1);
+    assert(taskGraph.tasks[0].task.routes.indexOf('test.try.RESULTSET') !== -1);
     assert(taskGraph.tasks.length === 3);
     assert(taskGraph.tasks[1].taskId === taskGraph.tasks[2].requires[0]);
 
@@ -112,5 +112,3 @@ suite('instantiate', function() {
     await this.scheduler.createTaskGraph(taskGraphId, taskGraph);
   });
 });
-
-

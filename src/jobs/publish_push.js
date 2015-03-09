@@ -24,7 +24,7 @@ export default class PushJob extends Base {
         return {
           author: cset.author,
           branch: cset.branch,
-          description: cset.desc,
+          desc: cset.desc,
           files: cset.files,
           node: cset.node,
           tags: cset.tags

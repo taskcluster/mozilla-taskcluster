@@ -6,6 +6,7 @@ import * as kueUtils from '../kue';
 import createResultset from '../../src/treeherder/resultset';
 import slugid from 'slugid';
 
+import PushlogClient from '../../src/pushlog/client';
 import Project from 'mozilla-treeherder/project';
 import TreeherderHelper from '../treeherder';
 import TaskclusterHelper from '../taskcluster';
@@ -14,7 +15,7 @@ let Joi = require('joi');
 
 
 suite('bin/treeherder_taskcluster.js', function() {
-  let monitorSetup = testSetup('workers.js', 'taskcluster_treeherder.js');
+  let monitorSetup = testSetup('workers.js', 'pulse_listener.js');
 
   // prior to testing anything we need to create a resultset...
   let treeherder;
@@ -25,25 +26,17 @@ suite('bin/treeherder_taskcluster.js', function() {
     treeherder = new TreeherderHelper(this.config.treeherder.apiUrl);
     taskcluster = new TaskclusterHelper(this.scheduler);
 
-    let changesets = [
-      {
-       author: 'Author <user@domain.com>',
-       branch: 'default',
-       desc: 'desc',
-       files: [
-        'xfoobar'
-       ],
-       node: slugid.v4(),
-       tags: []
-      }
-    ];
+    await monitorSetup.hg.write('xfoobar', `xfoo ${Date.now()}`);
+    await monitorSetup.hg.commit();
+    await monitorSetup.hg.push();
 
+    let pushlog = new PushlogClient();
+    let push = await pushlog.getOne(monitorSetup.url, 1);
     let resultset = createResultset('try', {
-      changesets
+      changesets: push.changesets
     });
     revisionHash = resultset.revision_hash;
 
-    monitorSetup.pushlog.push(changesets);
     await treeherder.waitForResultset(revisionHash);
 
     route = [
@@ -158,7 +151,9 @@ suite('bin/treeherder_taskcluster.js', function() {
     }).unknown(true))
   });
 
-  test('state transition -> pending -> retry', async function() {
+  // Skipped on CI due to intermittent status...
+  test('@ci-skip state transition -> pending -> retry', async function() {
+    this.timeout('2min');
     let [, taskId] = await taskcluster.createTaskGraph({
       tasks: [{
         reruns: 1,
@@ -202,15 +197,17 @@ suite('bin/treeherder_taskcluster.js', function() {
       return rerun.result === 'retry';
     });
 
-    await this.queue.reportCompleted(taskId, 1, { success:  false });
+    await this.queue.reportFailed(taskId, 1);
 
-    let finalRun = await treeherder.waitForJobState(
-      revisionHash,
-      taskId,
-      1,
-      'completed'
-    );
-    assert.equal(finalRun.result, 'testfailed');
+    await waitFor(async function() {
+      let finalRun = await treeherder.waitForJobState(
+        revisionHash,
+        taskId,
+        1,
+        'completed'
+      );
+      return finalRun.result === 'testfailed';
+    });
   });
 
   test('state transition -> pending -> running -> completed', async function() {

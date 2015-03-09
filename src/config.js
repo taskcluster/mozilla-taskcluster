@@ -5,7 +5,7 @@ import merge from 'lodash.merge';
 import yaml from 'js-yaml';
 let Joi = require('joi');
 
-import { Connection } from './db';
+import createConnection from './db';
 import Debug from 'debug';
 import Config from './collections/config';
 
@@ -22,7 +22,15 @@ async function loadYaml(location) {
 // Schema used to ensure we have all the correct configuration values prior to
 // running any more complex logic...
 let schema = Joi.object().keys({
+
+  mongo: Joi.object().keys({
+    connectionString: Joi.string().
+      description('Mongodb connection string').
+        default(Joi.ref('$env.MONGO_URL')),
+  }),
+
   documentdb: Joi.object().keys({
+    collectionPrefix: Joi.string().description('prefix to use before collection name'),
     host: Joi.string().description('documentdb hostname'),
     key: Joi.string().description('master or secondary read/write key'),
     database: Joi.string().required().description('database name')
@@ -48,7 +56,17 @@ let schema = Joi.object().keys({
       description('entire treeherder/etl/data/credentials.json file')
   }),
 
+  treeherderActions: Joi.object().keys({
+    routePrefix: Joi.string().required(),
+    connectionString: Joi.string().required(),
+    exchange: Joi.string().required().
+      description('Exchange to listen on'),
+    queue: Joi.string(),
+    prefetch: Joi.number().required()
+  }),
+
   treeherderTaskcluster: Joi.object().keys({
+    connectionString: Joi.string().required(),
     routePrefix: Joi.string().required().
       description('routing key prefix for taskcluster-treehreder'),
     queue: Joi.string(),
@@ -85,6 +103,7 @@ let schema = Joi.object().keys({
 
   kue: Joi.object().keys({
     purgeCompleted: Joi.boolean(),
+    logFailedJobs: Joi.boolean(),
     prefix: Joi.string().required(),
     admin: Joi.object().keys({
       port: Joi.number().default(60024)
@@ -103,14 +122,6 @@ let schema = Joi.object().keys({
         Number of missing pushes to fetch if current push id < then current
         changelog push id (most recent N are fetched in ascending order).
       `.trim())
-  }),
-
-  // Note pulse is _only_ used for consuming messages and not publishing them
-  pulse: Joi.object().keys({
-    username: Joi.string().
-      default(Joi.ref('$env.PULSE_USERNAME')),
-    password: Joi.string().
-      default(Joi.ref('$env.PULSE_PASSWORD'))
   }),
 
   commitPublisher: Joi.object().keys({
@@ -152,8 +163,8 @@ export default async function load(profile, options = {}) {
 
   // Load additional configuration from the database...
   if (baseConfig.config.documentkey) {
-    let con = new Connection(baseConfig.documentdb);
-    let configCollection = new Config(con);
+    let db = await createConnection(baseConfig.mongo.connectionString)
+    let configCollection = await Config.create(db);
     debug('fetching document', baseConfig.config.documentkey);
     let doc = await configCollection.findById(baseConfig.config.documentkey);
     baseConfig = merge(baseConfig, doc);

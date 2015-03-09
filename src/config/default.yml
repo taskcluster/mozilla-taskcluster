@@ -1,8 +1,13 @@
+mongo: {}
 documentdb:
   database: treeherder-proxy
 
 treeherder:
   apiUrl: https://treeherder.mozilla.org/api/
+
+treeherderActions:
+  routePrefix: taskcluster
+  prefetch: 200
 
 taskcluster:
   credentials: {}
@@ -18,6 +23,7 @@ redis: {}
 pulse: {}
 
 kue:
+  logFailedJobs: false
   admin:
     port: 60024
 

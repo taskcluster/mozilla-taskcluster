@@ -1,5 +1,6 @@
 scopes:
-  - 'queue:define-task:aws-provisioner/v2'
+  - 'queue:define-task:test/test'
+  - 'queue:create-task:test/test'
   # Note that the queue:route scope is not present here this is to test the
   # importing of scopes from tasks into the graph level...
 tasks:
@@ -7,11 +8,11 @@ tasks:
   - taskId:           '{{#as_slugid}}decision-task{{/as_slugid}}'
     task:
       scopes:
-        - 'queue:route:xyz.{{ project  }}.{{ revision_hash }}'
+        - 'queue:route:test.{{ project  }}.{{ revision_hash }}'
       routes:
-        - 'xyz.{{ project  }}.{{ revision_hash }}'
-      provisionerId:  aws-provisioner
-      workerType:     v2
+        - 'test.{{ project  }}.{{ revision_hash }}'
+      provisionerId:  test
+      workerType:     test
       created:        '{{ now }}'
       deadline:       '{{#from_now }}1 day 2 hours{{/from_now}}'
       payload:
@@ -42,8 +43,8 @@ tasks:
   # Build task that is independent of the decision task
   - taskId:           '{{#as_slugid }}build-task{{/as_slugid}}'
     task:
-      provisionerId:  aws-provisioner
-      workerType:     v2
+      provisionerId:  test
+      workerType:     test
       created:        '{{ now }}'
       deadline:       '{{#from_now }}1 day 2 hours{{/from_now}}'
       payload:
@@ -65,8 +66,8 @@ tasks:
     requires:
       - '{{#as_slugid }}build-task{{/as_slugid}}'
     task:
-      provisionerId:  aws-provisioner
-      workerType:     v2
+      provisionerId:  test
+      workerType:     test
       created:        '{{ now }}'
       deadline:       '{{#from_now }}1 day 2 hours{{/from_now}}'
       payload:
@@ -89,4 +90,3 @@ metadata:
     Some description of the test task in **markdown**.
   owner:        '{{ owner }}'
   source:       '{{{ source }}}'
-

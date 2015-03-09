@@ -1,12 +1,16 @@
 documentdb:
   database: treeherder-proxy-testing
 
+treeherderActions:
+  exchange: tests/treeherder-job-actions
+
 config:
   files:
     - test-treeherder-proxy.yml
     - test/config.yml
 kue:
   prefix: test
+  logFailedJobs: true
 
 repositoryMonitor:
   interval: 1000
@@ -21,3 +25,18 @@ commitPublisher:
 treeherder:
   credentials: |
     {"thunderbird-trunk":{"consumer_secret":"thunderbird-trunk","consumer_key":"thunderbird-trunk"},"jamun":{"consumer_secret":"jamun","consumer_key":"jamun"},"birch":{"consumer_secret":"birch","consumer_key":"birch"},"accessibility":{"consumer_secret":"accessibility","consumer_key":"accessibility"},"ionmonkey":{"consumer_secret":"ionmonkey","consumer_key":"ionmonkey"},"devtools":{"consumer_secret":"devtools","consumer_key":"devtools"},"maple":{"consumer_secret":"maple","consumer_key":"maple"},"mozilla-b2g18_v1_1_0_hd":{"consumer_secret":"mozilla-b2g18_v1_1_0_hd","consumer_key":"mozilla-b2g18_v1_1_0_hd"},"thunderbird-aurora":{"consumer_secret":"thunderbird-aurora","consumer_key":"thunderbird-aurora"},"elm":{"consumer_secret":"elm","consumer_key":"elm"},"unknown":{"consumer_secret":"unknown","consumer_key":"unknown"},"mozilla-b2g18":{"consumer_secret":"mozilla-b2g18","consumer_key":"mozilla-b2g18"},"oak":{"consumer_secret":"oak","consumer_key":"oak"},"pine":{"consumer_secret":"pine","consumer_key":"pine"},"mozilla-b2g26_v1_2":{"consumer_secret":"mozilla-b2g26_v1_2","consumer_key":"mozilla-b2g26_v1_2"},"fig":{"consumer_secret":"fig","consumer_key":"fig"},"mozilla-beta":{"consumer_secret":"mozilla-beta","consumer_key":"mozilla-beta"},"holly":{"consumer_secret":"holly","consumer_key":"holly"},"mozilla-inbound":{"consumer_secret":"mozilla-inbound","consumer_key":"mozilla-inbound"},"profiling":{"consumer_secret":"profiling","consumer_key":"profiling"},"services-central":{"consumer_secret":"services-central","consumer_key":"services-central"},"cypress":{"consumer_secret":"cypress","consumer_key":"cypress"},"mozilla-central":{"consumer_secret":"mozilla-central","consumer_key":"mozilla-central"},"jaegermonkey":{"consumer_secret":"jaegermonkey","consumer_key":"jaegermonkey"},"mozilla-b2g28_v1_3":{"consumer_secret":"mozilla-b2g28_v1_3","consumer_key":"mozilla-b2g28_v1_3"},"alder":{"consumer_secret":"alder","consumer_key":"alder"},"b2g-inbound":{"consumer_secret":"b2g-inbound","consumer_key":"b2g-inbound"},"mozilla-aurora":{"consumer_secret":"mozilla-aurora","consumer_key":"mozilla-aurora"},"cedar":{"consumer_secret":"cedar","consumer_key":"cedar"},"thunderbird-esr24":{"consumer_secret":"thunderbird-esr24","consumer_key":"thunderbird-esr24"},"graphics":{"consumer_secret":"graphics","consumer_key":"graphics"},"date":{"consumer_secret":"date","consumer_key":"date"},"mozilla-esr17":{"consumer_secret":"mozilla-esr17","consumer_key":"mozilla-esr17"},"gaia":{"consumer_secret":"gaia","consumer_key":"gaia"},"ash":{"consumer_secret":"ash","consumer_key":"ash"},"addon-sdk":{"consumer_secret":"addon-sdk","consumer_key":"addon-sdk"},"thunderbird-beta":{"consumer_secret":"thunderbird-beta","consumer_key":"thunderbird-beta"},"mozilla-esr24":{"consumer_secret":"mozilla-esr24","consumer_key":"mozilla-esr24"},"thunderbird-try":{"consumer_secret":"thunderbird-try","consumer_key":"thunderbird-try"},"ux":{"consumer_secret":"ux","consumer_key":"ux"},"mozilla-release":{"consumer_secret":"mozilla-release","consumer_key":"mozilla-release"},"gum":{"consumer_secret":"gum","consumer_key":"gum"},"try":{"consumer_secret":"try","consumer_key":"try"},"larch":{"consumer_secret":"larch","consumer_key":"larch"},"build-system":{"consumer_secret":"build-system","consumer_key":"build-system"},"fx-team":{"consumer_secret":"fx-team","consumer_key":"fx-team"}}
+
+try:
+  projects:
+    try:
+      scopes:
+        - queue:route:test*
+        - scheduler:create-task-graph
+        - queue:create-task:test/test
+        - queue:define-task:test/test
+        - queue:claim-task
+        - assume:worker-type:test/test
+        - assume:worker-id:test/test
+        - queue:report-task-completed
+        - queue:resolve-task
+        - queue:route:tc-treeherder-test.*
