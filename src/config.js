@@ -83,6 +83,7 @@ let schema = Joi.object().keys({
   }),
 
   try: Joi.object().keys({
+    enabled: Joi.boolean().required(),
     defaultUrl: Joi.string().required().
       description('Default url (with mustache params) to use to fetch taskgraph'),
 

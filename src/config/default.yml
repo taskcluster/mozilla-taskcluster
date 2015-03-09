@@ -46,6 +46,7 @@ commitPublisher:
     be sent as events...
 
 try:
+  enabled: true
   # Default url used when figuring out where to fetch task graph has some special
   # mustache parameters used to customize the path.
   #
