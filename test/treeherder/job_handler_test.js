@@ -151,7 +151,8 @@ suite('bin/treeherder_taskcluster.js', function() {
     }).unknown(true))
   });
 
-  test('state transition -> pending -> retry', async function() {
+  // Skipped on CI due to intermittent status...
+  test('@ci-skip state transition -> pending -> retry', async function() {
     this.timeout('2min');
     let [, taskId] = await taskcluster.createTaskGraph({
       tasks: [{
