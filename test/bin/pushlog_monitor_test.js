@@ -13,44 +13,16 @@ suite('bin/pushlog_monitor_test.js', function() {
     repos = this.runtime.repositories;
   });
 
+  async function push() {
+    await monitorSetup.hg.write('a');
+    await monitorSetup.hg.commit();
+    await monitorSetup.hg.push();
+
+    return (await monitorSetup.hg.log())[0];
+  }
+
   test('updates after pushing', async function() {
-    let changesetsOne = [
-      {
-       author: 'Author <user@domain.com>',
-       branch: 'default',
-       desc: 'desc',
-       files: [
-        'xfoobar'
-       ],
-       node: 'commit-1',
-       tags: []
-      },
-      {
-       author: 'Author <user@domain.com>',
-       branch: 'default',
-       desc: 'desc',
-       files: [
-        'xfoobar'
-       ],
-       node: 'commit-2',
-       tags: []
-      }
-    ];
-
-    let changesetsTwo = [
-      {
-       author: 'Author <user@domain.com>',
-       branch: 'default',
-       desc: 'desc',
-       files: [
-        'xfoobar'
-       ],
-       node: 'commit-1',
-       tags: []
-      },
-    ];
-
-    monitorSetup.pushlog.push(changesetsOne);
+    let firstPush = await push();
     let result;
     let doc;
     result = await waitFor(async function() {
@@ -59,18 +31,16 @@ suite('bin/pushlog_monitor_test.js', function() {
     });
 
     doc = await repos.findById(Repositories.hashUrl(monitorSetup.url));
-    assert.equal(
-      doc.lastChangeset, changesetsOne[changesetsOne.length - 1].node
-    );
+    assert.equal(doc.lastChangeset, firstPush.node);
 
-    monitorSetup.pushlog.push(changesetsTwo);
+    let secondPush = await push();
     result = await waitFor(async function() {
       let doc = await repos.findById(Repositories.hashUrl(monitorSetup.url));
       return doc.lastPushId === 2;
     });
 
     doc = await repos.findById(Repositories.hashUrl(monitorSetup.url));
-    assert.equal(doc.lastChangeset, changesetsTwo[changesetsTwo.length - 1].node);
+    assert.equal(doc.lastChangeset, secondPush.node);
   });
 });
 
