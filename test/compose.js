@@ -116,8 +116,14 @@ class Compose {
   */
   async destroy(containerId) {
     let container = this.docker.getContainer(containerId);
+
     await container.kill({});
-    await container.remove({});
+
+    // XXX: CircleCI does not allow removal of containers in their docker
+    //      service so we simply skip this in that case...
+    if (!process.env.CI) {
+      await container.remove({});
+    }
   }
 
   async ps(cwd) {
