@@ -73,6 +73,7 @@ export default class RetriggerJob extends Base {
     let { taskId, runId, requester, project } = job.data;
     let task = await queue.getTask(taskId);
 
+    job.log(`Posting retrigger for job ${taskId} in project ${project}`);
     // Ensure when retrigger is sent that we use the right scopes for the job.
     let scopes = projectConfig.scopes(this.config.try, project);
     let scheduler = new taskcluster.Scheduler({
@@ -103,6 +104,7 @@ export default class RetriggerJob extends Base {
       tasks
     };
 
+    job.log(`Task graph id ${newGraphId}`);
     await scheduler.createTaskGraph(newGraphId, graph);
 
     let message = {
