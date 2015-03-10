@@ -44,6 +44,7 @@ class Handler {
       await scheduleAction(this.jobs, 'retrigger', {
         taskId,
         runId,
+        title: `Retrigger for ${taskId} for project ${payload.project} (${payload.requester})`,
         project: payload.project,
         requester: payload.requester
       });
