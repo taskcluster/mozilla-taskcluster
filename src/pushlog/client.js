@@ -85,6 +85,22 @@ export default class PushlogClient {
   }
 
   /**
+  Return the last 10 pushlog events...
+  */
+  async getLatest(url) {
+    let pushUrl = urljoin(url, '/json-pushes/');
+    let query = { version: 2 };
+    let req = request.
+                get(pushUrl).
+                agent(this.selectAgent(url)).
+                query(query);
+
+    let res = await req.end();
+    if (res.error) throw res.error;
+    return this.formatBody(res.body);
+  }
+
+  /**
   Issue a get request for a particular repository
   */
   async get(url, start=0, end=1, full=false) {

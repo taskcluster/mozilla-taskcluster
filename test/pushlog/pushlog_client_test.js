@@ -41,6 +41,12 @@ suite('pushlog/client', function() {
     );
   });
 
+  test('getLatest()', async function() {
+    let latestPushes = await client.getLatest(hg.url);
+    assert.equal(latestPushes.lastPushId, numberOfPushes);
+    assert.deepEqual(latestPushes.range, { start: 21, end: 30 });
+  });
+
   test('getOne()', async function() {
     let push = await client.getOne(hg.url, 17);
     assert.equal(push.id, 17);
