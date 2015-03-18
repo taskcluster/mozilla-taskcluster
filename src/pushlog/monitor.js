@@ -52,7 +52,7 @@ export default class Monitor {
   }
 
   async runCheck(repo, lock) {
-    let status = await pushlog.get(repo.url);
+    let status = await pushlog.getLatest(repo.url);
     let startID = lock.lastPushId;
     let endID = status.lastPushId;
 
