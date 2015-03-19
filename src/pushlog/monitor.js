@@ -155,7 +155,7 @@ export default class Monitor {
     await Promise.all(ops);
   }
 
-  async start(checkInterval=2000) {
+  async start(checkInterval=10000) {
     if (this._intervalHandle) throw new Error('Already running...');
     debug('start : interval %d', this.interval)
 
