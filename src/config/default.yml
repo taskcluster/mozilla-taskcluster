@@ -28,7 +28,7 @@ kue:
     port: 60024
 
 repositoryMonitor:
-  interval: 2000
+  interval: 60000
   maxPushFetches: 200
 
 commitPublisher:
