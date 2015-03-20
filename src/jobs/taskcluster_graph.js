@@ -53,6 +53,10 @@ export default class TaskclusterGraphJob extends Base {
 
     if (rawGraphReq.error) throw rawGraphReq.error;
 
+    if (repo.alias !== 'try') {
+      lastChangeset.desc = `${repo.url}/rev/${lastChangeset.node}`;
+    }
+
     let graph = instantiate(rawGraphReq.text, {
       owner: push.user,
       source: url,
