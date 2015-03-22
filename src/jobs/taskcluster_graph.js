@@ -1,13 +1,20 @@
-import mustache from 'mustache';
 import instantiate from '../try/instantiate'
 import request from 'superagent-promise';
 import slugid from 'slugid';
 import taskcluster from 'taskcluster-client';
+import fs from 'mz/fs';
+import fsPath from 'path';
+import mustache from 'mustache';
 import * as projectConfig from '../project_scopes';
+import assert from 'assert';
 
 import Path from 'path';
 import Base from './base';
 import URL from 'url';
+
+const GRAPH_RETIRES = 2;
+const GRAPH_INTERVAL = 5000;
+const GRAPH_REQ_TIMEOUT = 30000;
 
 /**
 Parses given url into path and host parts.
@@ -29,6 +36,32 @@ function parseUrl(url) {
   };
 }
 
+/**
+Fetch a task graph from a url (retires included...)
+*/
+async function fetchGraph(job, url) {
+  assert(url, 'url is required');
+  job.log(`fetching graph ${url}`);
+  let currentRetry = 0;
+  while (currentRetry++ < GRAPH_RETIRES) {
+    try {
+      let res = await request.get(url).
+        timeout(GRAPH_REQ_TIMEOUT).
+        buffer(true).
+        end();
+
+      if (res.error) throw res.error;
+      return res.text;
+    } catch (e) {
+      job.log(`Error fetching graph ${e.stack}`);
+      let sleep = currentRetry * GRAPH_INTERVAL;
+      // wait for a bit before retrying...
+      await new Promise((accept) => setTimeout(accept, sleep));
+    }
+  }
+  throw new Error(`Could not fetch graph at ${url}`);
+}
+
 export default class TaskclusterGraphJob extends Base {
   async work(job) {
     let { revision_hash, pushref, repo } = job.data;
@@ -36,30 +69,21 @@ export default class TaskclusterGraphJob extends Base {
     let lastChangeset = push.changesets[push.changesets.length - 1];
 
     let repositoryUrlParts = parseUrl(repo.url);
-
-    let url = projectConfig.url(this.config.try, repo.alias, {
+    let urlVariables = {
       // These values are defined in projects.yml
       alias: repo.alias,
       revision: lastChangeset.node,
       path: repositoryUrlParts.path,
       host: repositoryUrlParts.host
-    });
+    };
 
-    job.log('Fetching url (%s) for %s push id %d ', url, repo.alias, push.id);
+    let graphUrl = projectConfig.url(this.config.try, repo.alias, urlVariables);
+    job.log('Fetching url (%s) for %s push id %d ', graphUrl, repo.alias, push.id);
+    let graphText = await fetchGraph(job, graphUrl);
 
-    let rawGraphReq = await request.get(url).
-      buffer(true).
-      end();
-
-    if (rawGraphReq.error) throw rawGraphReq.error;
-
-    if (repo.alias !== 'try') {
-      lastChangeset.desc = `${repo.url}/rev/${lastChangeset.node}`;
-    }
-
-    let graph = instantiate(rawGraphReq.text, {
+    let variables = {
       owner: push.user,
-      source: url,
+      source: graphUrl,
       revision: lastChangeset.node,
       project: repo.alias,
       revision_hash,
@@ -67,7 +91,23 @@ export default class TaskclusterGraphJob extends Base {
       pushlog_id: String(push.id),
       url: repo.url,
       importScopes: true
-    });
+    };
+
+    let graph;
+    try {
+      graph = instantiate(graphText, variables);
+    } catch (e) {
+      job.log("Error creating graph due to yaml syntax errors...");
+      // Even though we won't end up doing anything overly useful we still need
+      // to convey some status to the end user ... The instantiate error should
+      // be safe to pass as it is simply some yaml error.
+      let errorGraphUrl =
+        mustache.render(this.config.try.errorTaskUrl, urlVariables);
+      let errorGraph = await fetchGraph(job, errorGraphUrl);
+      graph = instantiate(errorGraph, variables);
+      graph.tasks[0].task.payload.env = graph.tasks[0].task.payload.env || {};
+      graph.tasks[0].task.payload.env.ERROR_MSG = e.toString()
+    }
 
     let id = slugid.v4();
     let scopes = projectConfig.scopes(this.config.try, repo.alias);

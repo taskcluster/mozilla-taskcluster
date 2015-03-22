@@ -67,7 +67,8 @@ export default function instantiate(template, options) {
     comment: Joi.string().default(""),
     pushlog_id: Joi.string().required(),
     url: Joi.string().required(),
-    importScopes: Joi.boolean().required()
+    importScopes: Joi.boolean().required(),
+    error: Joi.string()
   }));
 
   // Create label cache, so we provide the same slugids for the same label

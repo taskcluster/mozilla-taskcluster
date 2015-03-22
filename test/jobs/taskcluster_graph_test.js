@@ -13,6 +13,18 @@ const GRAPH_PATH = 'testing/taskcluster/tasks/decision/try.yml'
 suite('jobs/taskcluster_graph', function() {
   let monitorSetup = testSetup('workers.js');
 
+  async function createErrorYaml(route) {
+    let content = yaml.safeLoad(
+      await fs.readFile(__dirname + '/../fixtures/try/error.yml')
+    );
+
+    content.scopes = content.scopes || [];
+    content.scopes.push('queue:route:' + route);
+    content.tasks[0].task.routes.push(route);
+
+    return yaml.safeDump(content);
+  }
+
   test('update after a push', async function() {
     let graph =
       await fs.readFile(__dirname + '/../fixtures/try/decision.yml', 'utf8');
@@ -52,5 +64,39 @@ suite('jobs/taskcluster_graph', function() {
     let task = await queue.getTask(message.payload.status.taskId);
     assert.equal(task.routes[0], route.replace('route.', ''));
   });
-});
 
+  test('error creating task graph', async function() {
+    // Invalid yaml...
+    let graph = ':\n:';
+    let route = `test.try.${slugid.v4()}`
+
+    await monitorSetup.hg.write('error.yml', await createErrorYaml(route));
+    await monitorSetup.hg.write(GRAPH_PATH, graph);
+    await monitorSetup.hg.commit();
+    // Write a try message...
+    await monitorSetup.hg.write('README', 'bla')
+    await monitorSetup.hg.commit('try: desc +tc');
+
+
+    let schedulerEvents = new taskcluster.SchedulerEvents();
+    let queueEvents = new taskcluster.QueueEvents();
+
+    // Setup the listeners prior to the push to ensure we don't have any races.
+    await this.pulse.connect();
+    this.pulse.bind(queueEvents.taskPending('route.' + route));
+
+    // Actually push our changes...
+    await monitorSetup.hg.push();
+
+    await this.pulse.resume();
+    // Consume the queue now that the event has been sent...
+    let [ message ] = await Promise.all([
+      eventToPromise(this.pulse, 'message'),
+      this.pulse.resume()
+    ]);
+
+    let queue = new taskcluster.Queue();
+    let task = await queue.getTask(message.payload.status.taskId);
+    assert.ok(task.metadata.name.indexOf('Error') !== -1, 'is error task');
+  });
+});
