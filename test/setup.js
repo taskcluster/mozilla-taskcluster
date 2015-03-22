@@ -26,7 +26,7 @@ const waitForPort = denodeify(_waitForPort);
 suiteSetup(async function() {
   // This might take a long time since we install compose and potentially pull
   // docker images etc...
-  this.timeout('4m');
+  this.timeout('6m');
 
   // Ensure we remove the generated config so we don't end up loading it prior
   // to updating it.
