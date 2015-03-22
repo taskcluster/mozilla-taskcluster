@@ -28,6 +28,12 @@ suiteSetup(async function() {
   // docker images etc...
   this.timeout('4m');
 
+  // Ensure we remove the generated config so we don't end up loading it prior
+  // to updating it.
+  if (await fs.exists(GENERATED_CONFIG)) {
+    await fs.unlink(GENERATED_CONFIG);
+  }
+
   let compose = this.compose = await installCompose();
 
   // Turn on fig (service names are hardcoded!)
