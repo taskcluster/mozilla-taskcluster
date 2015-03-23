@@ -57,6 +57,11 @@ try:
   #
   defaultUrl: "{{{host}}}{{{path}}}/raw-file/{{revision}}/testing/taskcluster/tasks/decision/{{alias}}.yml"
 
+  # If for some reason the task yaml is invalid we still would like to create a
+  # task if for no other reason then to notify the user that this failed.
+  # XXX: This url is temporary until a real one hits mozilla-central.
+  errorTaskUrl: "https://gist.githubusercontent.com/lightsofapollo/21593a20ec97193de5ac/raw/b005a4b14925679e86abd52ffa45ea3243fa3384/error_task.yml"
+
   # Default scopes to use for projects which have no specific scopes of their own.
   defaultScopes:
     - queue:*

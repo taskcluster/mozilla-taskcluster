@@ -87,6 +87,9 @@ let schema = Joi.object().keys({
     defaultUrl: Joi.string().required().
       description('Default url (with mustache params) to use to fetch taskgraph'),
 
+    errorTaskUrl: Joi.string().required().
+      description('Location of the "error" task to use if we cannot parse the yaml'),
+
     defaultScopes:
       Joi.array().includes(Joi.string()).required().
         description('List of default scopes to restrict graph to'),
