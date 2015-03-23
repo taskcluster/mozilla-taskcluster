@@ -2,6 +2,7 @@ import taskcluster from 'taskcluster-client';
 import * as projectConfig from '../project_scopes';
 import slugid from 'slugid';
 import { duplicate as duplicateTask } from '../taskcluster/duplicate_task';
+import traverse from 'traverse';
 
 import RetriggerExchange from '../exchanges/retrigger';
 import Base from './base';
@@ -16,6 +17,23 @@ const FULL_GRAPH_STATES = new Set([
 
 // We use public only operations on the queue here...
 const queue = new taskcluster.Queue();
+
+function replaceAllInstances(tasks, map) {
+  return traverse.map(tasks, (value) => {
+    if (typeof value !== 'string') return value;
+    // XXX: This is slow and somewhat terrible but reliable... The task ids may
+    // appear anywhere in the graph (though it may not be super useful to do
+    // so).
+    Object.keys(map).forEach((oldTaskId) => {
+      let newTaskId = map[oldTaskId];
+      // .replace does not replace all matches so iterate through all matches.
+      while (value.indexOf(oldTaskId) !== -1) {
+        value = value.replace(oldTaskId, newTaskId);
+      }
+    });
+    return value;
+  });
+}
 
 class GraphDuplicator {
   constructor(scheduler) {
@@ -88,12 +106,22 @@ export default class RetriggerJob extends Base {
     let duplicateEntireGraph = FULL_GRAPH_STATES.has(run.state);
 
     // Duplicate the graph tasks...
+    let taskNodes = {};
     let tasks = await graphDuplicator.duplicateNode(
-      {},
+      taskNodes,
       taskGraphId,
       taskId,
       duplicateEntireGraph
     );
+
+    // Build a map of old task ids to new task ids...
+    let taskMap = Object.keys(taskNodes).reduce((result, value) => {
+      result[value] = taskNodes[value].taskId;
+      return result;
+    }, {});
+
+    // Replace all instances of the old task id's with the new ones...
+    let transformedTasks = replaceAllInstances(tasks, taskMap);
 
     let taskGraphDetails = await scheduler.inspect(taskGraphId);
     let newGraphId = slugid.v4();
@@ -101,7 +129,7 @@ export default class RetriggerJob extends Base {
       scopes: scopes,
       tags: taskGraphDetails.tags,
       metadata: taskGraphDetails.metadata,
-      tasks
+      tasks: transformedTasks
     };
 
     job.log(`Task graph id ${newGraphId}`);
@@ -113,7 +141,7 @@ export default class RetriggerJob extends Base {
     };
 
     let routingKeys = {
-      taskId
+      taskId: taskId
     };
 
     await this.publisher.publish(
