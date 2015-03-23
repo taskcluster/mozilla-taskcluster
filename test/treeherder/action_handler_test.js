@@ -144,6 +144,10 @@ suite('action handler', function() {
       requires: [nodeOne.taskId]
     });
 
+    nodeTwo.task.extra = {
+      parentTaskId: nodeOne.taskId
+    };
+
     let graph = {
       metadata: {
         name:         'Example Task name',
@@ -177,6 +181,11 @@ suite('action handler', function() {
       tasks.two.requires,
       [tasks.one.taskId]
     );
+
+    let taskTwo = await this.queue.getTask(tasks.two.taskId);
+
+    // We should transform all references to old task id's to the new ones.
+    assert.equal(taskTwo.extra.parentTaskId, tasks.one.taskId);
   });
 
   test('multi dep', async function() {
