@@ -1,0 +1,33 @@
+metadata:
+  name: 'Error Message Task'
+  description: |
+    There was an error creating the decision task.
+  owner: "{{owner}}"
+  source: "{{source}}"
+tasks:
+  - taskId: '{{#as_slugid}}decision-task{{/as_slugid}}'
+    task:
+      created: '{{now}}'
+      deadline: '{{#from_now }}5 minutes{{/from_now}}'
+      metadata:
+        source: '{{source}}'
+        owner: '{{owner}}'
+        name: Error message...
+        description: |
+          Error creating decision task...
+
+      workerType: test
+      provisionerId: test
+      routes: []
+      payload:
+        image: 'quay.io/mozilla/decision:0.0.3'
+        maxRunTime: 500
+        command:
+          - /bin/bash
+          - -c
+          - >
+            echo "{{error}}";
+            exit 1
+      extra:
+        treeherder:
+          symbol: D
