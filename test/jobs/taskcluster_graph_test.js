@@ -72,11 +72,8 @@ suite('jobs/taskcluster_graph', function() {
 
     await monitorSetup.hg.write('error.yml', await createErrorYaml(route));
     await monitorSetup.hg.write(GRAPH_PATH, graph);
-    await monitorSetup.hg.commit();
-    // Write a try message...
     await monitorSetup.hg.write('README', 'bla')
     await monitorSetup.hg.commit('try: desc +tc');
-
 
     let schedulerEvents = new taskcluster.SchedulerEvents();
     let queueEvents = new taskcluster.QueueEvents();
