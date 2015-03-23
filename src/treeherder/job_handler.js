@@ -326,7 +326,7 @@ class Handler {
 
   /**
   Post pending results to treeherder this method also handles the edge case of
-  marking previous runs of the task as "retries" if in a task graph with 
+  marking previous runs of the task as "retries" if in a task graph with
   remaining retries.
 
   @param {Object} project in treeherder.
@@ -343,7 +343,7 @@ class Handler {
       // This only can be run when the runId is present and > 0
       payload.runId &&
       // Only issue this if the run was created for a rerun
-      run.reasonCreated === 'rerun'
+      (run.reasonCreated === 'rerun' || run.reasonCreated === 'retry')
     ) {
       await this.handleTaskRerun(project, revisionHash, task, payload);
     }
