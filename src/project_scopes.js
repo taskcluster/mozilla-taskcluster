@@ -12,9 +12,10 @@ const URL_SCHEMA = Joi.object().keys({
   host: Joi.string().required()
 });
 
-function getProject(config, name) {
+function getProject(config, name, allowMissing = false) {
   let project = config.projects[name];
   if (project) return project;
+  if (allowMissing) return {};
 
   let allowed = Object.keys(config.projects);
   throw new Error(`
@@ -23,8 +24,8 @@ function getProject(config, name) {
   `);
 }
 
-export function scopes(config, project) {
-  let project = getProject(config, project);
+export function scopes(config, project, allowMissing = false) {
+  let project = getProject(config, project, allowMissing);
   return project.scopes || config.defaultScopes;
 }
 
