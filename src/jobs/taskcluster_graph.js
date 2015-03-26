@@ -81,6 +81,10 @@ export default class TaskclusterGraphJob extends Base {
     job.log('Fetching url (%s) for %s push id %d ', graphUrl, repo.alias, push.id);
     let graphText = await fetchGraph(job, graphUrl);
 
+    if (repo.alias != 'try') {
+      lastChangeset.desc = ' ';
+    }
+
     let variables = {
       owner: push.user,
       source: graphUrl,
