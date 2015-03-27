@@ -110,7 +110,8 @@ function createLogReferences(queue, taskId, run) {
   );
 
   return [{
-    name: 'live_backing.log',
+    // XXX: This is a magical name see 1147958 which enables the log viewer.
+    name: 'builds-4h',
     url: logUrl
   }];
 }
