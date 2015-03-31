@@ -54,7 +54,9 @@ suite('action handler', function() {
   */
   async function retriggerMessage(ctx, taskId) {
     await ctx.listener.connect();
-    await ctx.listener.bind(ctx.events.retrigger());
+    await ctx.listener.bind(ctx.events.retrigger({
+      taskId: taskId
+    }));
 
     await submitAction(ctx.config, 'retrigger', taskId, 0, 'user@example.com');
 
@@ -144,6 +146,10 @@ suite('action handler', function() {
       requires: [nodeOne.taskId]
     });
 
+    nodeTwo.task.extra = {
+      parentTaskId: `what is going on ? ${nodeOne.taskId}`
+    };
+
     let graph = {
       metadata: {
         name:         'Example Task name',
@@ -177,6 +183,10 @@ suite('action handler', function() {
       tasks.two.requires,
       [tasks.one.taskId]
     );
+
+    // We should transform all references to old task id's to the new ones.
+    let taskTwo = await this.queue.getTask(tasks.two.taskId);
+    assert.ok(taskTwo.extra.parentTaskId.indexOf(tasks.one.taskId) !== -1);
   });
 
   test('multi dep', async function() {

@@ -26,7 +26,7 @@ class Publisher {
     let result = exchange.config.routingKey.map((element) => {
       let value = object[element.name];
       if (!value) throw new Error(`Missing key ${element.name}`);
-      return element.name;
+      return value;
     });
     return result.join('.');
   }

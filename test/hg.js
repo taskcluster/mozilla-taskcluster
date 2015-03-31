@@ -3,7 +3,7 @@ import temp from 'promised-temp';
 import denodeify from 'denodeify';
 import fsPath from 'path';
 import fs from 'mz/fs';
-import { exec } from 'mz/child_process';
+import childProcess from 'child_process';
 import Debug from 'debug';
 
 // Name of the hg/pushlog service in docker-compose.yml
@@ -13,6 +13,32 @@ const LOG_TEMPLATE = '{node} {author} {desc}\n';
 
 const debug = Debug('hg');
 const waitForPort = denodeify(_waitForPort);
+
+// More robust error handling on top of normal exec...
+async function exec(cmd, opts = {}) {
+  let [err, stdout, stderr] = await new Promise((accept) => {
+    childProcess.exec(cmd, opts, (err, stdout, stderr) => {
+      accept([
+        err,
+        stdout,
+        stderr
+      ]);
+    });
+  });
+
+  if (err) {
+    throw new Error(`
+      ${err.stack}
+
+      stdout:
+        ${stdout}
+
+      stderr:
+        ${stderr}
+    `);
+  }
+  return [stdout, stderr];
+}
 
 class Hg {
   constructor(compose, containerId, url, path) {
@@ -50,7 +76,8 @@ class Hg {
   async commit(message='commit', user='user@example.com') {
     debug('commit', message, user);
     return exec(`hg commit -u "${user}" -A -m "${message}"`, {
-      cwd: this.path
+      cwd: this.path,
+      stdio: 'inherit'
     });
   }
 
