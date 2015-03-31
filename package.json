@@ -41,6 +41,7 @@
     "mustache": "^1.0.0",
     "mz": "^1.2.0",
     "promise": "^6.0.1",
+    "promise-retries": "^1.0.1",
     "promised-temp": "^0.1.0",
     "proxied-promise-object": "^0.2.0",
     "slugid": "^1.0.3",

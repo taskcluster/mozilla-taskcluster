@@ -18,7 +18,7 @@ const FULL_GRAPH_STATES = new Set([
 // We use public only operations on the queue here...
 const queue = new taskcluster.Queue();
 
-function replaceAllInstances(tasks, map) {
+function recursiveUpdateTaskIds(tasks, map) {
   return traverse.map(tasks, (value) => {
     if (typeof value !== 'string') return value;
     // XXX: This is slow and somewhat terrible but reliable... The task ids may
@@ -121,7 +121,7 @@ export default class RetriggerJob extends Base {
     }, {});
 
     // Replace all instances of the old task id's with the new ones...
-    let transformedTasks = replaceAllInstances(tasks, taskMap);
+    let transformedTasks = recursiveUpdateTaskIds(tasks, taskMap);
 
     let taskGraphDetails = await scheduler.inspect(taskGraphId);
     let newGraphId = slugid.v4();
@@ -149,5 +149,3 @@ export default class RetriggerJob extends Base {
     );
   }
 }
-
-

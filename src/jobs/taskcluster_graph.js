@@ -7,6 +7,7 @@ import fsPath from 'path';
 import mustache from 'mustache';
 import * as projectConfig from '../project_scopes';
 import assert from 'assert';
+import retry from 'promise-retries';
 
 import Path from 'path';
 import Base from './base';
@@ -42,9 +43,9 @@ Fetch a task graph from a url (retires included...)
 async function fetchGraph(job, url) {
   assert(url, 'url is required');
   job.log(`fetching graph ${url}`);
-  let currentRetry = 0;
-  while (currentRetry++ < GRAPH_RETIRES) {
-    try {
+  let opts = { interval: GRAPH_INTERVAL, retires: GRAPH_RETIRES };
+  try {
+    return await retry(opts, async () => {
       let res = await request.get(url).
         timeout(GRAPH_REQ_TIMEOUT).
         buffer(true).
@@ -52,14 +53,10 @@ async function fetchGraph(job, url) {
 
       if (res.error) throw res.error;
       return res.text;
-    } catch (e) {
-      job.log(`Error fetching graph ${e.stack}`);
-      let sleep = currentRetry * GRAPH_INTERVAL;
-      // wait for a bit before retrying...
-      await new Promise((accept) => setTimeout(accept, sleep));
-    }
+    });
+  } catch (e) {
+    throw new Error(`Could not fetch graph at ${url}\n ${e.stack}`);
   }
-  throw new Error(`Could not fetch graph at ${url}`);
 }
 
 export default class TaskclusterGraphJob extends Base {
