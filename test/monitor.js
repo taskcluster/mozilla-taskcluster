@@ -2,7 +2,7 @@ import createProc from './process';
 import * as kueUtils from './kue';
 import createHg from './hg';
 
-export default function setup(...processes) {
+export default function(...processes) {
   let results = {
     alias: 'try',
     hg: null,
@@ -10,13 +10,13 @@ export default function setup(...processes) {
   };
 
   let url;
-  suiteSetup(async function() {
+  setup(async function() {
     results.hg = await createHg(this.compose);
     results.url = results.hg.url;
   });
 
   let repos, monitor, pushworker, repo;
-  suiteSetup(async function() {
+  setup(async function() {
     repos = this.runtime.repositories;
     repo = await repos.create({
       url: results.url,
@@ -35,12 +35,15 @@ export default function setup(...processes) {
     await kueUtils.clear(this.runtime);
   });
 
-  suiteTeardown(async function() {
-    await repos.remove(repo.id);
-    await results.hg.destroy();
+  teardown(async function() {
     await results.processes.map((proc) => {
       return proc.kill();
     });
+
+    await Promise.all([
+     repos.remove(repo.id),
+     results.hg.destroy()
+    ]);
   });
 
   return results;
