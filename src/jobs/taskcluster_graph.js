@@ -16,6 +16,7 @@ import URL from 'url';
 const GRAPH_RETIRES = 2;
 const GRAPH_INTERVAL = 5000;
 const GRAPH_REQ_TIMEOUT = 30000;
+const TRY_PREFIX = 'try:';
 
 /**
 Parses given url into path and host parts.
@@ -59,6 +60,24 @@ async function fetchGraph(job, url) {
   }
 }
 
+/**
+Parse out a try flag in the commit message.
+*/
+function parseCommitMessage(message) {
+  let tryIdx = message.indexOf(TRY_PREFIX);
+
+  // No try...
+  if (tryIdx === -1) return null;
+
+  // End of try details are first newline or end of string...
+  let endIdx = message.indexOf('\n', tryIdx);
+  endIdx = (endIdx === -1) ? message.length : endIdx;
+
+  let msg = message.slice(tryIdx, endIdx);
+  console.log(msg, '<<<!!');
+  return msg;
+}
+
 export default class TaskclusterGraphJob extends Base {
   async work(job) {
     let { revision_hash, pushref, repo } = job.data;
@@ -78,17 +97,14 @@ export default class TaskclusterGraphJob extends Base {
     job.log('Fetching url (%s) for %s push id %d ', graphUrl, repo.alias, push.id);
     let graphText = await fetchGraph(job, graphUrl);
 
-    if (repo.alias != 'try') {
-      lastChangeset.desc = ' ';
-    }
-
     let variables = {
       owner: push.user,
       source: graphUrl,
       revision: lastChangeset.node,
       project: repo.alias,
       revision_hash,
-      comment: lastChangeset.desc,
+      // Intention use of ' ' must be a non zero length string...
+      comment: parseCommitMessage(lastChangeset.desc) || ' ',
       pushlog_id: String(push.id),
       url: repo.url,
       importScopes: true
