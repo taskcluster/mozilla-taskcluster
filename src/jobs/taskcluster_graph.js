@@ -74,7 +74,6 @@ function parseCommitMessage(message) {
   endIdx = (endIdx === -1) ? message.length : endIdx;
 
   let msg = message.slice(tryIdx, endIdx);
-  console.log(msg, '<<<!!');
   return msg;
 }
 
