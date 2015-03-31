@@ -146,8 +146,10 @@ suiteSetup(async function() {
 
 setup(function() {
   // Note listener is for messages/exchanges we generate...
-  this.listener = new taskcluster.AMQPListener({
-    connectionString: this.config.commitPublisher.connectionString
+  this.listener = new taskcluster.PulseListener({
+    credentials: {
+      connectionString: this.config.commitPublisher.connectionString
+    }
   });
 
   // Pulse is for things external components generate...

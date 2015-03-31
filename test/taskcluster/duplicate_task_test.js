@@ -11,7 +11,7 @@ suite('duplicate task', function() {
   const DEADLINE = 3600;
 
 
-  function getTask(overrides = {}) {
+  function task(overrides = {}) {
     let task = {
       provisionerId:  'test',
       schedulerId:    'task-graph-scheduler',
@@ -32,7 +32,7 @@ suite('duplicate task', function() {
   }
 
   test('no payload', function() {
-    let task = getTask();
+    let task = task();
     let now = new Date(2010, 0, 2);
     let duplicate = duplicateTask(task, now);
 
@@ -59,7 +59,7 @@ suite('duplicate task', function() {
     let artifactOneTime = 60 * 1000 * 20;
     let artifactTwoTime = 60 * 1000 * 5;
 
-    let task = getTask({
+    let task = task({
       payload: {
         artifacts: {
           one: {

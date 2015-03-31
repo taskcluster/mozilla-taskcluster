@@ -61,7 +61,7 @@ suite('jobs/taskcluster_graph', function() {
     ]);
 
     let queue = new taskcluster.Queue();
-    let task = await queue.getTask(message.payload.status.taskId);
+    let task = await queue.task(message.payload.status.taskId);
     assert.equal(task.routes[0], route.replace('route.', ''));
     assert(task.extra.comment, 'try: desc +tc');
   });
@@ -102,7 +102,7 @@ suite('jobs/taskcluster_graph', function() {
     ]);
 
     let queue = new taskcluster.Queue();
-    let task = await queue.getTask(message.payload.status.taskId);
+    let task = await queue.task(message.payload.status.taskId);
     assert(task.extra.comment, 'try: desc +tc');
   });
 
@@ -134,7 +134,7 @@ suite('jobs/taskcluster_graph', function() {
     ]);
 
     let queue = new taskcluster.Queue();
-    let task = await queue.getTask(message.payload.status.taskId);
+    let task = await queue.task(message.payload.status.taskId);
     assert.ok(task.metadata.name.indexOf('Error') !== -1, 'is error task');
   });
 });

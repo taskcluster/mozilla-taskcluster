@@ -32,6 +32,12 @@ class Handler {
     });
   }
 
+
+  async handleCancel(taskId, runId, task, payload) {
+    // We may want to put this in "kue" but this is probably fine.
+    await this.queue.cancelTask(taskId);
+  }
+
   async handleRetrigger(taskId, runId, task, payload) {
     if (
       // Must be a scheduled task...
@@ -56,9 +62,12 @@ class Handler {
     // We encode the task id/run into the job guid so extract the task id.
     let [taskId, runId] = payload.job_guid.split('/')
     taskId = slugid.encode(taskId);
-    let task = await this.queue.getTask(taskId);
+    let task = await this.queue.task(taskId);
 
     switch (payload.action) {
+      case 'cancel':
+        await this.handleCancel(taskId, runId, task, payload);
+        break;
       case 'retrigger':
         await this.handleRetrigger(taskId, runId, task, payload);
         break;
