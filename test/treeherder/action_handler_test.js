@@ -110,37 +110,7 @@ suite('action handler', function() {
     taskcluster = new TaskclusterHelper(this.scheduler);
   });
 
-  test('issue retrigger from pending', async function() {
-    let nodeOne = graphNode('first', {
-      reruns: 17,
-    });
-    let nodeTwo = graphNode('two', { requires: [nodeOne.taskId] });
-    let graph = {
-      metadata: {
-        name:         'Example Task name',
-        description:  'Markdown description of **what** this task does',
-        owner:        'user@example.com',
-        source:       'http://docs.taskcluster.net/tools/task-creator/'
-      },
-      scopes: [
-        'queue:define-task:test/test',
-        'queue:route:tc-treeherder-test.*'
-      ],
-      tasks: [nodeOne, nodeTwo]
-    };
-
-    await submitGraph(this, graph);
-    let msg = await retriggerMessage(this, nodeOne.taskId);
-
-    let payload = msg.payload;
-    let newGraph = await this.scheduler.inspect(payload.taskGroupId);
-    assert.equal(newGraph.tasks.length, 1);
-    assert.equal(newGraph.tasks[0].name, nodeOne.task.metadata.name);
-    // Rerun values should be copied too!
-    assert.equal(newGraph.tasks[0].reruns, 17);
-  });
-
-  test('issue retrigger from exception', async function() {
+  test('issue retrigger', async function() {
     let nodeOne = graphNode('one');
     let nodeTwo = graphNode('two', {
       requires: [nodeOne.taskId]

@@ -8,13 +8,6 @@ import RetriggerExchange from '../exchanges/retrigger';
 import Base from './base';
 import Joi from 'joi';
 
-// If the run retriggered is in one of these states we duplicate it and all of
-// it's dependencies...
-const FULL_GRAPH_STATES = new Set([
-  'failed',
-  'exception'
-]);
-
 // We use public only operations on the queue here...
 const queue = new taskcluster.Queue();
 
@@ -103,7 +96,6 @@ export default class RetriggerJob extends Base {
     let taskGraphId = task.taskGroupId;
     let { status } = await queue.status(taskId);
     let run = status.runs[runId];
-    let duplicateEntireGraph = FULL_GRAPH_STATES.has(run.state);
 
     // Duplicate the graph tasks...
     let taskNodes = {};
@@ -111,7 +103,7 @@ export default class RetriggerJob extends Base {
       taskNodes,
       taskGraphId,
       taskId,
-      duplicateEntireGraph
+      true // Always duplicate entire graph
     );
 
     // Build a map of old task ids to new task ids...
