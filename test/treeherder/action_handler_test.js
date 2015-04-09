@@ -110,7 +110,7 @@ suite('action handler', function() {
     taskcluster = new TaskclusterHelper(this.scheduler);
   });
 
-  test('issue cancel from pending', async function() {
+  test('@ci-skip issue cancel from pending', async function() {
     let node = graphNode('first');
     let graph = {
       metadata: {
