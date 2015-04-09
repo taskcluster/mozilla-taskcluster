@@ -2,7 +2,7 @@ import Exchange from '../src/exchange';
 import publisher from '../src/publisher';
 import toJSONSchema from 'joi-to-json-schema';
 import assert from 'assert';
-import { createClient, AMQPListener } from 'taskcluster-client';
+import { createClient, PulseListener } from 'taskcluster-client';
 import waitFor from './wait_for';
 
 let Joi = require('joi');
@@ -34,8 +34,10 @@ suite('publisher', function() {
     // create the exchange each time to ensure we are in known state.
     await subject.assertExchanges(TestExchange);
 
-    listener = new AMQPListener({
-      connectionString: this.config.commitPublisher.connectionString
+    listener = new PulseListener({
+      credentials: {
+        connectionString: this.config.commitPublisher.connectionString
+      }
     });
   });
 

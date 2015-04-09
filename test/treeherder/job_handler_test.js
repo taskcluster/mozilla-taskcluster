@@ -240,7 +240,7 @@ suite('bin/treeherder_taskcluster.js', function() {
     );
 
     // Report completed + success...
-    await this.queue.reportCompleted(taskId, 0, { success: true });
+    await this.queue.reportCompleted(taskId, 0);
     let job = await treeherder.waitForJobState(
       revisionHash,
       taskId,
@@ -280,7 +280,7 @@ suite('bin/treeherder_taskcluster.js', function() {
     );
 
     // Report completed + success...
-    await this.queue.reportCompleted(taskId, 0, { success: false });
+    await this.queue.reportFailed(taskId, 0);
     let job = await treeherder.waitForJobState(
       revisionHash,
       taskId,

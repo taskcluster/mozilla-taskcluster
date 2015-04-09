@@ -23,7 +23,7 @@ suite('action handler', function() {
       job_id: 111111,
       job_guid: `${slugid.decode(taskId)}/${runId}`,
       project: 'try',
-      action: 'retrigger',
+      action: type,
       requester,
     };
 
@@ -110,6 +110,32 @@ suite('action handler', function() {
     taskcluster = new TaskclusterHelper(this.scheduler);
   });
 
+  test('@ci-skip issue cancel from pending', async function() {
+    let node = graphNode('first');
+    let graph = {
+      metadata: {
+        name:         'Example Task name',
+        description:  'Markdown description of **what** this task does',
+        owner:        'user@example.com',
+        source:       'http://docs.taskcluster.net/tools/task-creator/'
+      },
+      scopes: [
+        'queue:define-task:test/test',
+        'queue:route:tc-treeherder-test.*'
+      ],
+      tasks: [node]
+    };
+
+    await submitGraph(this, graph);
+    await submitAction(this.config, 'cancel', node.taskId, 0, 'user@example.com');
+
+    await waitFor(async () => {
+      let { status } = await this.queue.status(node.taskId);
+      let run = status.runs[0]
+      return run.reasonResolved === 'canceled';
+    });
+  });
+
   test('issue retrigger', async function() {
     let nodeOne = graphNode('one');
     let nodeTwo = graphNode('two', {
@@ -155,7 +181,7 @@ suite('action handler', function() {
     );
 
     // We should transform all references to old task id's to the new ones.
-    let taskTwo = await this.queue.getTask(tasks.two.taskId);
+    let taskTwo = await this.queue.task(tasks.two.taskId);
     assert.ok(taskTwo.extra.parentTaskId.indexOf(tasks.one.taskId) !== -1);
   });
 

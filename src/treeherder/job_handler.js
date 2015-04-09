@@ -475,7 +475,7 @@ class Handler {
     }
 
     let treeherderProject = this.projects[project];
-    let task = await this.queue.getTask(payload.status.taskId);
+    let task = await this.queue.task(payload.status.taskId);
 
     switch (EVENT_MAP[exchange]) {
       case 'pending':

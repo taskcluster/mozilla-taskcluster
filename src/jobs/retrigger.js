@@ -49,7 +49,7 @@ class GraphDuplicator {
 
     // Fetch all details related to the task id...
     let [task, graphNode] = await Promise.all([
-      queue.getTask(taskId),
+      queue.task(taskId),
       this.scheduler.inspectTask(graphId, taskId)
     ]);
 
@@ -82,7 +82,7 @@ export default class RetriggerJob extends Base {
 
   async work(job) {
     let { taskId, runId, requester, project } = job.data;
-    let task = await queue.getTask(taskId);
+    let task = await queue.task(taskId);
 
     job.log(`Posting retrigger for job ${taskId} in project ${project}`);
     // Ensure when retrigger is sent that we use the right scopes for the job.
