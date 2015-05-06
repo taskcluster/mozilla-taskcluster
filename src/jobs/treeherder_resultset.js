@@ -56,6 +56,14 @@ export default class TreeherderResultsetJob extends Base {
     let lastRev = resultset.revisions[resultset.revisions.length - 1];
     let tryProject = this.projects[repo.alias];
 
+    // Common idom is to include "DONTBUILD" in changes to ammend something in a
+    // previous commit like code comments or modify something that is not part
+    // of CI.
+    if (lastRev.comment.indexOf("DONTBUILD") !== -1) {
+      job.log("Commit contains DONTBUILD skipping...");
+      return;
+    }
+
     if (this.config.try.enabled && tryProject) {
       if (
         tryProject.contains &&
