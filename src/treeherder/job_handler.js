@@ -78,7 +78,7 @@ function timestamp(date) {
 };
 
 function inspectorLink(taskId, run) {
-  return `http://docs.taskcluster.net/tools/task-inspector/#${taskId}/${run.runId}`;
+  return `https://tools.taskcluster.net/task-inspector/#${taskId}/${run.runId}`;
 }
 
 function stateFromRun(run) {
@@ -174,7 +174,7 @@ function jobFromTask(taskId, task, run) {
   if (config.productName) job.product_name = config.productName;
 
   // Add link to task-inspector
-  let inspectorLink = 'http://docs.taskcluster.net/tools/task-inspector/#' +
+  let inspectorLink = 'https://tools.taskcluster.net/task-inspector/#' +
                       taskId + '/' + run.runId;
 
   // TODO: Consider removing this in favor of something else...
