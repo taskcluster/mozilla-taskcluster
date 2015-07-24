@@ -16,3 +16,8 @@ treeherderTaskcluster:
 
 kue:
   prefix: stage
+
+# Disable try functionality on staging configs the production
+# version for now creates all task graphs...
+try:
+  enabled: false
