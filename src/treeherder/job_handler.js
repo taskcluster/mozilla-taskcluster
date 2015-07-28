@@ -362,6 +362,10 @@ class Handler {
     });
   }
 
+  shouldReportExceptionRun(run) {
+    return run.reasonCreated !== 'exception';
+  }
+
   async handleTaskRunning(project, revisionHash, task, payload) {
     let taskId = payload.status.taskId;
     let run = payload.status.runs[payload.runId];
@@ -381,6 +385,15 @@ class Handler {
   async handleTaskException(project, revisionHash, task, payload) {
     let taskId = payload.status.taskId;
     let run = payload.status.runs[payload.runId];
+
+    if (!this.shouldReportExceptionRun(run)) {
+      debug('ignoring task exception for task %s. Reason Resolved: %s',
+             taskId,
+             run.reasonResolved
+      );
+      return
+    }
+
     await this.addPush({
       revision_hash: revisionHash,
       project,
