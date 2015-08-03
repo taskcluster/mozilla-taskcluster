@@ -1,8 +1,7 @@
 #! /usr/bin/env node
 /**
-Import repositories from treeherder proper and output the json structure the
-the proxy service uses...
-*/
+ * Inject a task graph (utility script)
+ */
 
 import 'babel/polyfill';
 import loadConfig from '../config';
