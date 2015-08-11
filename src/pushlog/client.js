@@ -63,7 +63,7 @@ export default class PushlogClient {
     let result = {
       lastPushId: body.lastpushid
     };
-
+    debug("%j", body);
     let range = Object.keys(body.pushes).map((v) => {
       return Number(v);
     }).sort((a, b) => {
