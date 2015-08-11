@@ -107,7 +107,7 @@ export default class PushlogClient {
     Joi.assert(url, Joi.string().required(), 'must pass url');
     debug('get', url, start, end);
     let pushUrl = urljoin(url, '/json-pushes/');
-    let query = { version: 2, startID: start, endID: end };
+    let query = { version: 2, startId: start, endId: end };
 
     if (full) {
       query.full = 1;
