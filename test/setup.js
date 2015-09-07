@@ -91,16 +91,16 @@ suiteSetup(async function() {
   config.mongo.connectionString = `mongodb://${compose.host}:${mongoPort}`;
 
   // Documentdb collections should have unique prefixes per test process...
-  config.documentdb.collectionPrefix = slugid.v4() + '-';
+  config.documentdb.collectionPrefix = slugid.nice() + '-';
 
   // The commit publisher and the treeherder consumers need messages from within
   // the docker network so configure those accordingly.
   config.commitPublisher.connectionString = amqpConnectionString;
   config.treeherderActions.connectionString = amqpConnectionString;
-  config.treeherderTaskcluster.routePrefix = `test-tc-${slugid.v4()}`
+  config.treeherderTaskcluster.routePrefix = `test-tc-${slugid.nice()}`
 
   // start with new kue each time...
-  config.kue.prefix = slugid.v4();
+  config.kue.prefix = slugid.nice();
 
   // write out the custom config...
   await fs.writeFile(GENERATED_CONFIG, yaml.safeDump(config));

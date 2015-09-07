@@ -41,7 +41,7 @@ class GraphDuplicator {
       return;
     };
 
-    let newTaskId = slugid.v4();
+    let newTaskId = slugid.nice();
     let node = nodes[taskId] = {
       taskId: newTaskId,
       requires: []
@@ -116,7 +116,7 @@ export default class RetriggerJob extends Base {
     let transformedTasks = recursiveUpdateTaskIds(tasks, taskMap);
 
     let taskGraphDetails = await scheduler.inspect(taskGraphId);
-    let newGraphId = slugid.v4();
+    let newGraphId = slugid.nice();
     let graph = {
       scopes: scopes,
       tags: taskGraphDetails.tags,

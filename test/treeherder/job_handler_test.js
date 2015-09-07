@@ -4,7 +4,6 @@ import waitFor from '../wait_for';
 import testSetup from '../monitor';
 import * as kueUtils from '../kue';
 import createResultset from '../../src/treeherder/resultset';
-import slugid from 'slugid';
 
 import PushlogClient from '../../src/pushlog/client';
 import Project from 'mozilla-treeherder/project';

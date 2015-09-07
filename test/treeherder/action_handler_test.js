@@ -36,7 +36,7 @@ suite('action handler', function() {
   }
 
   async function submitGraph(ctx, graph) {
-    let taskGraphId = slugid.v4();
+    let taskGraphId = slugid.nice();
     await ctx.scheduler.createTaskGraph(taskGraphId, graph);
     return taskGraphId;
   }
@@ -70,7 +70,7 @@ suite('action handler', function() {
 
   function graphNode(name, overrides = {}) {
     return merge({
-        taskId: slugid.v4(),
+        taskId: slugid.nice(),
         task: {
           provisionerId:  'test',
           schedulerId:    'task-graph-scheduler',

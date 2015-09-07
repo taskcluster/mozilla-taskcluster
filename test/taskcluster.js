@@ -7,8 +7,8 @@ export default class {
   }
 
   async createTaskGraph(overrides = {}) {
-    let taskId = slugid.v4();
-    let taskGraphId = slugid.v4();
+    let taskId = slugid.nice();
+    let taskGraphId = slugid.nice();
 
     let graph = merge({
       metadata: {

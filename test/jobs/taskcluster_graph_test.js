@@ -109,7 +109,7 @@ suite('jobs/taskcluster_graph', function() {
   test('error creating task graph', async function() {
     // Invalid yaml...
     let graph = ':\n:';
-    let route = `test.try.${slugid.v4()}`
+    let route = `test.try.${slugid.nice()}`
 
     await monitorSetup.hg.write('error.yml', await createErrorYaml(route));
     await monitorSetup.hg.write(GRAPH_PATH, graph);

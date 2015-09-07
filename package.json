@@ -44,7 +44,7 @@
     "promise-retries": "^1.0.1",
     "promised-temp": "^0.1.0",
     "proxied-promise-object": "^0.2.0",
-    "slugid": "^1.0.3",
+    "slugid": "^1.1.0",
     "superagent": "git://github.com/visionmedia/superagent#e6c302c2e83cbf76182ea10b6a1ef6fd0d4e0b2b",
     "superagent-promise": "^0.2.0",
     "taskcluster-client": "0.21.3",
