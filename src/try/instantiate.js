@@ -84,7 +84,7 @@ export default function instantiate(template, options) {
     return function(label, render) {
       let result = labelsToSlugids[label];
       if (result === undefined) {
-        result = labelsToSlugids[label] = slugid.v4();
+        result = labelsToSlugids[label] = slugid.nice();
       }
       return render(result);
     }

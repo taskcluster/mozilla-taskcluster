@@ -125,7 +125,7 @@ export default class TaskclusterGraphJob extends Base {
       graph.tasks[0].task.payload.env.ERROR_MSG = e.toString()
     }
 
-    let id = slugid.v4();
+    let id = slugid.nice();
     let scopes = projectConfig.scopes(this.config.try, repo.alias);
 
     let scheduler = new taskcluster.Scheduler({

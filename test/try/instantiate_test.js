@@ -107,7 +107,7 @@ suite('instantiate', function() {
     assert.deepEqual(taskGraph.tasks[0].task.extra, params);
 
     // Create taskGraphId
-    let taskGraphId = slugid.v4();
+    let taskGraphId = slugid.nice();
     debug("Creating taskGraphId: %s", taskGraphId);
     await this.scheduler.createTaskGraph(taskGraphId, taskGraph);
   });
