@@ -81,6 +81,19 @@ try:
       # The graph will be restricted to the following scopes this should ideally be
       # as locked down as possible.
       # scopes: []
+      #
+      scopes:
+        - queue:*
+        - scheduler:*
+        - docker-worker:cache:*
+        - docker-worker:capability:device:loopbackAudio
+        - docker-worker:capability:device:loopbackVideo
+        - docker-worker:image:taskcluster/*
+        - docker-worker:image:taskclusterprivate/phone-builder:*
+        - docker-worker:image:taskclusterprivate/upload_symbols:*
+        - docker-worker:image:quay.io/mozilla/decision:*
+        - docker-worker:relengapi-proxy:tooltool.download.internal
+        - docker-worker:relengapi-proxy:tooltool.download.public
     mozilla-b2g34_v2_1s:
       url: "{{{host}}}{{{path}}}/raw-file/{{revision}}/testing/taskcluster/tasks/decision/branch.yml"
     b2g-inbound:
