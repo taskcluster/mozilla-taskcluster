@@ -86,12 +86,9 @@ try:
         - queue:*
         - scheduler:*
         - docker-worker:cache:*
+        - docker-worker:image:*
         - docker-worker:capability:device:loopbackAudio
         - docker-worker:capability:device:loopbackVideo
-        - docker-worker:image:taskcluster/*
-        - docker-worker:image:taskclusterprivate/phone-builder:*
-        - docker-worker:image:taskclusterprivate/upload_symbols:*
-        - docker-worker:image:quay.io/mozilla/decision:*
         - docker-worker:relengapi-proxy:tooltool.download.internal
         - docker-worker:relengapi-proxy:tooltool.download.public
     mozilla-b2g34_v2_1s:
