@@ -107,4 +107,5 @@ try:
       url: "{{{host}}}{{{path}}}/raw-file/{{revision}}/testing/taskcluster/tasks/decision/branch.yml"
     alder:
       url: "{{{host}}}{{{path}}}/raw-file/{{revision}}/testing/taskcluster/tasks/decision/branch.yml"
-
+    pine:
+      url: "{{{host}}}{{{path}}}/raw-file/{{revision}}/testing/taskcluster/tasks/decision/branch.yml"  
