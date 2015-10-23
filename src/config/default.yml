@@ -60,7 +60,7 @@ try:
   # If for some reason the task yaml is invalid we still would like to create a
   # task if for no other reason then to notify the user that this failed.
   # XXX: This url is temporary until a real one hits mozilla-central.
-  errorTaskUrl: "https://gist.githubusercontent.com/gregarndt/8fc123be2408180c2f13/raw/cf729a4f08a6330ec7bea937096ed0425c9e5235/error.yml"
+  errorTaskUrl: "https://gist.githubusercontent.com/gregarndt/8fc123be2408180c2f13/raw/d12f500faa334bc72cb1dd033e028773ac2476c8/error.yml"
 
   # Default scopes to use for projects which have no specific scopes of their own.
   defaultScopes:
