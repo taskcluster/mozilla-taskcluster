@@ -62,52 +62,49 @@ try:
   # XXX: This url is temporary until a real one hits mozilla-central.
   errorTaskUrl: "https://gist.githubusercontent.com/gregarndt/8fc123be2408180c2f13/raw/d12f500faa334bc72cb1dd033e028773ac2476c8/error.yml"
 
-  # Default scopes to use for projects which have no specific scopes of their own.
-  defaultScopes:
-    - queue:*
-    - docker-worker:*
-    - scheduler:*
-
   projects:
     # Try is the definitive example:
     try: # Note the keys match the "alias" which treeherder defines.
-      # The url overrides the default url mapping and may include same mustache
-      # parameters...
-      # url: ...
-
-      # The commit _must_ contain +tc to be scheduled...
       contains: 'try:'
-
-      # The graph will be restricted to the following scopes this should ideally be
-      # as locked down as possible.
-      # scopes: []
-      #
       scopes:
-        - queue:*
-        - scheduler:*
-        - docker-worker:cache:*
-        - docker-worker:image:*
-        - docker-worker:capability:device:loopbackAudio
-        - docker-worker:capability:device:loopbackVideo
-        - docker-worker:relengapi-proxy:tooltool.download.internal
-        - docker-worker:relengapi-proxy:tooltool.download.public
+        - "assume:moz-tree:try"
     mozilla-b2g34_v2_1s:
       url: "{{{host}}}{{{path}}}/raw-file/{{revision}}/testing/taskcluster/tasks/decision/branch.yml"
+      scopes:
+        - "assume:moz-tree:mozilla-b2g34_v2_1s"
     mozilla-b2g44_v2_5:
       url: "{{{host}}}{{{path}}}/raw-file/{{revision}}/testing/taskcluster/tasks/decision/branch.yml"
+      scopes:
+        - "assume:moz-tree:mozilla-b2g44_v2_5"
     b2g-inbound:
       url: "{{{host}}}{{{path}}}/raw-file/{{revision}}/testing/taskcluster/tasks/decision/branch.yml"
+      scopes:
+        - "assume:moz-tree:b2g-inbound"
     mozilla-inbound:
       url: "{{{host}}}{{{path}}}/raw-file/{{revision}}/testing/taskcluster/tasks/decision/branch.yml"
+      scopes:
+        - "assume:moz-tree:mozilla-inbound"
     fx-team:
       url: "{{{host}}}{{{path}}}/raw-file/{{revision}}/testing/taskcluster/tasks/decision/branch.yml"
+      scopes:
+        - "assume:moz-tree:fx-team"
     mozilla-central:
       url: "{{{host}}}{{{path}}}/raw-file/{{revision}}/testing/taskcluster/tasks/decision/branch.yml"
+      scopes:
+        - "assume:moz-tree:mozilla-central"
     cedar:
       url: "{{{host}}}{{{path}}}/raw-file/{{revision}}/testing/taskcluster/tasks/decision/branch.yml"
+      scopes:
+        - "assume:moz-tree:cedar"
     cypress:
       url: "{{{host}}}{{{path}}}/raw-file/{{revision}}/testing/taskcluster/tasks/decision/branch.yml"
+      scopes:
+        - "assume:moz-tree:cypress"
     alder:
       url: "{{{host}}}{{{path}}}/raw-file/{{revision}}/testing/taskcluster/tasks/decision/branch.yml"
+      scopes:
+        - "assume:moz-tree:alder"
     pine:
       url: "{{{host}}}{{{path}}}/raw-file/{{revision}}/testing/taskcluster/tasks/decision/branch.yml"  
+      scopes:
+        - "assume:moz-tree:pine"
