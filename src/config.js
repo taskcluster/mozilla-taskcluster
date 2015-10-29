@@ -90,10 +90,6 @@ let schema = Joi.object().keys({
     errorTaskUrl: Joi.string().required().
       description('Location of the "error" task to use if we cannot parse the yaml'),
 
-    defaultScopes:
-      Joi.array().includes(Joi.string()).required().
-        description('List of default scopes to restrict graph to'),
-
     projects: Joi.object().pattern(/.*/, Joi.object({
       scopes: Joi.array(),
       url: Joi.string(),

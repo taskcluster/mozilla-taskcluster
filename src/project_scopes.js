@@ -26,7 +26,7 @@ function getProject(config, name, allowMissing = false) {
 
 export function scopes(config, project, allowMissing = false) {
   let project = getProject(config, project, allowMissing);
-  return project.scopes || config.defaultScopes;
+  return project.scopes || [];
 }
 
 export function url(config, project, params = {}) {
