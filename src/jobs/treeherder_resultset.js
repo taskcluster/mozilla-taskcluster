@@ -40,7 +40,7 @@ export default class TreeherderResultsetJob extends Base {
     let push = await this.runtime.pushlog.getOne(repo.url, pushref.id);
 
     if (!cred) {
-      job.log('No credentials for %s skipping', repo.alias);
+      console.log(`No credentials for project ${repo.alias}, skipping`);
       return;
     }
 
@@ -60,7 +60,7 @@ export default class TreeherderResultsetJob extends Base {
     // previous commit like code comments or modify something that is not part
     // of CI.
     if (lastRev.comment.indexOf("DONTBUILD") !== -1) {
-      job.log("Commit contains DONTBUILD skipping...");
+      console.log(`Commit for project '${repo.alias}' contains DONTBUILD, skipping`);
       return;
     }
 
@@ -69,10 +69,13 @@ export default class TreeherderResultsetJob extends Base {
         tryProject.contains &&
         lastRev.comment.indexOf(tryProject.contains) === -1
       ) {
-        job.log(`skipping graph project does not contain ${tryProject.contains}`)
+        console.log(
+            `Skipping submitting graph for project '${repo.alias}'. ` +
+            `Commit does not contain ${tryProject.contains}`
+        );
         return;
       }
-      job.log('scheduling taskcluster jobs');
+      console.log(`Scheduling taskcluster jobs for project '${repo.alias}'`);
       await this.scheduleTaskGraphJob(resultset, repo, pushref);
     }
   }

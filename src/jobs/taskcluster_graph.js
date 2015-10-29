@@ -43,7 +43,7 @@ Fetch a task graph from a url (retires included...)
 */
 async function fetchGraph(job, url) {
   assert(url, 'url is required');
-  job.log(`fetching graph ${url}`);
+  console.log(`fetching graph ${url}`);
   let opts = { interval: GRAPH_INTERVAL, retires: GRAPH_RETIRES };
   try {
     return await retry(opts, async () => {
@@ -93,7 +93,7 @@ export default class TaskclusterGraphJob extends Base {
     };
 
     let graphUrl = projectConfig.url(this.config.try, repo.alias, urlVariables);
-    job.log('Fetching url (%s) for %s push id %d ', graphUrl, repo.alias, push.id);
+    console.log('Fetching url (%s) for '%s' push id %d ', graphUrl, repo.alias, push.id);
     let graphText = await fetchGraph(job, graphUrl);
 
     let variables = {
@@ -113,7 +113,7 @@ export default class TaskclusterGraphJob extends Base {
     try {
       graph = instantiate(graphText, variables);
     } catch (e) {
-      job.log("Error creating graph due to yaml syntax errors...");
+      console.log("Error creating graph due to yaml syntax errors...");
       // Even though we won't end up doing anything overly useful we still need
       // to convey some status to the end user ... The instantiate error should
       // be safe to pass as it is simply some yaml error.
@@ -136,11 +136,14 @@ export default class TaskclusterGraphJob extends Base {
     // Assign maximum level of scopes to the graph....
     graph.scopes = scopes;
 
-    job.log('Posting job with id %s and scopes', id, graph.scopes.join(', '));
+    console.log(
+        `Posting job for project '${repo.alias}' with id ${id} ` +
+        `and scopes ${graph.scopes.join(', ')}`
+    );
     try {
       await scheduler.createTaskGraph(id, graph);
     } catch (e) {
-      console.log(JSON.stringify(e, null, 2))
+      console.log(`Error posting job for '${repo.alias}', ${JSON.stringify(e, null, 2)}`);
       throw e;
     }
   }
