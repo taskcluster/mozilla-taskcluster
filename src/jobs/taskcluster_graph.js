@@ -93,7 +93,7 @@ export default class TaskclusterGraphJob extends Base {
     };
 
     let graphUrl = projectConfig.url(this.config.try, repo.alias, urlVariables);
-    console.log('Fetching url (%s) for '%s' push id %d ', graphUrl, repo.alias, push.id);
+    console.log(`Fetching url ${graphUrl} for '${repo.alias}' push id ${push.id}`);
     let graphText = await fetchGraph(job, graphUrl);
 
     let variables = {
