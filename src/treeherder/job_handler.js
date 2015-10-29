@@ -40,6 +40,9 @@ const SCHEMA = Joi.object().keys({
     // If the default is not set to ? 'unknown' is used in the UI which will
     // trigger that to be displayed when ? is used no extra UI is present.
     default('?'),
+  tier: Joi.number().
+    description('Treeherder tier').
+    default(1),
   productName: Joi.string().
     description('TODO: Figure out what this is for'),
 
@@ -172,6 +175,7 @@ function jobFromTask(taskId, task, run) {
   if (config.groupName) job.group_name = config.groupName;
   if (config.groupSymbol) job.group_symbol = config.groupSymbol;
   if (config.productName) job.product_name = config.productName;
+  if (config.tier) job.tier = config.tier;
 
   // Add link to task-inspector
   let inspectorLink = 'https://tools.taskcluster.net/task-inspector/#' +
