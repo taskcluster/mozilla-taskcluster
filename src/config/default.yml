@@ -93,6 +93,8 @@ try:
         - docker-worker:relengapi-proxy:tooltool.download.public
     mozilla-b2g34_v2_1s:
       url: "{{{host}}}{{{path}}}/raw-file/{{revision}}/testing/taskcluster/tasks/decision/branch.yml"
+    mozilla-b2g44_v2_5:
+      url: "{{{host}}}{{{path}}}/raw-file/{{revision}}/testing/taskcluster/tasks/decision/branch.yml"
     b2g-inbound:
       url: "{{{host}}}{{{path}}}/raw-file/{{revision}}/testing/taskcluster/tasks/decision/branch.yml"
     mozilla-inbound:
