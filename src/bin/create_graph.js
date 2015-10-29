@@ -51,7 +51,6 @@ run(async function main(runtime, config, args) {
   });
 
   await job.work({
-    log: console.log.bind(console),
     data: {
       pushref: { id: pushid },
       repo: repo,

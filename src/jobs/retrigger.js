@@ -84,7 +84,7 @@ export default class RetriggerJob extends Base {
     let { taskId, runId, requester, project } = job.data;
     let task = await queue.task(taskId);
 
-    job.log(`Posting retrigger for job ${taskId} in project ${project}`);
+    console.log(`Handling retrigger for job ${taskId} in project '${project}'`);
     // Ensure when retrigger is sent that we use the right scopes for the job.
     let scopes = projectConfig.scopes(this.config.try, project, true);
     let scheduler = new taskcluster.Scheduler({
@@ -124,8 +124,15 @@ export default class RetriggerJob extends Base {
       tasks: transformedTasks
     };
 
-    job.log(`Task graph id ${newGraphId}`);
-    await scheduler.createTaskGraph(newGraphId, graph);
+    console.log(
+        `Posting retrigger job for '${project}' with id ${newGraphId}`
+    );
+    try {
+      await scheduler.createTaskGraph(newGraphId, graph);
+    } catch (e) {
+      console.log(`Error posting retrigger job for '${project}', ${JSON.stringify(e, null, 2)}`);
+      throw e;
+    }
 
     let message = {
       requester,
