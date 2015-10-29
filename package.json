@@ -1,7 +1,7 @@
 {
-  "name": "treeherder-proxy",
+  "name": "mozilla-taskcluster",
   "version": "1.0.0",
-  "description": "treeherder-proxy",
+  "description": "mozilla-taskcluster",
   "main": "index.js",
   "scripts": {
     "test": "mocha $(find test -name '*_test.js') --reporter spec",
@@ -9,14 +9,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/lightsofapollo/treeherder-proxy.git"
+    "url": "https://github.com/taskcluster/mozilla-taskcluster.git"
   },
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/lightsofapollo/treeherder-proxy/issues"
+    "url": "https://github.com/taskcluster/mozilla-taskcluster/issues"
   },
-  "homepage": "https://github.com/lightsofapollo/treeherder-proxy",
+  "homepage": "https://github.com/taskcluster/mozilla-taskcluster",
   "dependencies": {
     "amqplib": "^0.3.0",
     "argparse": "^0.1.16",
