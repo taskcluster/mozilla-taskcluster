@@ -4,6 +4,7 @@ import * as subject from '../src/project_scopes';
 suite('project scopes', function() {
 
   let config = {
+    defaultScopes: ['woot'],
     defaultUrl: '{{{host}}} {{{path}}} {{{revision}}} {{{alias}}}',
     projects: {
       defaults: {},
@@ -19,7 +20,7 @@ suite('project scopes', function() {
   test('#scopes', function() {
     assert.equal(
       subject.scopes(config, 'defaults'),
-      []
+      config.defaultScopes
     );
 
     assert.equal(
