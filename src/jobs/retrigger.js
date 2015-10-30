@@ -86,7 +86,7 @@ export default class RetriggerJob extends Base {
 
     console.log(`Handling retrigger for job ${taskId} in project '${project}'`);
     // Ensure when retrigger is sent that we use the right scopes for the job.
-    let scopes = projectConfig.scopes(this.config.try, project, true);
+    let scopes = projectConfig.scopes(this.config.try, project, false);
     let scheduler = new taskcluster.Scheduler({
       credentials: this.config.taskcluster.credentials,
       authorizedScopes: scopes
