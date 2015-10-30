@@ -37,7 +37,7 @@
     "kue": "^0.8.11",
     "lodash.merge": "^2.4.1",
     "mongodb": "^2.0.14",
-    "mozilla-treeherder": "^0.5.0",
+    "mozilla-treeherder": "^0.6.0",
     "mustache": "^1.0.0",
     "mz": "^1.2.0",
     "promise": "^6.0.1",

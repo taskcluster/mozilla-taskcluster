@@ -11,9 +11,6 @@ export default class TreeherderResultsetJob extends Base {
   constructor(opts = {}) {
     super(opts);
 
-    // Treeherder repository credentials...
-    this.credentials = JSON.parse(this.config.treeherder.credentials);
-
     // Project configuration (see projects.yml).
     this.projects = this.config.try.projects;
   }
@@ -36,22 +33,25 @@ export default class TreeherderResultsetJob extends Base {
 
   async work(job) {
     let { repo, pushref } = job.data;
-    let cred = this.credentials[repo.alias];
     let push = await this.runtime.pushlog.getOne(repo.url, pushref.id);
 
-    if (!cred) {
-      console.log(`No credentials for project ${repo.alias}, skipping`);
-      return;
-    }
-
     let treeherderProject = new Treeherder(repo.alias, {
-      consumerKey: cred.consumer_key,
-      consumerSecret: cred.consumer_secret,
+      clientId: this.config.treeherder.credentials.clientId,
+      secret: this.config.treeherder.credentials.secret,
       baseUrl: this.config.treeherder.apiUrl
     });
 
     let resultset = formatResultset(repo.alias, push);
-    await treeherderProject.postResultset([resultset]);
+    console.log(`Posting result set for project '${repo.alias}'`);
+    try {
+      await treeherderProject.postResultset([resultset]);
+    } catch(e) {
+      console.log(
+          `Error posting result set for project '${repo.alias}', ${e.message}, ` +
+          `resultset ${JSON.stringify(resultset)}`
+      );
+      throw e;
+    }
 
     let lastRev = resultset.revisions[resultset.revisions.length - 1];
     let tryProject = this.projects[repo.alias];

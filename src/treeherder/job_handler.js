@@ -200,19 +200,16 @@ function jobFromTask(taskId, task, run) {
 
 class Handler {
   constructor(config, listener) {
-    let credentials = JSON.parse(config.treeherder.credentials);
-
     this.queue = new Queue();
     this.scheduler = new Scheduler();
 
     this.prefix = config.treeherderTaskcluster.routePrefix;
     this.listener = listener;
 
-    this.projects = Object.keys(credentials).reduce((result, key) => {
-      let cred = credentials[key];
+    this.projects = Object.keys(config.try.projects).reduce((result, key) => {
       result[key] = new Project(key, {
-        consumerKey: cred.consumer_key,
-        consumerSecret: cred.consumer_secret,
+        clientId: config.treeherder.credentials.clientId,
+        secret: config.treeherder.credentials.secret,
         baseUrl: config.treeherder.apiUrl,
         // Issue up to 2 retries for 429 throttle issues.
         throttleRetries: 2

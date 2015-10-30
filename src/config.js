@@ -52,8 +52,10 @@ let schema = Joi.object().keys({
     apiUrl: Joi.string().required().
       description('location of treeherder api (must end in /api/)'),
 
-    credentials: Joi.string().required().
-      description('entire treeherder/etl/data/credentials.json file')
+    credentials: Joi.object().required().keys({
+      clientId: Joi.string().required(),
+      secret: Joi.string().required()
+    })
   }),
 
   treeherderActions: Joi.object().keys({
