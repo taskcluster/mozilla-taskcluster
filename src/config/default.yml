@@ -68,7 +68,7 @@ try:
       contains: 'try:'
       url: "{{{host}}}{{{path}}}/raw-file/{{revision}}/testing/taskcluster/tasks/decision/try.yml"
       scopes:
-        - "assume:moz-tree:try"
+        - "assume:repo:hg.mozilla.org/try:*"
 
     # we don't create task graphs for gaia (gaia-taskcluster does that), but we do handle
     # retriggers for gaia.  For that, we use the gaia role (which is not a Mozilla tree)
@@ -79,31 +79,31 @@ try:
     # the remainder use the defaults, and get their scopes from the corresponding role
     mozilla-b2g34_v2_1s:
       scopes:
-        - "assume:moz-tree:mozilla-b2g34_v2_1s"
+        - "assume:repo:hg.mozilla.org/releases/mozilla-b2g34_v2_1s:*"
     mozilla-b2g44_v2_5:
       scopes:
-        - "assume:moz-tree:mozilla-b2g44_v2_5"
+        - "assume:repo:hg.mozilla.org/releases/mozilla-b2g44_v2_5:*"
     b2g-inbound:
       scopes:
-        - "assume:moz-tree:b2g-inbound"
+        - "assume:repo:hg.mozilla.org/integration/b2g-inbound:*"
     mozilla-inbound:
       scopes:
-        - "assume:moz-tree:mozilla-inbound"
+        - "assume:repo:hg.mozilla.org/integration/mozilla-inbound:*"
     fx-team:
       scopes:
-        - "assume:moz-tree:fx-team"
+        - "assume:repo:hg.mozilla.org/integration/fx-team:*"
     mozilla-central:
       scopes:
-        - "assume:moz-tree:mozilla-central"
+        - "assume:repo:hg.mozilla.org/mozilla-central:*"
     cedar:
       scopes:
-        - "assume:moz-tree:cedar"
+        - "assume:repo:hg.mozilla.org/projects/cedar:*"
     cypress:
       scopes:
-        - "assume:moz-tree:cypress"
+        - "assume:repo:hg.mozilla.org/projects/cypress:*"
     alder:
       scopes:
-        - "assume:moz-tree:alder"
+        - "assume:repo:hg.mozilla.org/projects/alder:*"
     pine:
       scopes:
-        - "assume:moz-tree:pine"
+        - "assume:repo:hg.mozilla.org/projects/pine:*"
