@@ -70,6 +70,12 @@ try:
       scopes:
         - "assume:moz-tree:try"
 
+    # we don't create task graphs for gaia (gaia-taskcluster does that), but we do handle
+    # retriggers for gaia.  For that, we use the gaia role (which is not a Mozilla tree)
+    gaia:
+      scopes:
+        - "assume:repo:github.com/mozilla-b2g/gaia:*"
+
     # the remainder use the defaults, and get their scopes from the corresponding role
     mozilla-b2g34_v2_1s:
       scopes:
