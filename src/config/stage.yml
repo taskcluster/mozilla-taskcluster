@@ -15,6 +15,7 @@ treeherderTaskcluster:
   queue: mozilla-taskcluster-stage
 
 kue:
+  purgeCompleted: true
   prefix: stage
 
 # Disable try functionality on staging configs the production
