@@ -55,7 +55,7 @@ let schema = Joi.object().keys({
     credentials: Joi.object().required().keys({
       clientId: Joi.string().required(),
       secret: Joi.string().required()
-    })
+    }).description('Hawk credentials for Treeherder API')
   }),
 
   treeherderActions: Joi.object().keys({
