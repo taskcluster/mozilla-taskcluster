@@ -76,6 +76,10 @@ try:
       scopes:
         - "assume:repo:github.com/mozilla-b2g/gaia:*"
 
+    gaia-master:
+      scopes:
+        - "assume:repo:github.com/mozilla-b2g/gaia:*"
+
     # the remainder use the defaults, and get their scopes from the corresponding role
     mozilla-b2g34_v2_1s:
       scopes:
