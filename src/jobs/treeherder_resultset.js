@@ -56,7 +56,7 @@ export default class TreeherderResultsetJob extends Base {
     if(!this.config.try.enabled) {
       console.log(
         'Creation of task graphs is disabled.  Task graph creation can ' +
-        'be enabled by setting try.enabled to 'true' in the configuration'
+        'be enabled by setting try.enabled to \'true\' in the configuration'
       );
       return;
     }

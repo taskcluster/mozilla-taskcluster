@@ -208,7 +208,7 @@ class Handler {
     this.listener = listener;
 
     // Treeherder project instances used for posting job details to treeherder
-    this.project = {}
+    this.projects = {}
 
     listener.on('message', (message) => {
       return this.handleTaskEvent(message);
@@ -472,7 +472,7 @@ class Handler {
       });
     }
 
-    return this.projectName[projectName];
+    return this.projects[projectName];
   }
 
   /**
