@@ -82,7 +82,7 @@ export default class TreeherderResultsetJob extends Base {
       return;
     }
 
-    if (tryProject.contains && lastRev.comment.includes(tryProject.contains)) {
+    if (tryProject.contains && !lastRev.comment.includes(tryProject.contains)) {
       console.log(
           `Skipping submitting graph for project '${repo.alias}'. ` +
           `Commit does not contain ${tryProject.contains}`
