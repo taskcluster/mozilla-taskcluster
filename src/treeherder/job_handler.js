@@ -200,22 +200,15 @@ function jobFromTask(taskId, task, run) {
 
 class Handler {
   constructor(config, listener) {
+    this.config = config;
     this.queue = new Queue();
     this.scheduler = new Scheduler();
 
     this.prefix = config.treeherderTaskcluster.routePrefix;
     this.listener = listener;
 
-    this.projects = Object.keys(config.try.projects).reduce((result, key) => {
-      result[key] = new Project(key, {
-        clientId: config.treeherder.credentials.clientId,
-        secret: config.treeherder.credentials.secret,
-        baseUrl: config.treeherder.apiUrl,
-        // Issue up to 2 retries for 429 throttle issues.
-        throttleRetries: 2
-      });
-      return result;
-    }, {});
+    // Treeherder project instances used for posting job details to treeherder
+    this.projects = {}
 
     listener.on('message', (message) => {
       return this.handleTaskEvent(message);
@@ -461,6 +454,28 @@ class Handler {
   }
 
   /**
+   * Create (or return an existing) treeherder project instance for a given
+   * project.
+   *
+   * @param {String} projectName - Name of the treeherder project
+   *
+   * @return {Object} Treeherder project instance
+   */
+  getProject(projectName) {
+    if (!this.projects[projectName]) {
+      this.projects[projectName] = new Project(projectName, {
+          clientId: this.config.treeherder.credentials.clientId,
+          secret: this.config.treeherder.credentials.secret,
+          baseUrl: this.config.treeherder.apiUrl,
+          // Issue up to 2 retries for 429 throttle issues.
+          throttleRetries: 2
+      });
+    }
+
+    return this.projects[projectName];
+  }
+
+  /**
   Handle an incoming task event and convert it into a pending job push for
   treeherder...
   */
@@ -478,17 +493,12 @@ class Handler {
     // The project and revision hash is encoded as part of the route...
     let [ , project, revisionHash ] = route.split('.');
 
-    if (!this.projects[project]) {
-      console.error('Unknown project', project);
-      return;
-    }
-
     if (!EVENT_MAP[exchange]) {
       console.error('Unknown state', exchange);
       return;
     }
 
-    let treeherderProject = this.projects[project];
+    let treeherderProject = this.getProject(project);
     let task = await this.queue.task(payload.status.taskId);
 
     switch (EVENT_MAP[exchange]) {

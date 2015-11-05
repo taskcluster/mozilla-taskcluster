@@ -53,8 +53,26 @@ export default class TreeherderResultsetJob extends Base {
       throw e;
     }
 
-    let lastRev = resultset.revisions[resultset.revisions.length - 1];
+    if(!this.config.try.enabled) {
+      console.log(
+        'Creation of task graphs is disabled.  Task graph creation can ' +
+        'be enabled by setting try.enabled to \'true\' in the configuration'
+      );
+      return;
+    }
+
     let tryProject = this.projects[repo.alias];
+    // We only want to schedule task graphs for those projects that are explicitly
+    // enabled.
+    if (!tryProject) {
+      console.log(
+        `Task graph will not be created for project '${repo.alias}'. ` +
+        `Project must be added to configuration for task graphs to be submitted.`
+      );
+      return;
+    }
+
+    let lastRev = resultset.revisions[resultset.revisions.length - 1];
 
     // Common idom is to include "DONTBUILD" in changes to ammend something in a
     // previous commit like code comments or modify something that is not part
@@ -64,19 +82,15 @@ export default class TreeherderResultsetJob extends Base {
       return;
     }
 
-    if (this.config.try.enabled && tryProject) {
-      if (
-        tryProject.contains &&
-        lastRev.comment.indexOf(tryProject.contains) === -1
-      ) {
-        console.log(
-            `Skipping submitting graph for project '${repo.alias}'. ` +
-            `Commit does not contain ${tryProject.contains}`
-        );
-        return;
-      }
-      console.log(`Scheduling taskcluster jobs for project '${repo.alias}'`);
-      await this.scheduleTaskGraphJob(resultset, repo, pushref);
+    if (tryProject.contains && !lastRev.comment.includes(tryProject.contains)) {
+      console.log(
+          `Skipping submitting graph for project '${repo.alias}'. ` +
+          `Commit does not contain ${tryProject.contains}`
+      );
+      return;
     }
+
+    console.log(`Scheduling taskcluster jobs for project '${repo.alias}'`);
+    await this.scheduleTaskGraphJob(resultset, repo, pushref);
   }
 }
