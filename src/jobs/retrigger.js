@@ -89,7 +89,9 @@ export default class RetriggerJob extends Base {
     let scopes = projectConfig.scopes(this.config.try, project, false);
     let scheduler = new taskcluster.Scheduler({
       credentials: this.config.taskcluster.credentials,
-      authorizedScopes: scopes
+      // include scheduler:create-task-graph so we can call create-task-graph,
+      // but not include it in graph.scopes
+      authorizedScopes: scopes.concat(['scheduler:create-task-graph'])
     });
     let graphDuplicator = new GraphDuplicator(scheduler);
 
