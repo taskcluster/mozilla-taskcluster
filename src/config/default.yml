@@ -87,6 +87,9 @@ try:
     mozilla-b2g44_v2_5:
       scopes:
         - "assume:repo:hg.mozilla.org/releases/mozilla-b2g44_v2_5:*"
+    b2g-ota:
+      scopes:
+        - "assume:repo:hg.mozilla.org/releases/b2g-ota:*"
     b2g-inbound:
       scopes:
         - "assume:repo:hg.mozilla.org/integration/b2g-inbound:*"
