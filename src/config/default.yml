@@ -62,7 +62,7 @@ try:
   # If for some reason the task yaml is invalid we still would like to create a
   # task if for no other reason then to notify the user that this failed.
   # XXX: This url is temporary until a real one hits mozilla-central.
-  errorTaskUrl: "https://gist.githubusercontent.com/gregarndt/8fc123be2408180c2f13/raw/d12f500faa334bc72cb1dd033e028773ac2476c8/error.yml"
+  errorTaskUrl: "https://gist.githubusercontent.com/gregarndt/8fc123be2408180c2f13/raw/dfd6486f7ea443f5f6cac91464beea39b5f22415/error.yml"
 
   # Each project can have
   #  - url: url of the decision task YAML (defaults to defaultUrl)
