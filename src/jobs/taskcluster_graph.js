@@ -101,6 +101,7 @@ export default class TaskclusterGraphJob extends Base {
       source: graphUrl,
       revision: lastChangeset.node,
       project: repo.alias,
+      level: projectConfig.level(this.config.try, repo.alias),
       revision_hash,
       // Intention use of ' ' must be a non zero length string...
       comment: parseCommitMessage(lastChangeset.desc) || ' ',

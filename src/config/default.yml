@@ -45,6 +45,8 @@ commitPublisher:
     will also be fetched and any missing data (up to a particular amount) will
     be sent as events...
 
+# Nobody's quite sure why this is called try.  Don't be confused!  It includes all
+# projects, not just try.
 try:
   enabled: true
   # Default url used when figuring out where to fetch task graph has some special
@@ -62,11 +64,16 @@ try:
   # XXX: This url is temporary until a real one hits mozilla-central.
   errorTaskUrl: "https://gist.githubusercontent.com/gregarndt/8fc123be2408180c2f13/raw/d12f500faa334bc72cb1dd033e028773ac2476c8/error.yml"
 
+  # Each project can have
+  #  - url: url of the decision task YAML (defaults to defaultUrl)
+  #  - scopes: scopes for the task graph
+  #  - level: SCM level (defaults to 1) passed to the decision task
   projects:
     # Try is unique in that it parses the commit message
     try: # Note the keys match the "alias" which treeherder defines.
       contains: 'try:'
       url: "{{{host}}}{{{path}}}/raw-file/{{revision}}/testing/taskcluster/tasks/decision/try.yml"
+      level: 1
       scopes:
         - "assume:repo:hg.mozilla.org/try:*"
 
@@ -82,32 +89,42 @@ try:
 
     # the remainder use the defaults, and get their scopes from the corresponding role
     mozilla-b2g34_v2_1s:
+      level: 3
       scopes:
         - "assume:repo:hg.mozilla.org/releases/mozilla-b2g34_v2_1s:*"
     mozilla-b2g44_v2_5:
+      level: 3
       scopes:
         - "assume:repo:hg.mozilla.org/releases/mozilla-b2g44_v2_5:*"
     b2g-inbound:
+      level: 3
       scopes:
         - "assume:repo:hg.mozilla.org/integration/b2g-inbound:*"
     mozilla-inbound:
+      level: 3
       scopes:
         - "assume:repo:hg.mozilla.org/integration/mozilla-inbound:*"
     fx-team:
+      level: 3
       scopes:
         - "assume:repo:hg.mozilla.org/integration/fx-team:*"
     mozilla-central:
+      level: 3
       scopes:
         - "assume:repo:hg.mozilla.org/mozilla-central:*"
     cedar:
+      level: 2
       scopes:
         - "assume:repo:hg.mozilla.org/projects/cedar:*"
     cypress:
+      level: 2
       scopes:
         - "assume:repo:hg.mozilla.org/projects/cypress:*"
     alder:
+      level: 2
       scopes:
         - "assume:repo:hg.mozilla.org/projects/alder:*"
     pine:
+      level: 2
       scopes:
         - "assume:repo:hg.mozilla.org/projects/pine:*"
