@@ -29,6 +29,11 @@ export function scopes(config, project, allowMissing = false) {
   return project.scopes || [];
 }
 
+export function level(config, project) {
+  let project = getProject(config, project, false);
+  return project.level || 1;
+}
+
 export function url(config, project, params = {}) {
   let project = getProject(config, project);
   Joi.assert(params, URL_SCHEMA);
