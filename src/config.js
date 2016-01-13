@@ -93,6 +93,7 @@ let schema = Joi.object().keys({
       description('Location of the "error" task to use if we cannot parse the yaml'),
 
     projects: Joi.object().pattern(/.*/, Joi.object({
+      level: Joi.number(),
       scopes: Joi.array(),
       url: Joi.string(),
       contains: Joi.string()
