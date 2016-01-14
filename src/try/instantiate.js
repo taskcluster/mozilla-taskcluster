@@ -42,6 +42,7 @@ export function relativeTime(time, to = new Date()) {
  *   revision:      '...',               // Revision hash string
  *   comment:       'try: ...',          // Latest commit comment
  *   project:       'try',               // Treeherder project name
+ *   level          '2',                 // SCM Level
  *   revision_hash: '...',               // Revision hash for treeherder resultset
  *   pushlog_id:    '...',               // Pushlog id based on json-pushes
  *   url:           '...',               // Repository url
@@ -63,6 +64,7 @@ export default function instantiate(template, options) {
     source: Joi.string().required(),
     revision: Joi.string().required(),
     project: Joi.string().required(),
+    level: Joi.number().required(),
     revision_hash: Joi.string().required(),
     comment: Joi.string().default(""),
     pushlog_id: Joi.string().required(),
