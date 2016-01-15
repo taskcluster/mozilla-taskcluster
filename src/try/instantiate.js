@@ -99,6 +99,7 @@ export default function instantiate(template, options) {
     source: options.source,
     revision: options.revision,
     comment: options.comment,
+    level: options.level,
     project: options.project,
     revision_hash: options.revision_hash,
     pushlog_id: options.pushlog_id,
