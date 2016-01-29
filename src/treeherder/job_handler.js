@@ -30,6 +30,9 @@ const SCHEMA = Joi.object().keys({
     architecture: Joi.string().default('-')
   }).required().rename('os', 'os_name'),
 
+  machineId: Joi.string().
+    description('Machine ID that executed the task run'),
+
   symbol: Joi.string().required().
     description('Treeherder job symbol'),
   groupName: Joi.string().
@@ -130,6 +133,7 @@ function jobFromTask(taskId, task, run) {
       machine: {
         platform: task.workerType
       },
+      machineId: run.workerId
     },
     treeherder
   );
@@ -159,6 +163,7 @@ function jobFromTask(taskId, task, run) {
     build_system_type: 'taskcluster',
     build_platform: config.build,
     machine_platform: config.machine,
+    machine: config.machineId,
     // Maximum job name length is 100 chars...
     name: task.metadata.name.slice(0, 99),
     reason: 'scheduled',  // use reasonCreated or reasonResolved
