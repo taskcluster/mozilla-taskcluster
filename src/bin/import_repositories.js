@@ -6,12 +6,16 @@ the proxy service uses...
 
 import 'babel/polyfill';
 import cli from '../cli';
+import packageInfo from '../../package.json';
 import request from 'superagent-promise';
 import urljoin from 'urljoin';
 
 cli(async function main(runtime, config) {
   let url = urljoin(config.treeherder.apiUrl, '/repository/');
-  let res = await request.get(url).end();
+  let userAgent = 'mozilla-taskcluster/' + packageInfo.version;
+  let res = await request.get(url).
+    set('User-Agent', userAgent).
+    end();
 
   if (res.error) throw res.error;
 
