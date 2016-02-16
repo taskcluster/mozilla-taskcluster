@@ -2,7 +2,9 @@ import taskcluster from 'taskcluster-client';
 import * as projectConfig from '../project_scopes';
 import slugid from 'slugid';
 import { duplicate as duplicateTask } from '../taskcluster/duplicate_task';
+import { jobFromTask } from '../treeherder/job_handler';
 import traverse from 'traverse';
+import Project from 'mozilla-treeherder/project';
 
 import RetriggerExchange from '../exchanges/retrigger';
 import Base from './base';
@@ -81,7 +83,7 @@ export default class RetriggerJob extends Base {
   }
 
   async work(job) {
-    let { taskId, runId, requester, project } = job.data;
+    let { taskId, runId, requester, project, revisionHash } = job.data;
     let task = await queue.task(taskId);
 
     console.log(`Handling retrigger for job ${taskId} in project '${project}'`);
@@ -133,7 +135,8 @@ export default class RetriggerJob extends Base {
       await scheduler.createTaskGraph(newGraphId, graph);
     } catch (e) {
       console.log(`Error posting retrigger job for '${project}', ${JSON.stringify(e, null, 2)}`);
-      throw e;
+      await this.postRetriggerFailureJob(project, revisionHash, task, e);
+      return;
     }
 
     let message = {
@@ -148,5 +151,68 @@ export default class RetriggerJob extends Base {
     await this.publisher.publish(
       RetriggerExchange, routingKeys, message
     );
+  }
+
+  async postRetriggerFailureJob(projectName, revisionHash, task, error) {
+      let project = new Project(projectName, {
+        clientId: this.config.treeherder.credentials.clientId,
+        secret: this.config.treeherder.credentials.secret,
+        baseUrl: this.config.treeherder.apiUrl,
+        // Issue up to 2 retries for 429 throttle issues.
+        throttleRetries: 2
+      });
+
+      let push = {}
+      let job = jobFromTask(slugid.nice(), task, {runId: 0, workerId: 'unknown'})
+      job.submit_timestamp = Math.floor(new Date().getTime() / 1000);
+      job.result = 'exception';
+      job.state = 'completed';
+
+      job.artifacts = [
+          {
+            "type": "json",
+            "name": "text_log_summary",
+            "job_guid": job.job_guid,
+            "blob": {
+              "step_data": {
+                "all_errors": [ `[taskcluster:error] Unable to retrigger task. ${error}`],
+                "steps": []
+              },
+              "logname":"error_log",
+              "parse_status": "parsed"
+            }
+          },
+          {
+            "type": "json",
+            "name": "Bug suggestions",
+            "job_guid": job.job_guid,
+            "blob": [
+                {
+                    "search": `[taskcluster:error] Unable to retrigger task. ${error}`,
+                    "search_terms": [
+                    ],
+                    "bugs": {
+                        "open_recent": [],
+                        "all_others": []
+                    }
+                },
+            ],
+        }
+      ];
+
+      push = {
+        project: projectName,
+        revision_hash: revisionHash,
+        job: job
+      };
+
+      try {
+        let res = await project.postJobs([push]);
+      } catch (err) {
+        console.log(`Error pushing retrigger failure status to treeherder. ${err}`)
+        // Just return and let the caller handle any exceptions to raise.
+        // This should be a best effort attempt.
+        return;
+      }
   }
 }

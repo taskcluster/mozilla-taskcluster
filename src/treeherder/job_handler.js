@@ -122,7 +122,7 @@ function createLogReferences(queue, taskId, run) {
   }];
 }
 
-function jobFromTask(taskId, task, run) {
+export function jobFromTask(taskId, task, run) {
   // Create the default set of options...
   let treeherder = (task.extra && task.extra.treeherder) || {};
   treeherder = merge(
