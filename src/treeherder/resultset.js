@@ -23,7 +23,7 @@ export default function format(repository, push) {
 
   for (let change of push.changesets) {
     let revision = {
-      revision: change.node.slice(0, 12),
+      revision: change.node,
       files: change.files,
       author: change.author,
       branch: change.branch,
