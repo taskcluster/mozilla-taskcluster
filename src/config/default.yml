@@ -71,7 +71,6 @@ try:
   projects:
     # Try is unique in that it parses the commit message
     try: # Note the keys match the "alias" which treeherder defines.
-      contains: 'try:'
       url: "{{{host}}}{{{path}}}/raw-file/{{revision}}/testing/taskcluster/tasks/decision/try.yml"
       level: 1
       scopes:
