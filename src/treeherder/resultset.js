@@ -36,5 +36,7 @@ export default function format(repository, push) {
   }
 
   result.revision_hash = generateHash(revHashComp);
+  result.revision = push.changesets[push.changesets.length - 1].node
+  console.log(JSON.stringify(result, null, 4));
   return result;
 }

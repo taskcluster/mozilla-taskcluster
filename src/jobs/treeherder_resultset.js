@@ -44,7 +44,10 @@ export default class TreeherderResultsetJob extends Base {
     let resultset = formatResultset(repo.alias, push);
     console.log(`Posting result set for project '${repo.alias}'`);
     try {
-      await treeherderProject.postResultset([resultset]);
+      let result = await treeherderProject.postResultset([resultset]);
+      resultset.revision_hash = result.resultsets[0].revision_hash;
+      console.log(`Posted result set for project '${repo.alias}'. ` +
+                  `Treeeherder revision hash: ${resultset.revision_hash}`);
     } catch(e) {
       console.log(
           `Error posting result set for project '${repo.alias}', ${e.message}, ` +
