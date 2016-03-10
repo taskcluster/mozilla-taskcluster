@@ -102,6 +102,10 @@ try:
       level: 3
       scopes:
         - "assume:repo:hg.mozilla.org/integration/b2g-inbound:*"
+    mozilla-aurora:
+      level: 3
+      scopes:
+        - "assume:repo:hg.mozilla.org/integration/mozilla-aurora:*"
     mozilla-inbound:
       level: 3
       scopes:
@@ -130,3 +134,19 @@ try:
       level: 2
       scopes:
         - "assume:repo:hg.mozilla.org/projects/pine:*"
+    ash:
+      level: 2
+      scopes:
+        - "assume:repo:hg.mozilla.org/projects/ash:*"
+    date:
+      level: 2
+      scopes:
+        - "assume:repo:hg.mozilla.org/projects/date:*"
+    jamun:
+      level: 2
+      scopes:
+        - "assume:repo:hg.mozilla.org/projects/jamun:*"
+    oak:
+      level: 2
+      scopes:
+        - "assume:repo:hg.mozilla.org/projects/oak:*"
