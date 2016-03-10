@@ -98,14 +98,14 @@ try:
     b2g-ota:
       scopes:
         - "assume:repo:hg.mozilla.org/releases/b2g-ota:*"
+    mozilla-aurora:
+      level: 3
+      scopes:
+        - "assume:repo:hg.mozilla.org/releases/mozilla-aurora:*"
     b2g-inbound:
       level: 3
       scopes:
         - "assume:repo:hg.mozilla.org/integration/b2g-inbound:*"
-    mozilla-aurora:
-      level: 3
-      scopes:
-        - "assume:repo:hg.mozilla.org/integration/mozilla-aurora:*"
     mozilla-inbound:
       level: 3
       scopes:
