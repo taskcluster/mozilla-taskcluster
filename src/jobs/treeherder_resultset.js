@@ -19,7 +19,7 @@ export default class TreeherderResultsetJob extends Base {
     // After we create the resultset it is safe to post over the taskcluster
     // graph...
     let job = this.createJob('taskcluster-graph', {
-      title: `Create graph ${repo.alias}@${resultset.revision_hash}`,
+      title: `Create graph ${repo.alias}@${resultset.revision}`,
       revision_hash: resultset.revision_hash,
       repo,
       pushref,
@@ -44,10 +44,10 @@ export default class TreeherderResultsetJob extends Base {
     let resultset = formatResultset(repo.alias, push);
     console.log(`Posting result set for project '${repo.alias}'`);
     try {
-      let result = await treeherderProject.postResultset([resultset]);
-      resultset.revision_hash = result.resultsets[0].revision_hash;
+      await treeherderProject.postResultset([resultset]);
       console.log(`Posted result set for project '${repo.alias}'. ` +
-                  `Treeeherder revision hash: ${resultset.revision_hash}`);
+                  `Treeeherder revision hash: ${resultset.revision_hash} and revision ` +
+                  `${resultset.revision}`);
     } catch(e) {
       console.log(
           `Error posting result set for project '${repo.alias}', ${e.message}, ` +
