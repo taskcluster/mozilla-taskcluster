@@ -57,7 +57,7 @@ const SCHEMA = Joi.object().keys({
   }),
 
   revision_hash: Joi.string().
-    description('Calculated revision has when result set was created'),
+    description('Calculated revision hash when result set was created'),
 
   revision: Joi.string().
     description('Top level revision for the push')
@@ -75,9 +75,9 @@ export function parseTaskRevisionHash(task, prefix) {
   // If task.extra.revision and task.extra.revision_hash exist, use those
   // for submitting treeherder jobs instead of parsing revision hash from
   // the route
-  if task.extra && task.extra.treeherder {
-    treeherder = task.extra.treeherder
-    if treeherder.revision && treeherder.revision_hash {
+  if (task.extra && task.extra.treeherder) {
+    let treeherder = task.extra.treeherder
+    if (treeherder.revision && treeherder.revision_hash) {
       return [treeherder.revision, treeherder.revision_hash];
     }
   }
