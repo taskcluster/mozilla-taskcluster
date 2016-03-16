@@ -83,7 +83,7 @@ export default class RetriggerJob extends Base {
   }
 
   async work(job) {
-    let { taskId, runId, requester, project, revisionHash } = job.data;
+    let { taskId, runId, requester, project, revisionHash, revision } = job.data;
     let task = await queue.task(taskId);
 
     console.log(`Handling retrigger for job ${taskId} in project '${project}'`);
@@ -135,7 +135,7 @@ export default class RetriggerJob extends Base {
       await scheduler.createTaskGraph(newGraphId, graph);
     } catch (e) {
       console.log(`Error posting retrigger job for '${project}', ${JSON.stringify(e, null, 2)}`);
-      await this.postRetriggerFailureJob(project, revisionHash, task, e);
+      await this.postRetriggerFailureJob(project, revision, revisionHash, task, e);
       return;
     }
 
@@ -153,7 +153,7 @@ export default class RetriggerJob extends Base {
     );
   }
 
-  async postRetriggerFailureJob(projectName, revisionHash, task, error) {
+  async postRetriggerFailureJob(projectName, revision, revisionHash, task, error) {
       let project = new Project(projectName, {
         clientId: this.config.treeherder.credentials.clientId,
         secret: this.config.treeherder.credentials.secret,
@@ -203,6 +203,7 @@ export default class RetriggerJob extends Base {
       push = {
         project: projectName,
         revision_hash: revisionHash,
+        revision: revision,
         job: job
       };
 

@@ -54,7 +54,13 @@ const SCHEMA = Joi.object().keys({
     debug: Joi.boolean(),
     pgo: Joi.boolean(),
     cc: Joi.boolean()
-  })
+  }),
+
+  revision_hash: Joi.string().
+    description('Calculated revision has when result set was created'),
+
+  revision: Joi.string().
+    description('Top level revision for the push')
 });
 
 const EVENT_MAP = {
@@ -64,6 +70,28 @@ const EVENT_MAP = {
   [events.taskFailed().exchange]: 'failed',
   [events.taskException().exchange]: 'exception'
 };
+
+export function parseTaskRevisionHash(task, prefix) {
+  // If task.extra.revision and task.extra.revision_hash exist, use those
+  // for submitting treeherder jobs instead of parsing revision hash from
+  // the route
+  if task.extra && task.extra.treeherder {
+    treeherder = task.extra.treeherder
+    if treeherder.revision && treeherder.revision_hash {
+      return [treeherder.revision, treeherder.revision_hash];
+    }
+  }
+
+  // Find treeherder specific route
+  let route = task.routes.find((route) => {
+    return route.split('.')[0] === prefix;
+  });
+
+  // If revision information is not part of task.extra.treeherder, attempt
+  // to parse out the revision_hash from the routing key.
+  let parsedRoute = route.split('.');
+  return ["", parsedRoute[2]];
+}
 
 function defer() {
   let accept;
@@ -133,7 +161,9 @@ export function jobFromTask(taskId, task, run) {
       machine: {
         platform: task.workerType
       },
-      machineId: run.workerId
+      machineId: run.workerId,
+      revision_hash: "",
+      revision: ""
     },
     treeherder
   );
@@ -305,22 +335,23 @@ class Handler {
     }, TREEHERDER_INTERVAL);
   }
 
-  async handleTaskRerun(project, revisionHash, task, payload) {
+  async handleTaskRerun(project, task, payload) {
     let taskId = payload.status.taskId;
     let run = payload.status.runs[payload.runId - 1];
-    let job = Object.assign(
-      jobFromTask(taskId, task, run),
-      {
-        state: 'completed',
-        result: 'retry',
-        log_references: createLogReferences(this.queue, taskId, run)
-      }
-    );
+    let [revision, revisionHash] = parseTaskRevisionHash(task, this.prefix);
 
     await this.addPush({
       revision_hash: revisionHash,
+      revision: revision,
       project,
-      job
+      job: Object.assign(
+        jobFromTask(taskId, task, run),
+        {
+          state: 'completed',
+          result: 'retry',
+          log_references: createLogReferences(this.queue, taskId, run)
+        }
+      )
     });
   }
 
@@ -334,9 +365,10 @@ class Handler {
   @param {Object} task definition.
   @param {Object} payload from event.
   */
-  async handleTaskPending(project, revisionHash, task, payload) {
+  async handleTaskPending(project, task, payload) {
     let taskId = payload.status.taskId;
     let run = payload.status.runs[payload.runId];
+    let [revision, revisionHash] = parseTaskRevisionHash(task, this.prefix);
 
     // Specialized handling for reruns...
     if (
@@ -345,11 +377,12 @@ class Handler {
       // Only issue this if the run was created for a rerun
       (run.reasonCreated === 'rerun' || run.reasonCreated === 'retry')
     ) {
-      await this.handleTaskRerun(project, revisionHash, task, payload);
+      await this.handleTaskRerun(project, task, payload);
     }
 
     await this.addPush({
       revision_hash: revisionHash,
+      revision: revision,
       project,
       job: Object.assign(
         jobFromTask(taskId, task, run),
@@ -365,11 +398,14 @@ class Handler {
     return run.reasonCreated !== 'exception';
   }
 
-  async handleTaskRunning(project, revisionHash, task, payload) {
+  async handleTaskRunning(project, task, payload) {
     let taskId = payload.status.taskId;
     let run = payload.status.runs[payload.runId];
+    let [revision, revisionHash] = parseTaskRevisionHash(task, this.prefix);
+
     await this.addPush({
       revision_hash: revisionHash,
+      revision: revision,
       project,
       job: Object.assign(
         jobFromTask(taskId, task, run),
@@ -381,9 +417,10 @@ class Handler {
     });
   }
 
-  async handleTaskException(project, revisionHash, task, payload) {
+  async handleTaskException(project, task, payload) {
     let taskId = payload.status.taskId;
     let run = payload.status.runs[payload.runId];
+    let [revision, revisionHash] = parseTaskRevisionHash(task, this.prefix);
 
     if (!this.shouldReportExceptionRun(run)) {
       debug('ignoring task exception for task %s. Reason Resolved: %s',
@@ -395,6 +432,7 @@ class Handler {
 
     await this.addPush({
       revision_hash: revisionHash,
+      revision: revision,
       project,
       job: Object.assign(
         jobFromTask(taskId, task, run),
@@ -406,9 +444,10 @@ class Handler {
     });
   }
 
-  async handleTaskFailed(project, revisionHash, task, payload) {
+  async handleTaskFailed(project, task, payload) {
     let taskId = payload.status.taskId;
     let run = payload.status.runs[payload.runId];
+    let [revision, revisionHash] = parseTaskRevisionHash(task, this.prefix);
 
     let state = stateFromRun(run);
     let result = resultFromRun(run);
@@ -429,6 +468,7 @@ class Handler {
 
     await this.addPush({
       revision_hash: revisionHash,
+      revision: revision,
       project,
       job: Object.assign(
         jobFromTask(taskId, task, run),
@@ -441,11 +481,14 @@ class Handler {
     });
   }
 
-  async handleTaskCompleted(project, revisionHash, task, payload) {
+  async handleTaskCompleted(project, task, payload) {
     let taskId = payload.status.taskId;
     let run = payload.status.runs[payload.runId];
+    let [revision, revisionHash] = parseTaskRevisionHash(task, this.prefix);
+
     await this.addPush({
       revision_hash: revisionHash,
+      revision: revision,
       project,
       job: Object.assign(
         jobFromTask(taskId, task, run),
@@ -509,23 +552,23 @@ class Handler {
     switch (EVENT_MAP[exchange]) {
       case 'pending':
         return this.handleTaskPending(
-          project, revisionHash, task, payload
+          project, task, payload
         );
       case 'running':
         return await this.handleTaskRunning(
-          project, revisionHash, task, payload
+          project, task, payload
         );
       case 'completed':
         return await this.handleTaskCompleted(
-          project, revisionHash, task, payload
+          project, task, payload
         );
       case 'exception':
         return await this.handleTaskException(
-          project, revisionHash, task, payload
+          project, task, payload
         );
       case 'failed':
         return this.handleTaskFailed(
-          project, revisionHash, task, payload
+          project, task, payload
         );
     }
   }
