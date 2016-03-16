@@ -56,10 +56,10 @@ const SCHEMA = Joi.object().keys({
     cc: Joi.boolean()
   }),
 
-  revision_hash: Joi.string().
+  revision_hash: Joi.string().allow('').
     description('Calculated revision hash when result set was created'),
 
-  revision: Joi.string().
+  revision: Joi.string().allow('').
     description('Top level revision for the push')
 });
 
