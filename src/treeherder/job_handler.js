@@ -53,7 +53,10 @@ const SCHEMA = Joi.object().keys({
     opt: Joi.boolean(),
     debug: Joi.boolean(),
     pgo: Joi.boolean(),
-    cc: Joi.boolean()
+    cc: Joi.boolean(),
+    asan: Joi.boolean(),
+    tsan: Joi.boolean(),
+    addon: Joi.boolean(),
   }),
 
   revision_hash: Joi.string().allow('').
