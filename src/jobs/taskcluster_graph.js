@@ -131,13 +131,29 @@ export default class TaskclusterGraphJob extends Base {
 
     let scheduler = new taskcluster.Scheduler({
       credentials: this.config.taskcluster.credentials,
-      // include scheduler:create-task-graph so we can call create-task-graph,
-      // but not include it in graph.scopes
-      authorizedScopes: scopes.concat(['scheduler:create-task-graph'])
+      // Include scopes for creating and extending task graphs.
+      authorizedScopes: scopes.concat(['scheduler:create-task-graph, scheduler:extend-task-graph:*'])
     });
 
     // Assign maximum level of scopes to the graph....
     graph.scopes = scopes;
+
+    // Add the scope to extend the task graph to all decision tasks within the graph.
+    // Currently some decision tasks might not contain this scope.  This is a temporary
+    // solution until those decision tasks are migrated over.
+    for (let taskInfo of graph.tasks) {
+      let task = taskInfo.task;
+      task.scopes = task.scopes || [];
+      if (!task.scopes.includes('scheduler:extend-task-graph:*')) {
+        // Log a message when this happens so these tasks can be tracked down
+        // and fixed
+        console.log(
+          `Decision Task does not contain scopes necessary for extending ` +
+          `task graph. Adding extend-task-graph scope. Task ID: ${taskInfo.taskId}`
+        );
+        task.scopes = task.scopes.concat(['scheduler:extend-task-graph:*']);
+      }
+    }
 
     console.log(
         `Posting job for project '${repo.alias}' with id ${id} ` +
