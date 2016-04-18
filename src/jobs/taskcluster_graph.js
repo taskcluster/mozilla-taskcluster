@@ -132,7 +132,7 @@ export default class TaskclusterGraphJob extends Base {
     let scheduler = new taskcluster.Scheduler({
       credentials: this.config.taskcluster.credentials,
       // Include scopes for creating and extending task graphs.
-      authorizedScopes: scopes.concat(['scheduler:create-task-graph, scheduler:extend-task-graph:*'])
+      authorizedScopes: scopes.concat(['scheduler:create-task-graph', 'scheduler:extend-task-graph:*'])
     });
 
     // Assign maximum level of scopes to the graph....
