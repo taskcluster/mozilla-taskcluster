@@ -102,10 +102,6 @@ try:
       level: 3
       scopes:
         - "assume:repo:hg.mozilla.org/releases/mozilla-aurora:*"
-    b2g-inbound:
-      level: 3
-      scopes:
-        - "assume:repo:hg.mozilla.org/integration/b2g-inbound:*"
     mozilla-inbound:
       level: 3
       scopes:
