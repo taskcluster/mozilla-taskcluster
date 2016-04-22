@@ -132,6 +132,10 @@ function resultFromRun(run) {
     case 'failed':
       return 'testfailed';
     case 'exception':
+      if (run.reasonResolved === 'canceled') {
+        return 'usercancel'
+      }
+      
       return 'exception';
     default:
       return 'unknown';
