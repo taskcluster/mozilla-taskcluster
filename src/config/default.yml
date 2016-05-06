@@ -150,3 +150,7 @@ try:
       level: 2
       scopes:
         - "assume:repo:hg.mozilla.org/projects/oak:*"
+    elm:
+      level: 2
+      scopes:
+        - "assume:repo:hg.mozilla.org/projects/elm:*"
