@@ -154,3 +154,19 @@ try:
       level: 2
       scopes:
         - "assume:repo:hg.mozilla.org/projects/elm:*"
+    larch:
+      level: 2
+      scopes:
+        - "assume:repo:hg.mozilla.org/projects/larch:*"
+    mozilla-beta:
+      level: 3
+      scopes:
+        - "assume:repo:hg.mozilla.org/releases/mozilla-beta:*"
+    mozilla-release:
+      level: 3
+      scopes:
+        - "assume:repo:hg.mozilla.org/releases/mozilla-release:*"
+    mozilla-esr45:
+      level: 3
+      scopes:
+        - "assume:repo:hg.mozilla.org/releases/mozilla-esr45:*"
