@@ -1,5 +1,5 @@
+import _ from 'lodash';
 import slugid from 'slugid';
-import merge from 'lodash.merge';
 import { Queue, QueueEvents, Scheduler } from 'taskcluster-client';
 import Project from 'mozilla-treeherder/project';
 import Debug from 'debug';
@@ -71,26 +71,59 @@ const EVENT_MAP = {
   [events.taskException().exchange]: 'exception'
 };
 
+/**
+ * Parses a task route and inspects task.extra.treeherder for revision information.
+ * Attempt to use task.extra.treeherder.revision if it exists.  If not,
+ * use whatever hash is found in the routing key.
+ * Note: This is meant as a transitional period between
+ * using task.extra and relying soley on the routing key.  Routing
+ * key in the future will be the preferred and only method.
+ */
 export function parseTaskRevisionHash(task, prefix) {
-  // If task.extra.revision and task.extra.revision_hash exist, use those
-  // for submitting treeherder jobs instead of parsing revision hash from
-  // the route
-  if (task.extra && task.extra.treeherder) {
-    let treeherder = task.extra.treeherder
-    if (treeherder.revision && treeherder.revision_hash) {
-      return [treeherder.revision, treeherder.revision_hash];
-    }
+  let revision = _.get(task, 'extra.treeherder.revision');
+  let revision_hash = _.get(task, 'extra.treeherder.revision_hash');
+
+  if (revision && revision_hash) {
+    return [revision, revision_hash];
   }
 
-  // Find treeherder specific route
-  let route = task.routes.find((route) => {
+  // Find treeherder specific routes
+  let routes = task.routes.filter((route) => {
     return route.split('.')[0] === prefix;
   });
 
   // If revision information is not part of task.extra.treeherder, attempt
-  // to parse out the revision_hash from the routing key.
-  let parsedRoute = route.split('.');
-  return ["", parsedRoute[2]];
+  // to parse out the revision[_hash] from the routing key.
+  // Routing keys can come in versions.  If no version is specified in the routing
+  // key (assumed by routing key length to be 3), then it will be treated as
+  // version 1.  Preference is given to v2 routes over v1 if encountered.
+  // Version 1: <prefix>.<project>.<hash>
+  // Version 2: <prefix>.<version>.<project>.<hash>.<pushLogId>
+  // Version >1: <prefix>.<version>.*
+  let revisionInfo = ["", ""];
+  let routeVersion;
+  for (let route of routes) {
+    let parsedRoute = route.split('.');
+
+    // Assume it's a version 1 routing key
+    if (parsedRoute.length === 3) {
+      // Only set revision info if it has not be set before, otherwise assume
+      // a higher ranking route is preferred.
+      if (!routeVersion) {
+        routeVersion = 1;
+        revisionInfo = ["", parsedRoute[2]];
+      }
+      continue;
+    }
+
+    // TODO: Switch to something nicer if more than v1 and v2 routes are present
+    if (parsedRoute[1] === 'v2') {
+      routeVersion = 2;
+      revisionInfo = [parsedRoute[3], ""];
+    }
+  }
+
+  return revisionInfo;
 }
 
 function defer() {
@@ -157,7 +190,7 @@ function createLogReferences(queue, taskId, run) {
 export function jobFromTask(taskId, task, run) {
   // Create the default set of options...
   let treeherder = (task.extra && task.extra.treeherder) || {};
-  treeherder = merge(
+  treeherder = _.merge(
     {
       build: {
         platform: task.workerType
