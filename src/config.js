@@ -1,7 +1,7 @@
 import path from 'path';
 import fs from 'mz/fs';
 import denodeify from 'denodeify';
-import merge from 'lodash.merge';
+import _ from 'lodash';
 import yaml from 'js-yaml';
 let Joi = require('joi');
 
@@ -144,7 +144,7 @@ export default async function load(profile, options = {}) {
     path.join(__dirname, '..', 'src', 'config', `${profile}.yml`)
   );
 
-  let baseConfig = merge({}, defaultConfig, profileConfig);
+  let baseConfig = _.merge({}, defaultConfig, profileConfig);
 
   // extend the base config with additional parameters from files...
   let extraYamlConfigFiles = (baseConfig.config.files || []);
@@ -160,7 +160,7 @@ export default async function load(profile, options = {}) {
     }
 
     let config = await loadYaml(yamlConfigPath);
-    baseConfig = merge(baseConfig, config);
+    baseConfig = _.merge(baseConfig, config);
     debug('added config', yamlConfigPath);
   }
 
@@ -170,7 +170,7 @@ export default async function load(profile, options = {}) {
     let configCollection = await Config.create(db);
     debug('fetching document', baseConfig.config.documentkey);
     let doc = await configCollection.findById(baseConfig.config.documentkey);
-    baseConfig = merge(baseConfig, doc);
+    baseConfig = _.merge(baseConfig, doc);
   }
 
   let result = Joi.validate(

@@ -2,7 +2,7 @@
 Helper used to duplicate a single task definition.
 */
 
-import merge from 'lodash.merge';
+import _ from 'lodash';
 
 // Task level date objects to update...
 export const TOP_LEVEL_DATES = [
@@ -19,7 +19,7 @@ function updateDateWithDelta(original, delta) {
 }
 
 export function duplicate(task, now) {
-  let newTask = merge({}, task);
+  let newTask = _.merge({}, task);
 
   // let now be configurable for tests...
   now = now || new Date();
