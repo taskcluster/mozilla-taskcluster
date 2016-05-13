@@ -81,49 +81,43 @@ const EVENT_MAP = {
  */
 export function parseTaskRevisionHash(task, prefix) {
   let revision = _.get(task, 'extra.treeherder.revision');
-  let revision_hash = _.get(task, 'extra.treeherder.revision_hash');
 
-  if (revision && revision_hash) {
-    return [revision, revision_hash];
+  if (revision) {
+    return [revision, ""];
   }
 
-  // Find treeherder specific routes
-  let routes = task.routes.filter((route) => {
+  // Find treeherder specific route
+  let route = task.routes.find((route) => {
     return route.split('.')[0] === prefix;
   });
+
+  if (!route) {
+    return ["", ""];
+  }
 
   // If revision information is not part of task.extra.treeherder, attempt
   // to parse out the revision[_hash] from the routing key.
   // Routing keys can come in versions.  If no version is specified in the routing
   // key (assumed by routing key length to be 3), then it will be treated as
   // version 1.  Preference is given to v2 routes over v1 if encountered.
-  // Version 1: <prefix>.<project>.<hash>
-  // Version 2: <prefix>.<version>.<project>.<hash>.<pushLogId>
+  // Version 1: <prefix>.<project>.<revision_hash>
+  // Version 2: <prefix>.<version>.<project>.<revision>.<pushLogId>
   // Version >1: <prefix>.<version>.*
-  let revisionInfo = ["", ""];
-  let routeVersion;
-  for (let route of routes) {
-    let parsedRoute = route.split('.');
+  let parsedRoute = route.split('.');
 
-    // Assume it's a version 1 routing key
-    if (parsedRoute.length === 3) {
-      // Only set revision info if it has not be set before, otherwise assume
-      // a higher ranking route is preferred.
-      if (!routeVersion) {
-        routeVersion = 1;
-        revisionInfo = ["", parsedRoute[2]];
-      }
-      continue;
-    }
-
-    // TODO: Switch to something nicer if more than v1 and v2 routes are present
-    if (parsedRoute[1] === 'v2') {
-      routeVersion = 2;
-      revisionInfo = [parsedRoute[3], ""];
-    }
+  // Assume it's a version 1 routing key
+  if (parsedRoute.length === 3) {
+    return ["", parsedRoute[2]];
   }
 
-  return revisionInfo;
+  let version = parsedRoute[1];
+  switch (version) {
+    case 'v2':
+      return [parsedRoute[3], ""];
+    default:
+      // Unrecognized route version
+      return ["", ""];
+  }
 }
 
 function defer() {
@@ -376,6 +370,9 @@ class Handler {
     let taskId = payload.status.taskId;
     let run = payload.status.runs[payload.runId - 1];
     let [revision, revisionHash] = parseTaskRevisionHash(task, this.prefix);
+    if (!revision && !revisionHash) {
+      debug('Skip submitting job info for %s.  Missing revision and revision_hash information', taskId)
+    }
 
     await this.addPush({
       revision_hash: revisionHash,
@@ -406,6 +403,9 @@ class Handler {
     let taskId = payload.status.taskId;
     let run = payload.status.runs[payload.runId];
     let [revision, revisionHash] = parseTaskRevisionHash(task, this.prefix);
+    if (!revision && !revisionHash) {
+      debug('Skip submitting job info for %s.  Missing revision and revision_hash information', taskId)
+    }
 
     // Specialized handling for reruns...
     if (
@@ -439,6 +439,9 @@ class Handler {
     let taskId = payload.status.taskId;
     let run = payload.status.runs[payload.runId];
     let [revision, revisionHash] = parseTaskRevisionHash(task, this.prefix);
+    if (!revision && !revisionHash) {
+      debug('Skip submitting job info for %s.  Missing revision and revision_hash information', taskId)
+    }
 
     await this.addPush({
       revision_hash: revisionHash,
@@ -458,6 +461,9 @@ class Handler {
     let taskId = payload.status.taskId;
     let run = payload.status.runs[payload.runId];
     let [revision, revisionHash] = parseTaskRevisionHash(task, this.prefix);
+    if (!revision && !revisionHash) {
+      debug('Skip submitting job info for %s.  Missing revision and revision_hash information', taskId)
+    }
 
     if (!this.shouldReportExceptionRun(run)) {
       debug('ignoring task exception for task %s. Reason Resolved: %s',
@@ -485,6 +491,9 @@ class Handler {
     let taskId = payload.status.taskId;
     let run = payload.status.runs[payload.runId];
     let [revision, revisionHash] = parseTaskRevisionHash(task, this.prefix);
+    if (!revision && !revisionHash) {
+      debug('Skip submitting job info for %s.  Missing revision and revision_hash information', taskId)
+    }
 
     let state = stateFromRun(run);
     let result = resultFromRun(run);
@@ -522,6 +531,9 @@ class Handler {
     let taskId = payload.status.taskId;
     let run = payload.status.runs[payload.runId];
     let [revision, revisionHash] = parseTaskRevisionHash(task, this.prefix);
+    if (!revision && !revisionHash) {
+      debug('Skip submitting job info for %s.  Missing revision and revision_hash information', taskId)
+    }
 
     await this.addPush({
       revision_hash: revisionHash,

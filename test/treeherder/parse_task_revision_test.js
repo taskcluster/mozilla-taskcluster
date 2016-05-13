@@ -15,11 +15,10 @@ suite('parse task revision', () => {
     assert.deepEqual(revisionInfo, ["", "abc"]);
   });
 
-  test('v2 route preference or v1', () => {
+  test('v2 route', () => {
     let prefix = 'treeherder-test';
     let task = {
       routes: [
-        `${prefix}.mozilla-inbound.abc`,
         `${prefix}.v2.mozilla-inbound.def`,
         'build.mozilla-inbound.ghi'
       ]
@@ -44,7 +43,7 @@ suite('parse task revision', () => {
       }
     };
     let revisionInfo = parseTaskRevisionHash(task, prefix);
-    assert.deepEqual(revisionInfo, ["xyz", "tuv"]);
+    assert.deepEqual(revisionInfo, ["xyz", ""]);
   });
 
   test('empty revision information when no match', () => {
