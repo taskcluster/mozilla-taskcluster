@@ -114,10 +114,6 @@ try:
       level: 3
       scopes:
         - "assume:repo:hg.mozilla.org/mozilla-central:*"
-    cedar:
-      level: 2
-      scopes:
-        - "assume:repo:hg.mozilla.org/projects/cedar:*"
     cypress:
       level: 2
       scopes:
