@@ -375,6 +375,7 @@ class Handler {
     let [revision, revisionHash] = parseTaskRevisionHash(task, this.prefix);
     if (!revision && !revisionHash) {
       debug('Skip submitting job info for %s.  Missing revision and revision_hash information', taskId)
+      return;
     }
 
     await this.addPush({
@@ -408,6 +409,7 @@ class Handler {
     let [revision, revisionHash] = parseTaskRevisionHash(task, this.prefix);
     if (!revision && !revisionHash) {
       debug('Skip submitting job info for %s.  Missing revision and revision_hash information', taskId)
+      return;
     }
 
     // Specialized handling for reruns...
@@ -444,6 +446,7 @@ class Handler {
     let [revision, revisionHash] = parseTaskRevisionHash(task, this.prefix);
     if (!revision && !revisionHash) {
       debug('Skip submitting job info for %s.  Missing revision and revision_hash information', taskId)
+      return;
     }
 
     await this.addPush({
@@ -466,6 +469,7 @@ class Handler {
     let [revision, revisionHash] = parseTaskRevisionHash(task, this.prefix);
     if (!revision && !revisionHash) {
       debug('Skip submitting job info for %s.  Missing revision and revision_hash information', taskId)
+      return;
     }
 
     if (!this.shouldReportExceptionRun(run)) {
@@ -473,7 +477,7 @@ class Handler {
              taskId,
              run.reasonResolved
       );
-      return
+      return;
     }
 
     await this.addPush({
@@ -496,6 +500,7 @@ class Handler {
     let [revision, revisionHash] = parseTaskRevisionHash(task, this.prefix);
     if (!revision && !revisionHash) {
       debug('Skip submitting job info for %s.  Missing revision and revision_hash information', taskId)
+      return;
     }
 
     let state = stateFromRun(run);
@@ -536,6 +541,7 @@ class Handler {
     let [revision, revisionHash] = parseTaskRevisionHash(task, this.prefix);
     if (!revision && !revisionHash) {
       debug('Skip submitting job info for %s.  Missing revision and revision_hash information', taskId)
+      return;
     }
 
     await this.addPush({
