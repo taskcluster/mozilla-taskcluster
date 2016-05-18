@@ -48,7 +48,7 @@ class Handler {
 
     let [revision, revisionHash] = parseTaskRevisionHash(task, this.prefix);
 
-    if (!revisionHash) {
+    if (!revision && !revisionHash) {
       console.log(`Could not determine revision hash from task ${taskId}.  Not retriggering.`);
       return;
     }
