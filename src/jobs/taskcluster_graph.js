@@ -140,6 +140,9 @@ export default class TaskclusterGraphJob extends Base {
     let id = slugid.nice();
     let scopes = projectConfig.scopes(this.config.try, repo.alias);
 
+    // strip `version`; this is temporary while we are still using the task-graph scheduler
+    delete graph.version;
+
     let scheduler = new taskcluster.Scheduler({
       credentials: this.config.taskcluster.credentials,
       // Include scopes for creating and extending task graphs.
