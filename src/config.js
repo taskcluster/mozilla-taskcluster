@@ -86,6 +86,8 @@ let schema = Joi.object().keys({
 
   try: Joi.object().keys({
     enabled: Joi.boolean().required(),
+    tcYamlUrl: Joi.string().required().
+      description('Default url (with mustache params) to use to fetch an in-tree .taskcluster.yml graph'),
     defaultUrl: Joi.string().required().
       description('Default url (with mustache params) to use to fetch taskgraph'),
 
