@@ -170,3 +170,7 @@ try:
       level: 3
       scopes:
         - "assume:repo:hg.mozilla.org/releases/mozilla-esr45:*"
+    nss:
+      level: 'nss'
+      scopes:
+        - "assume:repo:hg.mozilla.org/projects/nss:*"
