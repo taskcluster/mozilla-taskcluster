@@ -208,3 +208,7 @@ try:
         - "assume:repo:hg.mozilla.org/releases/mozilla-esr45:*"
         # temporary until this scope is removed from .taskcluster.yml
         - "assume:repo:hg.mozilla.org/try:*"
+    nss:
+      level: 'nss'
+      scopes:
+        - "assume:repo:hg.mozilla.org/projects/nss:*"
