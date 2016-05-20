@@ -154,7 +154,8 @@ export default class TaskclusterGraphJob extends Base {
 
     // Add the scope to extend the task graph to all decision tasks within the graph.
     // Currently some decision tasks might not contain this scope.  This is a temporary
-    // solution until those decision tasks are migrated over.
+    // solution until those decision tasks are migrated over to use the big-graph
+    // scheduler, at which point this scope is moot.
     for (let taskInfo of graph.tasks) {
       let task = taskInfo.task;
       task.scopes = task.scopes || [];
@@ -166,6 +167,17 @@ export default class TaskclusterGraphJob extends Base {
           `task graph. Adding extend-task-graph scope. Task ID: ${taskInfo.taskId}`
         );
         task.scopes = task.scopes.concat(['scheduler:extend-task-graph:*']);
+      }
+    }
+
+    // On the assumption that the only task in the graph is a decision task, give it the
+    // scopes afforded to the whole graph, too.
+    for (let taskInfo of graph.tasks) {
+      let task = taskInfo.task;
+      for (let scope of scopes) {
+        if (!task.scopes.includes(scope)) {
+          task.scopes.push(scope);
+        }
       }
     }
 
