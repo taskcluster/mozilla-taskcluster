@@ -92,9 +92,20 @@ export default class TaskclusterGraphJob extends Base {
       host: repositoryUrlParts.host
     };
 
-    let graphUrl = projectConfig.url(this.config.try, repo.alias, urlVariables);
-    console.log(`Fetching url ${graphUrl} for '${repo.alias}' push id ${push.id}`);
-    let graphText = await fetchGraph(job, graphUrl);
+    // Try fetching from .taskgraph.yml, the preferred location, falling back
+    // to the project URL The latter is supported only for branches to which
+    // .taskcluster.yml (and the task-graph generation support in taskcluster/
+    // to which it points) has not yet been merged.
+    let graphUrl, graphText;
+    try {
+      graphUrl = projectConfig.tcYamlUrl(this.config.try, urlVariables);
+      console.log(`Fetching '.taskcluster.yml' url ${graphUrl} for '${repo.alias}' push id ${push.id}`);
+      graphText = await fetchGraph(job, graphUrl);
+    } catch (err) {
+      graphUrl = projectConfig.url(this.config.try, repo.alias, urlVariables);
+      console.log(`Fetching url ${graphUrl} for '${repo.alias}' push id ${push.id}`);
+      graphText = await fetchGraph(job, graphUrl);
+    }
 
     let variables = {
       owner: push.user,
