@@ -34,6 +34,12 @@ export function level(config, project) {
   return project.level || 1;
 }
 
+export function tcYamlUrl(config, params = {}) {
+  Joi.assert(params, URL_SCHEMA);
+  let url = config.tcYamlUrl;
+  return mustache.render(url, params);
+}
+
 export function url(config, project, params = {}) {
   let project = getProject(config, project);
   Joi.assert(params, URL_SCHEMA);

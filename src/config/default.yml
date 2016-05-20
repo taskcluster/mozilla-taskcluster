@@ -49,14 +49,18 @@ commitPublisher:
 # projects, not just try.
 try:
   enabled: true
-  # Default url used when figuring out where to fetch task graph has some special
-  # mustache parameters used to customize the path.
+
+  # This is the preferred location for the decision task file for every repository.
+  # Mustache parameters used to customize the path:
   #
   #   - alias: current key name
   #   - revision: revision of the change
   #   - path: sub path to repository
   #   - host: host of repository
   #
+  tcYamlUrl: "{{{host}}}{{{path}}}/raw-file/{{revision}}/.taskcluster.yml"
+
+  # Default url used when figuring out where to fetch task graph has some special
   defaultUrl: "{{{host}}}{{{path}}}/raw-file/{{revision}}/testing/taskcluster/tasks/decision/branch.yml"
 
   # If for some reason the task yaml is invalid we still would like to create a
