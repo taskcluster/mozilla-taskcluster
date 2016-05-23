@@ -64,7 +64,7 @@ export default function instantiate(template, options) {
     source: Joi.string().required(),
     revision: Joi.string().required(),
     project: Joi.string().required(),
-    level: Joi.number().required(),
+    level: [Joi.number().required(), Joi.string().required()],
     revision_hash: Joi.string().required(),
     comment: Joi.string().default(""),
     pushlog_id: Joi.string().required(),
