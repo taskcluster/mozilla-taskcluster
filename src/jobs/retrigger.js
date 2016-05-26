@@ -67,6 +67,7 @@ export default class RetriggerJob extends Base {
         `Assuming to be a task group instead.`
       );
     }
+    console.log("got taskGraphDetails", taskGraphDetails);
 
     let newGraphId;
     try {
