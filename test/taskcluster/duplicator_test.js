@@ -2,49 +2,10 @@ import assert from 'assert';
 import _ from 'lodash';
 import slugid from 'slugid';
 import {GroupDuplicator} from '../../build/taskcluster/duplicator';
+import FakeQueue from '../fakequeue';
 
 suite('taskcluster/duplicator', function() {
   suite('GroupDuplicator', function() {
-    var tasks;
-
-    let addTask = (taskId, body) => {
-      tasks.push(_.defaults(body, {taskId, dependencies: []}));
-    };
-
-    let fakeQueue = {};
-    fakeQueue.task = async (taskId) => {
-      let task = _.find(tasks, {taskId});
-      if (task) {
-        return _.omit(task, ['taskId']);
-      } else {
-        throw new Error("no such task sorry");
-      }
-    };
-
-    // listDependentTasks only returns up to two dependent
-    // tasks, to test the continuationToken handling
-    fakeQueue.listDependentTasks = async (taskId, options) => {
-      let offset = 0;
-      if (options && options.continuationToken) {
-        offset = JSON.parse(options.continuationToken);
-      }
-
-      let depTasks = _.filter(tasks,
-          t => t.dependencies.indexOf(taskId) !== -1);
-
-      // convert to a semblance of the return value from listDependentTasks
-      depTasks = _.map(depTasks, (t) => { return {status: {taskId: t.taskId}, task: {}}; });
-
-      // slice down given the offset
-      depTasks = _.slice(depTasks, offset, offset + 2);
-
-      return {
-        taskId,
-        tasks: depTasks,
-        continuationToken: depTasks.length ? JSON.stringify(offset + 2) : undefined,
-      }
-    };
-
     let checkReturnValuesMatch = (taskNodes, res, expectedOldTaskIds) => {
       assert.deepEqual(res.sort(), _.values(taskNodes).sort());
       assert.deepEqual(_.keys(taskNodes).sort(), expectedOldTaskIds.sort())
@@ -53,14 +14,15 @@ suite('taskcluster/duplicator', function() {
       return newTaskId;
     };
 
-    let duplicator = new GroupDuplicator(fakeQueue);
+    let duplicator, fakeQueue;
 
     setup(function() {
-      tasks = [];
+      fakeQueue = new FakeQueue();
+      duplicator = new GroupDuplicator(fakeQueue);
     });
 
     test("duplicating a single node creates a matching task, with taskGroupId and requires intact", async function() {
-      addTask('single', {payload: 'test', requires: 'all-complete', taskGroupId: 'just-the-best-tasks'});
+      fakeQueue.addTask('single', {payload: 'test', requires: 'all-complete', taskGroupId: 'just-the-best-tasks'});
       let taskNodes = {};
       let res = await duplicator.duplicateGroupNode(taskNodes, 'single', true);
       checkReturnValuesMatch(taskNodes, res, ['single']);
@@ -70,8 +32,8 @@ suite('taskcluster/duplicator', function() {
     });
 
     test("duplicating a node with dependencies=false creates a single matching task", async function() {
-      addTask('test', {payload: 'test', dependencies: ['build']});
-      addTask('build', {payload: 'build'});
+      fakeQueue.addTask('test', {payload: 'test', dependencies: ['build']});
+      fakeQueue.addTask('build', {payload: 'build'});
       let taskNodes = {};
       let res = await duplicator.duplicateGroupNode(taskNodes, 'build', false);
       checkReturnValuesMatch(taskNodes, res, ['build']);
@@ -79,11 +41,11 @@ suite('taskcluster/duplicator', function() {
     });
 
     test("duplicating a node with a lot of deps captures those deps", async function() {
-      addTask('build', {payload: 'build'});
-      addTask('test1', {payload: 'test1', dependencies: ['build']});
-      addTask('test2', {payload: 'test2', dependencies: ['build']});
-      addTask('test3', {payload: 'test3', dependencies: ['build']});
-      addTask('test4', {payload: 'test4', dependencies: ['build']});
+      fakeQueue.addTask('build', {payload: 'build'});
+      fakeQueue.addTask('test1', {payload: 'test1', dependencies: ['build']});
+      fakeQueue.addTask('test2', {payload: 'test2', dependencies: ['build']});
+      fakeQueue.addTask('test3', {payload: 'test3', dependencies: ['build']});
+      fakeQueue.addTask('test4', {payload: 'test4', dependencies: ['build']});
       let taskNodes = {};
       let res = await duplicator.duplicateGroupNode(taskNodes, 'build', true);
       let newTaskId = checkReturnValuesMatch(taskNodes, res,
@@ -101,8 +63,8 @@ suite('taskcluster/duplicator', function() {
     });
 
     test("duplicating a subgraph maintains external dependencies", async function() {
-      addTask('build', {payload: 'build', dependencies: ['other1']});
-      addTask('test1', {payload: 'test1', dependencies: ['build', 'other2']});
+      fakeQueue.addTask('build', {payload: 'build', dependencies: ['other1']});
+      fakeQueue.addTask('test1', {payload: 'test1', dependencies: ['build', 'other2']});
       let taskNodes = {};
       let res = await duplicator.duplicateGroupNode(taskNodes, 'build', true);
       let newTaskId = checkReturnValuesMatch(taskNodes, res, ['build', 'test1']);
@@ -113,10 +75,10 @@ suite('taskcluster/duplicator', function() {
     });
 
     test("duplicating a diamond-shaped subgraph gets dependencies right", async function() {
-      addTask('build', {payload: 'build', dependencies: ['other1']});
-      addTask('test1', {payload: 'test1', dependencies: ['build', 'other2']});
-      addTask('test2', {payload: 'test2', dependencies: ['build']});
-      addTask('sign', {payload: 'sign', dependencies: ['test1', 'test2', 'other3']});
+      fakeQueue.addTask('build', {payload: 'build', dependencies: ['other1']});
+      fakeQueue.addTask('test1', {payload: 'test1', dependencies: ['build', 'other2']});
+      fakeQueue.addTask('test2', {payload: 'test2', dependencies: ['build']});
+      fakeQueue.addTask('sign', {payload: 'sign', dependencies: ['test1', 'test2', 'other3']});
       let taskNodes = {};
       let res = await duplicator.duplicateGroupNode(taskNodes, 'build', true);
       let newTaskId = checkReturnValuesMatch(taskNodes, res,

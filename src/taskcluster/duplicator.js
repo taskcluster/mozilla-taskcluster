@@ -129,7 +129,7 @@ export class GroupDuplicator {
     if (dependencies) {
       let continuationToken;
       do {
-        let res = await this.queue.listDependentTasks(taskId, {continuationToken});
+        let res = await this.queue.listDependentTasks(taskId, continuationToken? {continuationToken} : {});
         continuationToken = res.continuationToken;
         // Read though the dependencies and add them to the graph, sequentially to
         // avoid pounding the queue API with many concurrent requests
