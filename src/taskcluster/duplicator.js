@@ -56,7 +56,7 @@ export class GraphDuplicator {
 
     // Task group id should never be duplicated... The scheduler can assign a new
     // one once the graph is created...
-    delete newTask.taskGroupId;
+    delete node.task.taskGroupId;
 
     // New task should not have any dependencies...
     delete node.task.dependencies;
