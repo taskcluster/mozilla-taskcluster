@@ -102,9 +102,8 @@ let schema = Joi.object().keys({
     }))
   }),
 
-  redis: Joi.object().keys({
-    host: Joi.string().required()
-  }).unknown(true),
+  redis: Joi.string().description('Redis connection string').
+           default(Joi.ref('$env.REDIS_URL')),
 
   kue: Joi.object().keys({
     purgeCompleted: Joi.boolean(),
