@@ -34,13 +34,6 @@ export function duplicate(task, now) {
     newTask[field] = updateDateWithDelta(task[field], delta);
   }
 
-  // Task group id should never be duplicated... The scheduler can assign a new
-  // one once the graph is created...
-  delete newTask.taskGroupId;
-  // New task should not have any dependencies...
-  delete newTask.dependencies;
-  delete newTask.requires;
-
   // docker-worker specific dates...
   if (task.payload && typeof task.payload.artifacts === 'object') {
     Object.keys(task.payload.artifacts).forEach((name) => {

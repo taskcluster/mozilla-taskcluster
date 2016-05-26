@@ -1967,9 +1967,9 @@
       "resolved": "https://registry.npmjs.org/sylvester/-/sylvester-0.0.21.tgz"
     },
     "taskcluster-client": {
-      "version": "0.21.3",
-      "from": "taskcluster-client@0.21.3",
-      "resolved": "https://registry.npmjs.org/taskcluster-client/-/taskcluster-client-0.21.3.tgz",
+      "version": "1.0.1",
+      "from": "taskcluster-client@1.0.1",
+      "resolved": "https://registry.npmjs.org/taskcluster-client/-/taskcluster-client-1.0.1.tgz",
       "dependencies": {
         "async": {
           "version": "1.5.2",

@@ -5,6 +5,7 @@ import { duplicate as duplicateTask } from '../taskcluster/duplicate_task';
 import { jobFromTask } from '../treeherder/job_handler';
 import traverse from 'traverse';
 import Project from 'mozilla-treeherder/project';
+import { GraphDuplicator, GroupDuplicator } from '../taskcluster/duplicator';
 
 import RetriggerExchange from '../exchanges/retrigger';
 import Base from './base';
@@ -28,51 +29,6 @@ function recursiveUpdateTaskIds(tasks, map) {
     });
     return value;
   });
-}
-
-class GraphDuplicator {
-  constructor(scheduler) {
-    this.scheduler = scheduler;
-  }
-
-  async duplicateGraphNode(nodes, graphId, taskId, dependencies = false, parent = null) {
-    // If the node has already been duplicated skip...
-    if (nodes[taskId]) {
-      // Add the parent node if available...
-      if (parent) nodes[taskId].requires.push(parent);
-      return;
-    };
-
-    let newTaskId = slugid.nice();
-    let node = nodes[taskId] = {
-      taskId: newTaskId,
-      requires: []
-    }
-
-    // Fetch all details related to the task id...
-    let [task, graphNode] = await Promise.all([
-      queue.task(taskId),
-      this.scheduler.inspectTask(graphId, taskId)
-    ]);
-
-    node.reruns = graphNode.reruns;
-    node.task = duplicateTask(task);
-
-    // Add the parent node if available...
-    if (parent) node.requires.push(parent);
-    // Add dependencies if explicitly desired.
-    if (dependencies && graphNode.dependents) {
-      // Read though the dependencies and add them to the graph...
-      await Promise.all(graphNode.dependents.map(async (childTaskId) => {
-        await this.duplicateGraphNode(nodes, graphId, childTaskId, true, newTaskId);
-      }));
-    }
-
-    return Object.keys(nodes).reduce((result, value) => {
-      result.push(nodes[value]);
-      return result;
-    }, []);
-  }
 }
 
 export default class RetriggerJob extends Base {
@@ -126,7 +82,7 @@ export default class RetriggerJob extends Base {
           credentials: this.config.taskcluster.credentials,
           authorizedScopes: scopes
         });
-        newGraphId = await this.duplicateTaskInTaskGroup(project, queue, task)
+        newGraphId = await this.duplicateTaskInTaskGroup(project, queue, taskId)
       }
     } catch(e) {
       console.log(`Error posting retrigger job for '${project}', ${JSON.stringify(e, null, 2)}`);
@@ -184,14 +140,56 @@ export default class RetriggerJob extends Base {
     return newGraphId;
   }
 
-  async duplicateTaskInTaskGroup(project, queue, task) {
-    let newTask = duplicateTask(task);
-    let newTaskId = slugid.nice();
-    console.log(
-        `Posting retrigger job for '${project}' with task group id ${newTaskId}`
+  async duplicateTaskInTaskGroup(project, queue, taskId) {
+    let groupDuplicator = new GroupDuplicator(queue);
+    let taskNodes = {};
+    let tasks = await groupDuplicator.duplicateGroupNode(
+      taskNodes,
+      taskId,
+      true // Always duplicate entire graph
     );
-    await queue.createTask(newTaskId, newTask);
-    return newTaskId;
+
+    // Build a map of old task ids to new task ids...
+    let taskMap = Object.keys(taskNodes).reduce((result, oldTaskId) => {
+      taskNodes[oldTaskId].oldTaskId = oldTaskId;
+      result[oldTaskId] = taskNodes[oldTaskId].taskId;
+      return result;
+    }, {});
+
+    // Replace all instances of the old task id's with the new ones...
+    let transformedTasks = recursiveUpdateTaskIds(tasks, taskMap);
+
+    // Now create the new tasks.  This must proceed in post-order, with dependent
+    // tasks following those they depend on.
+    let added = new Set();
+    let byTaskId = tasks.reduce(
+        (result, taskInfo) => { result[taskInfo.taskId] = taskInfo; return result; },
+        {});
+    let add = async (taskId) => {
+      if (added.has(taskId))
+        return;
+      added.add(taskId);
+
+      let taskInfo = byTaskId[taskId];
+      // some task dependencies are not in the duplicated subgraph, and that's OK
+      if (!taskInfo)
+        return;
+
+      for (let dep of taskInfo.task.dependencies) {
+        await add(dep);
+      }
+      console.log(
+          `Posting retrigger job for '${project}' ` +
+          `with task id ${taskId} replacing ${taskInfo.oldTaskId}`
+      );
+      await queue.createTask(taskId, taskInfo.task);
+    };
+    for (let task of tasks) {
+      await add(task.taskId);
+    }
+
+    // the taskGroupId hasn't changed, so just return the original task's taskGroupId
+    return taskNodes[taskId].task.taskGroupId;
   }
 
   async postRetriggerFailureJob(projectName, revision, revisionHash, task, error) {
