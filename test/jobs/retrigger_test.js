@@ -15,11 +15,11 @@ suite('jobs/retrigger', function() {
 
     suite('duplicateTaskInTaskGroup', function() {
       test("duplicating a subgraph generates the right calls to queue.createTask", async function() {
-        fakeQueue.addTask('build', {payload: 'build', dependencies: ['other1'], taskGroupId: 'tgid'});
-        fakeQueue.addTask('test1', {payload: 'test1', dependencies: ['build', 'other2']});
-        fakeQueue.addTask('test2', {payload: 'test2', dependencies: ['build', 'test1']});
-        fakeQueue.addTask('sign', {payload: 'sign', dependencies: ['test1', 'test2', 'other3']});
-        let res = await job.duplicateTaskInTaskGroup('try', fakeQueue, 'build');
+        fakeQueue.addTask('buildId', {payload: 'build', dependencies: ['other1Id'], taskGroupId: 'tgid'});
+        fakeQueue.addTask('test1Id', {payload: 'test1', dependencies: ['buildId', 'other2Id']});
+        fakeQueue.addTask('test2Id', {payload: 'test2', dependencies: ['buildId', 'test1Id']});
+        fakeQueue.addTask('signId', {payload: 'sign', dependencies: ['test1Id', 'test2Id', 'other3Id']});
+        let res = await job.duplicateTaskInTaskGroup('try', fakeQueue, 'buildId');
         assert.equal(res, 'tgid');
         let newTaskIds = _.reduce(fakeQueue.createdTasks, (result, create) => {
           result[create.taskDef.payload] = create.taskId;
@@ -29,7 +29,7 @@ suite('jobs/retrigger', function() {
         assert.deepEqual(fakeQueue.createdTasks, [
           {
             "taskDef": {
-              "dependencies": ["other1"].sort(),
+              "dependencies": ["other1Id"].sort(),
               "payload": "build",
               "taskGroupId": "tgid"
             },
@@ -37,7 +37,7 @@ suite('jobs/retrigger', function() {
           },
           {
             "taskDef": {
-              "dependencies": ["other2", newTaskIds['build']].sort(),
+              "dependencies": ["other2Id", newTaskIds['build']].sort(),
               "payload": "test1"
             },
             "taskId": newTaskIds['test1']
@@ -52,13 +52,40 @@ suite('jobs/retrigger', function() {
           {
             "taskDef": {
               "dependencies": [
-                "other3",
+                "other3Id",
                 newTaskIds['test1'],
                 newTaskIds['test2']
               ].sort(),
               "payload": "sign"
             },
             "taskId": newTaskIds['sign']
+          }
+        ]);
+      });
+      test("duplicating a subgraph replaces task IDs referenced in task definition", async function() {
+        fakeQueue.addTask('buildId', {payload: 'build', dependencies: [], taskGroupId: 'tgid'});
+        fakeQueue.addTask('test1Id', {payload: 'test1 buildId', dependencies: ['buildId']});
+        let res = await job.duplicateTaskInTaskGroup('try', fakeQueue, 'buildId');
+        let newTaskIds = _.reduce(fakeQueue.createdTasks, (result, create) => {
+          result[create.taskDef.payload] = create.taskId;
+          return result;
+        }, {});
+        _.forEach(fakeQueue.createdTasks, create => create.taskDef.dependencies.sort());
+        assert.deepEqual(fakeQueue.createdTasks, [
+          {
+            "taskDef": {
+              "dependencies": [],
+              "payload": "build",
+              "taskGroupId": "tgid"
+            },
+            "taskId": newTaskIds['build']
+          },
+          {
+            "taskDef": {
+              "dependencies": [newTaskIds['build']],
+              "payload": `test1 ${newTaskIds['build']}`
+            },
+            "taskId": newTaskIds[`test1 ${newTaskIds['build']}`]
           }
         ]);
       });
