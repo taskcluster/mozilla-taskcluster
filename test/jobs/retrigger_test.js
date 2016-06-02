@@ -63,14 +63,24 @@ suite('jobs/retrigger', function() {
         ]);
       });
       test("duplicating a subgraph replaces task IDs referenced in task definition", async function() {
+        // Using a payload more like production task payloads will help ensure that
+        // task Ids nested deeper get replaced.
+        let objectPayload = {
+          command: "test1",
+          image: {
+            type: "task-image",
+            taskId: "buildId"
+          }
+        };
         fakeQueue.addTask('buildId', {payload: 'build', dependencies: [], taskGroupId: 'tgid'});
-        fakeQueue.addTask('test1Id', {payload: 'test1 buildId', dependencies: ['buildId']});
+        fakeQueue.addTask('test1Id', {payload: objectPayload, dependencies: ['buildId']});
         let res = await job.duplicateTaskInTaskGroup('try', fakeQueue, 'buildId');
         let newTaskIds = _.reduce(fakeQueue.createdTasks, (result, create) => {
           result[create.taskDef.payload] = create.taskId;
           return result;
         }, {});
         _.forEach(fakeQueue.createdTasks, create => create.taskDef.dependencies.sort());
+        objectPayload.image.taskId = newTaskIds['build'];
         assert.deepEqual(fakeQueue.createdTasks, [
           {
             "taskDef": {
@@ -83,11 +93,12 @@ suite('jobs/retrigger', function() {
           {
             "taskDef": {
               "dependencies": [newTaskIds['build']],
-              "payload": `test1 ${newTaskIds['build']}`
+              "payload": objectPayload
             },
-            "taskId": newTaskIds[`test1 ${newTaskIds['build']}`]
+            "taskId": newTaskIds[objectPayload]
           }
         ]);
+        assert.notEqual(fakeQueue.createdTasks[1].taskDef.payload.image.taskId, 'buildId');
       });
     });
   });
