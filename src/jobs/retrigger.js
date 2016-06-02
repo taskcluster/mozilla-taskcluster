@@ -162,7 +162,7 @@ export default class RetriggerJob extends Base {
     // Now create the new tasks.  This must proceed in post-order, with dependent
     // tasks following those they depend on.
     let added = new Set();
-    let byTaskId = tasks.reduce(
+    let byTaskId = transformedTasks.reduce(
         (result, taskInfo) => { result[taskInfo.taskId] = taskInfo; return result; },
         {});
     let add = async (taskId) => {
@@ -184,7 +184,7 @@ export default class RetriggerJob extends Base {
       );
       await queue.createTask(taskId, taskInfo.task);
     };
-    for (let task of tasks) {
+    for (let task of transformedTasks) {
       await add(task.taskId);
     }
 
