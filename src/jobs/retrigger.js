@@ -14,8 +14,11 @@ import Joi from 'joi';
 // We use public only operations on the queue here...
 const queue = new taskcluster.Queue();
 
-function recursiveUpdateTaskIds(tasks, map) {
-  return traverse.map(tasks, (value) => {
+export function recursiveUpdateTaskIds(tasks, map) {
+  return traverse.map(tasks, function (value) {
+    // Do not attempt to change old task Ids
+    if (this.key === 'oldTaskId') return value;
+    // Only operate on values that are strings;
     if (typeof value !== 'string') return value;
     // XXX: This is slow and somewhat terrible but reliable... The task ids may
     // appear anywhere in the graph (though it may not be super useful to do
