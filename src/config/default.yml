@@ -118,6 +118,12 @@ try:
         - "assume:repo:hg.mozilla.org/integration/mozilla-inbound:*"
         # temporary until this scope is removed from .taskcluster.yml
         - "assume:repo:hg.mozilla.org/try:*"
+    autoland:
+      level: 3
+      scopes:
+        - "assume:repo:hg.mozilla.org/integration/autoland:*"
+        # temporary until this scope is removed from .taskcluster.yml
+        - "assume:repo:hg.mozilla.org/try:*"
     fx-team:
       level: 3
       scopes:
