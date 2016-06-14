@@ -49,8 +49,7 @@ async function setupJobHandler(runtime, config) {
   let routingPattern = [
     'route',
     config.treeherderTaskcluster.routePrefix,
-    '*',
-    '*'
+    '#'
   ].join('.');
 
   await Promise.all([
