@@ -3,6 +3,7 @@ import slugid from 'slugid';
 import { Queue, QueueEvents, Scheduler } from 'taskcluster-client';
 import Project from 'mozilla-treeherder/project';
 import Debug from 'debug';
+import parseRoute from '../util/route_parser';
 
 let Joi = require('joi');
 let debug = Debug('treeherder:job_handler');
@@ -73,55 +74,6 @@ const EVENT_MAP = {
   [events.taskFailed().exchange]: 'failed',
   [events.taskException().exchange]: 'exception'
 };
-
-/**
- * Parses a task route and inspects task.extra.treeherder for revision information.
- * Attempt to use task.extra.treeherder.revision if it exists.  If not,
- * use whatever hash is found in the routing key.
- * Note: This is meant as a transitional period between
- * using task.extra and relying soley on the routing key.  Routing
- * key in the future will be the preferred and only method.
- */
-export function parseTaskRevisionHash(task, prefix) {
-  let revision = _.get(task, 'extra.treeherder.revision');
-
-  if (revision) {
-    return [revision, ""];
-  }
-
-  // Find treeherder specific route
-  let route = task.routes.find((route) => {
-    return route.split('.')[0] === prefix;
-  });
-
-  if (!route) {
-    return ["", ""];
-  }
-
-  // If revision information is not part of task.extra.treeherder, attempt
-  // to parse out the revision[_hash] from the routing key.
-  // Routing keys can come in versions.  If no version is specified in the routing
-  // key (assumed by routing key length to be 3), then it will be treated as
-  // version 1.  Preference is given to v2 routes over v1 if encountered.
-  // Version 1: <prefix>.<project>.<revision_hash>
-  // Version 2: <prefix>.<version>.<project>.<revision>.<pushLogId>
-  // Version >1: <prefix>.<version>.*
-  let parsedRoute = route.split('.');
-
-  // Assume it's a version 1 routing key
-  if (parsedRoute.length === 3) {
-    return ["", parsedRoute[2]];
-  }
-
-  let version = parsedRoute[1];
-  switch (version) {
-    case 'v2':
-      return [parsedRoute[3], ""];
-    default:
-      // Unrecognized route version
-      return ["", ""];
-  }
-}
 
 function defer() {
   let accept;
@@ -369,19 +321,18 @@ class Handler {
     }, TREEHERDER_INTERVAL);
   }
 
-  async handleTaskRerun(project, task, payload) {
+  async handleTaskRerun(pushInfo, task, payload) {
     let taskId = payload.status.taskId;
     let run = payload.status.runs[payload.runId - 1];
-    let [revision, revisionHash] = parseTaskRevisionHash(task, this.prefix);
-    if (!revision && !revisionHash) {
+    if (!pushInfo.revision && !pushInfo.revisionHash) {
       debug('Skip submitting job info for %s.  Missing revision and revision_hash information', taskId)
       return;
     }
 
     await this.addPush({
-      revision_hash: revisionHash,
-      revision: revision,
-      project,
+      revision_hash: pushInfo.revisionHash,
+      revision: pushInfo.revision,
+      project: pushInfo.project,
       job: Object.assign(
         jobFromTask(taskId, task, run),
         {
@@ -398,16 +349,14 @@ class Handler {
   marking previous runs of the task as "retries" if in a task graph with
   remaining retries.
 
-  @param {Object} project in treeherder.
-  @param {String} revisionHash for push.
+  @param {Object} pushInfo created from the parsed task route.
   @param {Object} task definition.
   @param {Object} payload from event.
   */
-  async handleTaskPending(project, task, payload) {
+  async handleTaskPending(pushInfo, task, payload) {
     let taskId = payload.status.taskId;
     let run = payload.status.runs[payload.runId];
-    let [revision, revisionHash] = parseTaskRevisionHash(task, this.prefix);
-    if (!revision && !revisionHash) {
+    if (!pushInfo.revision && !pushInfo.revisionHash) {
       debug('Skip submitting job info for %s.  Missing revision and revision_hash information', taskId)
       return;
     }
@@ -423,9 +372,9 @@ class Handler {
     }
 
     await this.addPush({
-      revision_hash: revisionHash,
-      revision: revision,
-      project,
+      revision_hash: pushInfo.revisionHash,
+      revision: pushInfo.revision,
+      project: pushInfo.project,
       job: Object.assign(
         jobFromTask(taskId, task, run),
         {
@@ -440,19 +389,18 @@ class Handler {
     return run.reasonCreated !== 'exception';
   }
 
-  async handleTaskRunning(project, task, payload) {
+  async handleTaskRunning(pushInfo, task, payload) {
     let taskId = payload.status.taskId;
     let run = payload.status.runs[payload.runId];
-    let [revision, revisionHash] = parseTaskRevisionHash(task, this.prefix);
-    if (!revision && !revisionHash) {
+    if (!pushInfo.revision && !pushInfo.revisionHash) {
       debug('Skip submitting job info for %s.  Missing revision and revision_hash information', taskId)
       return;
     }
 
     await this.addPush({
-      revision_hash: revisionHash,
-      revision: revision,
-      project,
+      revision_hash: pushInfo.revisionHash,
+      revision: pushInfo.revision,
+      project: pushInfo.project,
       job: Object.assign(
         jobFromTask(taskId, task, run),
         {
@@ -463,11 +411,10 @@ class Handler {
     });
   }
 
-  async handleTaskException(project, task, payload) {
+  async handleTaskException(pushInfo, task, payload) {
     let taskId = payload.status.taskId;
     let run = payload.status.runs[payload.runId];
-    let [revision, revisionHash] = parseTaskRevisionHash(task, this.prefix);
-    if (!revision && !revisionHash) {
+    if (!pushInfo.revision && !pushInfo.revisionHash) {
       debug('Skip submitting job info for %s.  Missing revision and revision_hash information', taskId)
       return;
     }
@@ -481,9 +428,9 @@ class Handler {
     }
 
     await this.addPush({
-      revision_hash: revisionHash,
-      revision: revision,
-      project,
+      revision_hash: pushInfo.revisionHash,
+      revision: pushInfo.revision,
+      project: pushInfo.project,
       job: Object.assign(
         jobFromTask(taskId, task, run),
         {
@@ -494,11 +441,10 @@ class Handler {
     });
   }
 
-  async handleTaskFailed(project, task, payload) {
+  async handleTaskFailed(pushInfo, task, payload) {
     let taskId = payload.status.taskId;
     let run = payload.status.runs[payload.runId];
-    let [revision, revisionHash] = parseTaskRevisionHash(task, this.prefix);
-    if (!revision && !revisionHash) {
+    if (!pushInfo.revision && !pushInfo.revisionHash) {
       debug('Skip submitting job info for %s.  Missing revision and revision_hash information', taskId)
       return;
     }
@@ -528,9 +474,9 @@ class Handler {
     }
 
     await this.addPush({
-      revision_hash: revisionHash,
-      revision: revision,
-      project,
+      revision_hash: pushInfo.revisionHash,
+      revision: pushInfo.revision,
+      project: pushInfo.project,
       job: Object.assign(
         jobFromTask(taskId, task, run),
         {
@@ -542,19 +488,18 @@ class Handler {
     });
   }
 
-  async handleTaskCompleted(project, task, payload) {
+  async handleTaskCompleted(pushInfo, task, payload) {
     let taskId = payload.status.taskId;
     let run = payload.status.runs[payload.runId];
-    let [revision, revisionHash] = parseTaskRevisionHash(task, this.prefix);
-    if (!revision && !revisionHash) {
+    if (!pushInfo.revision && !pushInfo.revisionHash) {
       debug('Skip submitting job info for %s.  Missing revision and revision_hash information', taskId)
       return;
     }
 
     await this.addPush({
-      revision_hash: revisionHash,
-      revision: revision,
-      project,
+      revision_hash: pushInfo.revisionHash,
+      revision: pushInfo.revision,
+      project: pushInfo.project,
       job: Object.assign(
         jobFromTask(taskId, task, run),
         {
@@ -595,6 +540,11 @@ class Handler {
   async handleTaskEvent(message) {
     let { payload, exchange, routes } = message;
 
+    if (!EVENT_MAP[exchange]) {
+      console.error('Unknown state', exchange);
+      return;
+    }
+
     let route = routes.find((route) => {
       return route.split('.')[0] === this.prefix;
     });
@@ -603,37 +553,38 @@ class Handler {
       throw new Error(`Unexpected message (no route) on ${exchange}`);
     }
 
-    // The project and revision hash is encoded as part of the route...
-    let [ , project, revisionHash ] = route.split('.');
-
-    if (!EVENT_MAP[exchange]) {
-      console.error('Unknown state', exchange);
-      return;
-    }
-
-    let treeherderProject = this.getProject(project);
+    let parsedRoute = parseRoute(route);
+    let treeherderProject = this.getProject(parsedRoute.project);
     let task = await this.queue.task(payload.status.taskId);
+
+    // During a transition period, some tasks might contain a revision within
+    // the task definition that should override the revision in the routing key.
+    let revision = _.get(task, 'extra.treeherder.revision');
+
+    if (revision) {
+      parsedRoute.revision = revision;
+    }
 
     switch (EVENT_MAP[exchange]) {
       case 'pending':
         return this.handleTaskPending(
-          project, task, payload
+          parsedRoute, task, payload
         );
       case 'running':
         return await this.handleTaskRunning(
-          project, task, payload
+          parsedRoute, task, payload
         );
       case 'completed':
         return await this.handleTaskCompleted(
-          project, task, payload
+          parsedRoute, task, payload
         );
       case 'exception':
         return await this.handleTaskException(
-          project, task, payload
+          parsedRoute, task, payload
         );
       case 'failed':
         return this.handleTaskFailed(
-          project, task, payload
+          parsedRoute, task, payload
         );
     }
   }

@@ -1,8 +1,9 @@
+import _ from 'lodash';
 import taskcluster from 'taskcluster-client';
 import kue from 'kue';
 import slugid from 'slugid';
 import denodeify from 'denodeify';
-import { parseTaskRevisionHash } from './job_handler';
+import parseRoute from '../util/route_parser';
 
 const JOB_RETRY_DELAY = 1000 * 10;
 const JOB_ATTEMPTS = 20;
@@ -46,11 +47,27 @@ class Handler {
       return
     }
 
-    let [revision, revisionHash] = parseTaskRevisionHash(task, this.prefix);
+    let route = task.routes.find((route) => {
+      return route.split('.')[0] === this.prefix;
+    });
 
-    if (!revision && !revisionHash) {
+    if (!route) {
+      throw new Error(`Unexpected message (no route) on ${exchange}`);
+    }
+
+    let parsedRoute = parseRoute(route);
+
+    if (!parsedRoute.revision && !parsedRoute.revisionHash) {
       console.log(`Could not determine revision hash from task ${taskId}.  Not retriggering.`);
       return;
+    }
+
+    // During a transition period, some tasks might contain a revision within
+    // the task definition that should override the revision in the routing key.
+    let revision = _.get(task, 'extra.treeherder.revision');
+
+    if (revision) {
+      parsedRoute.revision = revision;
     }
 
     // TODO: This would also be a good place to validate the scopes of how
@@ -61,8 +78,8 @@ class Handler {
       title: `Retrigger for ${taskId} for project ${payload.project} (${payload.requester})`,
       project: payload.project,
       requester: payload.requester,
-      revisionHash: revisionHash,
-      revision: revision
+      revisionHash: parsedRoute.revisionHash,
+      revision: parsedRoute.revision
     });
   }
 
