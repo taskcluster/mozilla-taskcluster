@@ -371,7 +371,7 @@ class Handler {
       // Only issue this if the run was created for a rerun
       (run.reasonCreated === 'rerun' || run.reasonCreated === 'retry')
     ) {
-      await this.handleTaskRerun(project, task, payload);
+      await this.handleTaskRerun(pushInfo.project, task, payload);
     }
 
     await this.addPush({
