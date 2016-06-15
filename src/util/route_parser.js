@@ -16,10 +16,18 @@ export default function parseRoute(route) {
         revisionHash: parsedRoute[2],
       };
     case 'v2':
-      return {
+      let pushInfo = {
         project: parsedRoute[2],
         revision: parsedRoute[3],
       };
+
+      // Assume that this is a github push, and project should be the second part
+      // of the project passed in.
+      if (pushInfo.project.split('/').length === 2) {
+        pushInfo.project = pushInfo.project.split('/')[1]
+      }
+
+      return pushInfo;
     default:
       throw new Error(
           'Unrecognized treeherder routing key format. Possible formats are:\n' +
