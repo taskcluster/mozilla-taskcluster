@@ -533,6 +533,15 @@ class Handler {
     }
 
     let parsedRoute = parseRoute(route);
+
+    if (!parsedRoute.project) {
+      debug(
+          `Error: Could not determine project name for ${taskId}. Task routes: ${routes}. ` +
+          `Parsed route info: ${JSON.stringify(parsedRoute)}`
+      );
+      return;
+    }
+
     let treeherderProject = this.getProject(parsedRoute.project);
     let task = await this.queue.task(payload.status.taskId);
 
@@ -547,7 +556,7 @@ class Handler {
     if (!parsedRoute.revision && !parsedRoute.revisionHash) {
       debug(
         `Error: Skip submitting job info for ${taskId}.  Missing revision and revision_hash ` +
-        `information. Route info: ${JSON.stringify(parsedRoute)}`
+        `information. Task routes: ${routes}. Parsed route info: ${JSON.stringify(parsedRoute)}`
       );
       return;
     }
