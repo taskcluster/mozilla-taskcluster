@@ -2,7 +2,6 @@ import taskcluster from 'taskcluster-client';
 import * as projectConfig from '../project_scopes';
 import slugid from 'slugid';
 import { duplicate as duplicateTask } from '../taskcluster/duplicate_task';
-import { jobFromTask } from '../treeherder/job_handler';
 import traverse from 'traverse';
 import Project from 'mozilla-treeherder/project';
 import { GraphDuplicator, GroupDuplicator } from '../taskcluster/duplicator';
@@ -13,6 +12,151 @@ import Joi from 'joi';
 
 // We use public only operations on the queue here...
 const queue = new taskcluster.Queue();
+
+// Schema for the task.extra.treeherder field.
+const SCHEMA = Joi.object().keys({
+  // Maps directly to `build_platform`
+  build: Joi.object().keys({
+    platform: Joi.string().required().
+      description('Treeherder platform name'),
+    os_name: Joi.string().default('-').
+      description('Operating system name for build (linux)'),
+    architecture: Joi.string().default('-').
+      description('Operating system architecture (x64, etc..)')
+  }).required().rename('os', 'os_name'),
+
+  machine: Joi.object().keys({
+    platform: Joi.string().required(),
+    os_name: Joi.string().default('-'),
+    architecture: Joi.string().default('-')
+  }).required().rename('os', 'os_name'),
+
+  machineId: Joi.string().
+    description('Machine ID that executed the task run'),
+
+  symbol: Joi.string().required().
+    description('Treeherder job symbol'),
+  groupName: Joi.string().
+    description('Treeherder group name (seen when hovering over group symbol)').
+    default('unknown'),
+  groupSymbol: Joi.string().
+    description('Treeherder group symbol').
+    // If the default is not set to ? 'unknown' is used in the UI which will
+    // trigger that to be displayed when ? is used no extra UI is present.
+    default('?'),
+  tier: Joi.number().
+    description('Treeherder tier').
+    default(1),
+  productName: Joi.string().
+    description('TODO: Figure out what this is for'),
+
+  collection: Joi.object().unknown(true).keys({
+    opt: Joi.boolean(),
+    debug: Joi.boolean(),
+    pgo: Joi.boolean(),
+    cc: Joi.boolean(),
+    asan: Joi.boolean(),
+    tsan: Joi.boolean(),
+    addon: Joi.boolean(),
+  }),
+
+  revision_hash: Joi.string().allow('').
+    description('Calculated revision hash when result set was created'),
+
+  revision: Joi.string().allow('').
+    description('Top level revision for the push'),
+
+  jobKind: Joi.string().allow('').
+    description('Kind of job (build, test, other)')
+});
+
+/** Convert Date object or JSON date-time string to UNIX timestamp */
+function timestamp(date) {
+  return Math.floor(new Date(date).getTime() / 1000);
+};
+
+function jobFromTask(taskId, task, run) {
+  // Create the default set of options...
+  let treeherder = (task.extra && task.extra.treeherder) || {};
+  treeherder = _.merge(
+    {
+      build: {
+        platform: task.workerType
+      },
+      machine: {
+        platform: task.workerType
+      },
+      machineId: run.workerId,
+      revision_hash: "",
+      revision: ""
+    },
+    treeherder
+  );
+
+  // Here primarily for backwards compatibility so we don't need to require
+  // tasks to define collection
+  if (!treeherder.collection) {
+    treeherder.collection = { opt: true };
+  }
+
+  // Chunks are often numbers type cast here so we don't need to enforce
+  // this everywhere...
+  if (typeof treeherder.symbol === 'number') {
+    treeherder.symbol = String(treeherder.symbol);
+  }
+
+  // Validation is useful primarily for use with kue viewer as you can easily
+  // see what failed during the validation.
+  let validate = Joi.validate(treeherder, SCHEMA);
+  if (validate.error) {
+    throw new Error(validate.error.annotate());
+  }
+
+  let config = validate.value;
+  let job = {
+    job_guid: `${slugid.decode(taskId)}/${run.runId}`,
+    build_system_type: 'taskcluster',
+    build_platform: config.build,
+    machine_platform: config.machine,
+    machine: config.machineId,
+    // Maximum job name length is 100 chars...
+    name: task.metadata.name.slice(0, 99),
+    reason: 'scheduled',  // use reasonCreated or reasonResolved
+    job_symbol: config.symbol,
+    submit_timestamp: timestamp(task.created),
+    start_timestamp: (run.started ? timestamp(run.started) : undefined),
+    end_timestamp: (run.resolved ? timestamp(run.resolved) : undefined),
+    who: task.metadata.owner,
+    option_collection: config.collection
+  };
+
+  // Optional configuration details if these keys are present it has an effect
+  // on the job results so they are conditionally added to the object.
+  if (config.groupName) job.group_name = config.groupName;
+  if (config.groupSymbol) job.group_symbol = config.groupSymbol;
+  if (config.productName) job.product_name = config.productName;
+  if (config.tier) job.tier = config.tier;
+
+  // Add link to task-inspector
+  let inspectorLink = 'https://tools.taskcluster.net/task-inspector/#' +
+                      taskId + '/' + run.runId;
+
+  // TODO: Consider removing this in favor of something else...
+  job.artifacts = [{
+    type:     'json',
+    name:     'Job Info',
+    blob: {
+      job_details: [{
+        url:            inspectorLink,
+        value:          'Inspect Task',
+        content_type:   'link',
+        title:          'Inspect Task'
+      }]
+    }
+  }];
+
+  return job;
+}
 
 export function recursiveUpdateTaskIds(tasks, map) {
   return traverse.map(tasks, function (value) {
