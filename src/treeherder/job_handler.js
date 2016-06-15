@@ -327,10 +327,6 @@ class Handler {
   async handleTaskRerun(pushInfo, task, payload) {
     let taskId = payload.status.taskId;
     let run = payload.status.runs[payload.runId - 1];
-    if (!pushInfo.revision && !pushInfo.revisionHash) {
-      debug('Skip submitting job info for %s.  Missing revision and revision_hash information', taskId)
-      return;
-    }
 
     await this.addPush({
       revision_hash: pushInfo.revisionHash,
@@ -359,10 +355,6 @@ class Handler {
   async handleTaskPending(pushInfo, task, payload) {
     let taskId = payload.status.taskId;
     let run = payload.status.runs[payload.runId];
-    if (!pushInfo.revision && !pushInfo.revisionHash) {
-      debug('Skip submitting job info for %s.  Missing revision and revision_hash information', taskId)
-      return;
-    }
 
     // Specialized handling for reruns...
     if (
@@ -395,10 +387,6 @@ class Handler {
   async handleTaskRunning(pushInfo, task, payload) {
     let taskId = payload.status.taskId;
     let run = payload.status.runs[payload.runId];
-    if (!pushInfo.revision && !pushInfo.revisionHash) {
-      debug('Skip submitting job info for %s.  Missing revision and revision_hash information', taskId)
-      return;
-    }
 
     await this.addPush({
       revision_hash: pushInfo.revisionHash,
@@ -417,10 +405,6 @@ class Handler {
   async handleTaskException(pushInfo, task, payload) {
     let taskId = payload.status.taskId;
     let run = payload.status.runs[payload.runId];
-    if (!pushInfo.revision && !pushInfo.revisionHash) {
-      debug('Skip submitting job info for %s.  Missing revision and revision_hash information', taskId)
-      return;
-    }
 
     if (!this.shouldReportExceptionRun(run)) {
       debug('ignoring task exception for task %s. Reason Resolved: %s',
@@ -447,10 +431,6 @@ class Handler {
   async handleTaskFailed(pushInfo, task, payload) {
     let taskId = payload.status.taskId;
     let run = payload.status.runs[payload.runId];
-    if (!pushInfo.revision && !pushInfo.revisionHash) {
-      debug('Skip submitting job info for %s.  Missing revision and revision_hash information', taskId)
-      return;
-    }
 
     let state = stateFromRun(run);
     let result = resultFromRun(run);
@@ -494,10 +474,6 @@ class Handler {
   async handleTaskCompleted(pushInfo, task, payload) {
     let taskId = payload.status.taskId;
     let run = payload.status.runs[payload.runId];
-    if (!pushInfo.revision && !pushInfo.revisionHash) {
-      debug('Skip submitting job info for %s.  Missing revision and revision_hash information', taskId)
-      return;
-    }
 
     await this.addPush({
       revision_hash: pushInfo.revisionHash,
@@ -566,6 +542,14 @@ class Handler {
 
     if (revision) {
       parsedRoute.revision = revision;
+    }
+
+    if (!parsedRoute.revision && !parsedRoute.revisionHash) {
+      debug(
+        `Error: Skip submitting job info for ${taskId}.  Missing revision and revision_hash ` +
+        `information. Route info: ${JSON.stringify(parsedRoute)}`
+      );
+      return;
     }
 
     switch (EVENT_MAP[exchange]) {
