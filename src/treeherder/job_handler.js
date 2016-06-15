@@ -64,7 +64,10 @@ const SCHEMA = Joi.object().keys({
     description('Calculated revision hash when result set was created'),
 
   revision: Joi.string().allow('').
-    description('Top level revision for the push')
+    description('Top level revision for the push'),
+
+  jobKind: Joi.string().allow('').
+    description('Kind of job (build, test, other)')
 });
 
 const EVENT_MAP = {
