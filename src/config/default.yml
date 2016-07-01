@@ -217,3 +217,8 @@ try:
       level: 'nss'
       scopes:
         - "assume:repo:hg.mozilla.org/projects/nss:*"
+        
+    nss-try:
+      level: 'nss'
+      scopes:
+        - "assume:repo:hg.mozilla.org/projects/nss-try:*"
