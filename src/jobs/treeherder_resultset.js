@@ -42,19 +42,7 @@ export default class TreeherderResultsetJob extends Base {
     });
 
     let resultset = formatResultset(repo.alias, push);
-    console.log(`Posting result set for project '${repo.alias}'`);
-    try {
-      await treeherderProject.postResultset([resultset]);
-      console.log(`Posted result set for project '${repo.alias}'. ` +
-                  `Treeeherder revision hash: ${resultset.revision_hash} and revision ` +
-                  `${resultset.revision}`);
-    } catch(e) {
-      console.log(
-          `Error posting result set for project '${repo.alias}', ${e.message}, ` +
-          `resultset ${JSON.stringify(resultset)}`
-      );
-      throw e;
-    }
+    console.log(`Created result set for project '${repo.alias}'`);
 
     if(!this.config.try.enabled) {
       console.log(
