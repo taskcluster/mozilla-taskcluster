@@ -43,7 +43,6 @@ Fetch a task graph from a url (retires included...)
 */
 async function fetchGraph(job, url) {
   assert(url, 'url is required');
-  console.log(`fetching graph ${url}`);
   let opts = { interval: GRAPH_INTERVAL, retires: GRAPH_RETIRES };
   try {
     return await retry(opts, async () => {
@@ -83,6 +82,22 @@ export default class TaskclusterGraphJob extends Base {
     let push = await this.runtime.pushlog.getOne(repo.url, pushref.id);
     let lastChangeset = push.changesets[push.changesets.length - 1];
 
+    let level = projectConfig.level(this.config.try, repo.alias);
+    let scopes = projectConfig.scopes(this.config.try, repo.alias)
+
+    let templateVariables = {
+      owner: push.user,
+      revision: lastChangeset.node,
+      project: repo.alias,
+      level: level,
+      revision_hash,
+      // Intention use of ' ' must be a non zero length string...
+      comment: parseCommitMessage(lastChangeset.desc) || ' ',
+      pushlog_id: String(push.id),
+      url: repo.url,
+      importScopes: true
+    };
+
     let repositoryUrlParts = parseUrl(repo.url);
     let urlVariables = {
       // These values are defined in projects.yml
@@ -92,45 +107,122 @@ export default class TaskclusterGraphJob extends Base {
       host: repositoryUrlParts.host
     };
 
+    let errorGraphUrl =
+      mustache.render(this.config.try.errorTaskUrl, urlVariables);
+
     // Try fetching from .taskgraph.yml, the preferred location, falling back
     // to the project URL The latter is supported only for branches to which
     // .taskcluster.yml (and the task-graph generation support in taskcluster/
     // to which it points) has not yet been merged.
-    let graphUrl, graphText;
     try {
-      graphUrl = projectConfig.tcYamlUrl(this.config.try, urlVariables);
+      let graphUrl = projectConfig.tcYamlUrl(this.config.try, urlVariables);
       console.log(`Fetching '.taskcluster.yml' url ${graphUrl} for '${repo.alias}' push id ${push.id}`);
-      graphText = await fetchGraph(job, graphUrl);
+      let graphText = await fetchGraph(job, graphUrl);
+      templateVariables.source = graphUrl;
+      // Assume .taskcluster.yml has been fetched successfully
+      let queue = new taskcluster.Queue({
+        credentials: this.config.taskcluster.credentials,
+        authorizedScopes: scopes
+      });
+
+      return await this.scheduleTaskGroup(queue,
+                                          repo.alias,
+                                          graphText,
+                                          templateVariables,
+                                          scopes,
+                                          errorGraphUrl);
     } catch (err) {
-      graphUrl = projectConfig.url(this.config.try, repo.alias, urlVariables);
+      let graphUrl = projectConfig.url(this.config.try, repo.alias, urlVariables);
       console.log(`Fetching url ${graphUrl} for '${repo.alias}' push id ${push.id}`);
-      graphText = await fetchGraph(job, graphUrl);
+      let graphText = await fetchGraph(job, graphUrl);
+      templateVariables.source = graphUrl;
+
+      let scheduler = new taskcluster.Scheduler({
+        credentials: this.config.taskcluster.credentials,
+        // Include scopes for creating and extending task graphs.
+        authorizedScopes: scopes.concat(['scheduler:create-task-graph', 'scheduler:extend-task-graph:*'])
+      });
+
+      return await this.scheduleTaskGraph(scheduler,
+                                          repo.alias,
+                                          graphText,
+                                          templateVariables,
+                                          scopes,
+                                          errorGraphUrl);
+    }
+  }
+
+  async scheduleTaskGroup(client, project, template, templateVariables, scopes, errorGraphUrl) {
+    let schedulerId = `gecko-level-${templateVariables.level}`;
+    let groupId = slugid.nice();
+
+    templateVariables.scheduler_id = schedulerId;
+    templateVariables.task_group_id = groupId;
+
+    let renderedTemplate;
+    try {
+      renderedTemplate = instantiate(template, templateVariables);
+    } catch(e) {
+      console.log(`Error creating graph due to yaml syntax errors, ${e.message}`);
+      // Even though we won't end up doing anything overly useful we still need
+      // to convey some status to the end user ... The instantiate error should
+      // be safe to pass as it is simply some yaml error.
+      let errorGraph = await fetchGraph(job, errorGraphUrl);
+      renderedTemplate = instantiate(errorGraph, templateVariables);
+      renderedTemplate.tasks[0].task.payload.env = renderedTemplate.tasks[0].task.payload.env || {};
+      renderedTemplate.tasks[0].task.payload.env.ERROR_MSG = e.toString()
     }
 
-    let variables = {
-      owner: push.user,
-      source: graphUrl,
-      revision: lastChangeset.node,
-      project: repo.alias,
-      level: projectConfig.level(this.config.try, repo.alias),
-      revision_hash,
-      // Intention use of ' ' must be a non zero length string...
-      comment: parseCommitMessage(lastChangeset.desc) || ' ',
-      pushlog_id: String(push.id),
-      url: repo.url,
-      importScopes: true
-    };
+    // Iterate over the tasks and ignore other graph related fields that might
+    // exist
+    for (let task of renderedTemplate.tasks) {
+      let taskId = slugid.nice();
+      let taskDefinition = task;
+      // Support legacy .taskcluster.yml files that listed tasks as
+      // [{taskId: ..., task: <definition>}, ...]
+      if (task.task) {
+        taskDefinition = task.task;
+      }
 
+      // Give all tasks within the task template the scopes allowed for the
+      // given project.  This makes the assumption that the template only contains
+      // one task, which is a decision task.
+      let taskScopes = new Set(taskDefinition.scopes.concat(scopes));
+      taskDefinition.scopes = Array.from(taskScopes);
+
+      // If template does not already define these, then add them.  Tasks should
+      // convert to having template variables for these.
+      if (!taskDefinition.schedulerId && !taskDefinition.taskGroupId) {
+        taskDefinition.schedulerId = schedulerId;
+        taskDefinition.taskGroupId = groupId;
+      }
+
+      console.log(
+        `Creating task. Project: ${project} ` +
+        `Revision: ${templateVariables.revision} Task ID: ${taskId}`
+      );
+      try {
+        await client.createTask(taskId, taskDefinition);
+        console.log(
+          `Created task. Project: ${project} ` +
+          `Revision: ${templateVariables.revision} Task ID: ${taskId}`
+        );
+      } catch(e) {
+        console.log(`Error creating task ${taskId} for project ${project}, ${e.message}`);
+        throw e;
+      }
+    }
+  }
+
+  async scheduleTaskGraph(client, project, graphTemplate, templateVariables, scopes, errorGraphUrl) {
     let graph;
     try {
-      graph = instantiate(graphText, variables);
+      graph = instantiate(graphTemplate, templateVariables);
     } catch (e) {
       console.log("Error creating graph due to yaml syntax errors...", e);
       // Even though we won't end up doing anything overly useful we still need
       // to convey some status to the end user ... The instantiate error should
       // be safe to pass as it is simply some yaml error.
-      let errorGraphUrl =
-        mustache.render(this.config.try.errorTaskUrl, urlVariables);
       let errorGraph = await fetchGraph(job, errorGraphUrl);
       graph = instantiate(errorGraph, variables);
       graph.tasks[0].task.payload.env = graph.tasks[0].task.payload.env || {};
@@ -138,16 +230,9 @@ export default class TaskclusterGraphJob extends Base {
     }
 
     let id = slugid.nice();
-    let scopes = projectConfig.scopes(this.config.try, repo.alias);
 
     // strip `version`; this is temporary while we are still using the task-graph scheduler
     delete graph.version;
-
-    let scheduler = new taskcluster.Scheduler({
-      credentials: this.config.taskcluster.credentials,
-      // Include scopes for creating and extending task graphs.
-      authorizedScopes: scopes.concat(['scheduler:create-task-graph', 'scheduler:extend-task-graph:*'])
-    });
 
     // Assign maximum level of scopes to the graph....
     graph.scopes = scopes;
@@ -182,13 +267,13 @@ export default class TaskclusterGraphJob extends Base {
     }
 
     console.log(
-        `Posting job for project '${repo.alias}' with id ${id} ` +
+        `Posting job for project '${project}' with id ${id} ` +
         `and scopes ${graph.scopes.join(', ')}`
     );
     try {
-      await scheduler.createTaskGraph(id, graph);
+      await client.createTaskGraph(id, graph);
     } catch (e) {
-      console.log(`Error posting job for '${repo.alias}', ${JSON.stringify(e, null, 2)}`);
+      console.log(`Error posting job for '${project}', ${JSON.stringify(e, null, 2)}`);
       throw e;
     }
   }
