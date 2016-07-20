@@ -70,9 +70,7 @@ export default function instantiate(template, options) {
     pushlog_id: Joi.string().required(),
     url: Joi.string().required(),
     importScopes: Joi.boolean().required(),
-    error: Joi.string(),
-    task_group_id: Joi.string(),
-    scheduler_id: Joi.string()
+    error: Joi.string()
   }));
 
   // Create label cache, so we provide the same slugids for the same label
@@ -107,9 +105,7 @@ export default function instantiate(template, options) {
     pushlog_id: options.pushlog_id,
     url: options.url,
     from_now: fromNow,
-    as_slugid: asSlugId,
-    task_group_id: options.task_group_id,
-    scheduler_id: options.scheduler_id,
+    as_slugid: asSlugId
   });
 
   // Parse template

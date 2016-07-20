@@ -154,10 +154,7 @@ export default class TaskclusterGraphJob extends Base {
 
   async scheduleTaskGroup(client, project, template, templateVariables, scopes, errorGraphUrl) {
     let schedulerId = `gecko-level-${templateVariables.level}`;
-    let groupId = slugid.nice();
-
-    templateVariables.scheduler_id = schedulerId;
-    templateVariables.task_group_id = groupId;
+    let groupId;
 
     let renderedTemplate;
     try {
@@ -177,6 +174,12 @@ export default class TaskclusterGraphJob extends Base {
     // exist
     for (let task of renderedTemplate.tasks) {
       let taskId = slugid.nice();
+
+      // set the groupId to match the taskId of the first task in the graph
+      if (!groupId) {
+        groupId = taskId;
+      }
+
       let taskDefinition = task;
       // Support legacy .taskcluster.yml files that listed tasks as
       // [{taskId: ..., task: <definition>}, ...]
@@ -190,12 +193,9 @@ export default class TaskclusterGraphJob extends Base {
       let taskScopes = new Set(taskDefinition.scopes.concat(scopes));
       taskDefinition.scopes = Array.from(taskScopes);
 
-      // If template does not already define these, then add them.  Tasks should
-      // convert to having template variables for these.
-      if (!taskDefinition.schedulerId && !taskDefinition.taskGroupId) {
-        taskDefinition.schedulerId = schedulerId;
-        taskDefinition.taskGroupId = groupId;
-      }
+      // schedulerId and taskGroupId can't be specified in the template
+      taskDefinition.schedulerId = schedulerId;
+      taskDefinition.taskGroupId = groupId;
 
       console.log(
         `Creating task. Project: ${project} ` +
