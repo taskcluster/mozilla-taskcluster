@@ -42,11 +42,6 @@ class Handler {
   }
 
   async handleRetrigger(taskId, runId, task, payload) {
-    // Must be a scheduled task and have a task group ID
-    if (task.schedulerId !== SCHEDULER_TYPE || !task.taskGroupId) {
-      return
-    }
-
     let route = task.routes.find((route) => {
       return route.split('.')[0] === this.prefix;
     });
@@ -58,7 +53,7 @@ class Handler {
     let parsedRoute = parseRoute(route);
 
     if (!parsedRoute.revision && !parsedRoute.revisionHash) {
-      console.log(`Could not determine revision hash from task ${taskId}.  Not retriggering.`);
+      console.log(`Could not determine revision hash while retriggering task ${taskId}.  Not retriggering.`);
       return;
     }
 
