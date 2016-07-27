@@ -187,7 +187,7 @@ export default class RetriggerJob extends Base {
 
   async work(job) {
     let { taskId, runId, requester, project, revisionHash, revision } = job.data;
-    console.log(`Handling retrigger for job ${taskId} in project '${project}'`);
+    console.log(`Handling retrigger for job ${taskId} in project '${project}' (${requester})`);
 
     let task = await queue.task(taskId);
     let { status } = await queue.status(taskId);
