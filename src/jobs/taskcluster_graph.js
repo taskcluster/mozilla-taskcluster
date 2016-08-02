@@ -191,7 +191,8 @@ export default class TaskclusterGraphJob extends Base {
       // Give all tasks within the task template the scopes allowed for the
       // given project.  This makes the assumption that the template only contains
       // one task, which is a decision task.
-      let taskScopes = new Set(taskDefinition.scopes.concat(scopes));
+      let taskDefinitionScopes = taskDefinition.scopes || [];
+      let taskScopes = new Set(taskDefinitionScopes.concat(scopes));
       taskDefinition.scopes = Array.from(taskScopes);
 
       // schedulerId and taskGroupId can't be specified in the template
