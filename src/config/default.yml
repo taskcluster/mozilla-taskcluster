@@ -214,11 +214,13 @@ try:
         # temporary until this scope is removed from .taskcluster.yml
         - "assume:repo:hg.mozilla.org/try:*"
     nss:
+      url: "{{{host}}}{{{path}}}/raw-file/{{revision}}/automation/taskcluster/decision_task.yml"
       level: 'nss'
       scopes:
         - "assume:repo:hg.mozilla.org/projects/nss:*"
         
     nss-try:
+      url: "{{{host}}}{{{path}}}/raw-file/{{revision}}/automation/taskcluster/decision_task.yml"
       level: 'nss-try'
       scopes:
         - "assume:repo:hg.mozilla.org/projects/nss-try:*"
