@@ -132,6 +132,7 @@ export default class TaskclusterGraphJob extends Base {
                                           scopes,
                                           errorGraphUrl);
     } catch (err) {
+      console.log(`Error fetching .taskcluster.yml at ${graphUrl} for ${repo.alias}. ${err.stack}`);
       let graphUrl = projectConfig.url(this.config.try, repo.alias, urlVariables);
       console.log(`Fetching url ${graphUrl} for '${repo.alias}' push id ${push.id}`);
       let graphText = await fetchGraph(job, graphUrl);
