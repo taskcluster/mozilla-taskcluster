@@ -81,6 +81,7 @@ export default class TaskclusterGraphJob extends Base {
     let { revision_hash, pushref, repo } = job.data;
     let push = await this.runtime.pushlog.getOne(repo.url, pushref.id);
     let lastChangeset = push.changesets[push.changesets.length - 1];
+    let pushdate = push.date;
 
     let level = projectConfig.level(this.config.try, repo.alias);
     let scopes = projectConfig.scopes(this.config.try, repo.alias)
@@ -95,7 +96,8 @@ export default class TaskclusterGraphJob extends Base {
       comment: parseCommitMessage(lastChangeset.desc) || ' ',
       pushlog_id: String(push.id),
       url: repo.url,
-      importScopes: true
+      importScopes: true,
+      pushdate
     };
 
     let repositoryUrlParts = parseUrl(repo.url);
