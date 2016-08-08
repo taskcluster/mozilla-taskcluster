@@ -106,7 +106,8 @@ export default function instantiate(template, options) {
     pushlog_id: options.pushlog_id,
     url: options.url,
     from_now: fromNow,
-    as_slugid: asSlugId
+    as_slugid: asSlugId,
+    pushdate: options.pushdate
   });
 
   // Parse template
