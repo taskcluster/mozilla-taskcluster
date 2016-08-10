@@ -68,6 +68,7 @@ class Handler {
     // TODO: This would also be a good place to validate the scopes of how
     // this is set.
     await scheduleAction(this.jobs, 'retrigger', {
+      eventId: slugid.v4(),
       taskId,
       runId,
       title: `Retrigger for ${taskId} for project ${payload.project} (${payload.requester})`,
@@ -82,6 +83,7 @@ class Handler {
     let { payload, exchange, routes } = message;
     // We encode the task id/run into the job guid so extract the task id.
     let [taskId, runId] = payload.job_guid.split('/')
+    console.log(`Received ${payload.action} event for task ${taskId} by ${payload.requester}`);
     taskId = slugid.encode(taskId);
     let task = await this.queue.task(taskId);
 
