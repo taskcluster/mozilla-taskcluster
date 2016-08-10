@@ -186,8 +186,9 @@ export default class RetriggerJob extends Base {
   }
 
   async work(job) {
-    let { taskId, runId, requester, project, revisionHash, revision } = job.data;
-    console.log(`Handling retrigger for job ${taskId} in project '${project}' (${requester})`);
+    let { eventId, taskId, runId, requester, project, revisionHash, revision } = job.data;
+    console.log(`Handling retrigger event ${eventId} for ` +
+                `task ${taskId} in project '${project}' (${requester})`);
 
     let task = await queue.task(taskId);
     let { status } = await queue.status(taskId);
@@ -249,6 +250,8 @@ export default class RetriggerJob extends Base {
     await this.publisher.publish(
       RetriggerExchange, routingKeys, message
     );
+    console.log(`Finished handling retrigger event ${eventId} for ` +
+                `task ${taskId} in project '${project}' (${requester})`);
   }
 
   async duplicateTaskInTaskGraph(project, scheduler, graphId, taskId, taskGraphDetails, scopes) {
