@@ -83,8 +83,8 @@ class Handler {
     let { payload, exchange, routes } = message;
     // We encode the task id/run into the job guid so extract the task id.
     let [taskId, runId] = payload.job_guid.split('/')
-    console.log(`Received ${payload.action} event for task ${taskId} by ${payload.requester}`);
     taskId = slugid.encode(taskId);
+    console.log(`Received ${payload.action} event for task ${taskId} by ${payload.requester}`);
     let task = await this.queue.task(taskId);
 
     switch (payload.action) {
