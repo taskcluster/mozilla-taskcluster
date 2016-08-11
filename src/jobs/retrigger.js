@@ -332,8 +332,16 @@ export default class RetriggerJob extends Base {
           `Posting retrigger job for '${project}' ` +
           `with task id ${taskId} replacing ${taskInfo.oldTaskId}`
       );
+
+      // update created to the current time, since queue requires this to be
+      // approximately "now".  The task duplication process took care of updating
+      // all of the other timestamps.
+      taskInfo.task.created = (new Date()).toJson();
+
       await queue.createTask(taskId, taskInfo.task);
     };
+
+    console.log(`Posting ${transformedTasks.length} tasks to retrigger ${taskId}`);
     for (let task of transformedTasks) {
       await add(task.taskId);
     }
