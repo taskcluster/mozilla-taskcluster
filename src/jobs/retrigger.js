@@ -336,7 +336,7 @@ export default class RetriggerJob extends Base {
       // update created to the current time, since queue requires this to be
       // approximately "now".  The task duplication process took care of updating
       // all of the other timestamps.
-      taskInfo.task.created = (new Date()).toJson();
+      taskInfo.task.created = (new Date()).toJSON();
 
       await queue.createTask(taskId, taskInfo.task);
     };
