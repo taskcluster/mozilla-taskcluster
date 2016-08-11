@@ -6,7 +6,7 @@ import denodeify from 'denodeify';
 import parseRoute from '../util/route_parser';
 
 const JOB_RETRY_DELAY = 1000 * 10;
-const JOB_ATTEMPTS = 20;
+const JOB_ATTEMPTS = 1;
 
 const SCHEDULER_TYPE = 'task-graph-scheduler';
 
