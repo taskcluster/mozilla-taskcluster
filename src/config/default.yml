@@ -213,6 +213,18 @@ try:
         - "assume:repo:hg.mozilla.org/releases/mozilla-esr45:*"
         # temporary until this scope is removed from .taskcluster.yml
         - "assume:repo:hg.mozilla.org/try:*"
+    stylo:
+      level: 2
+      scopes:
+        - "assume:repo:hg.mozilla.org/incubator/stylo:*"
+        # temporary until this scope is removed from .taskcluster.yml
+        - "assume:repo:hg.mozilla.org/try:*"
+    stylo-try:
+      level: 1
+      scopes:
+        - "assume:repo:hg.mozilla.org/incubator/stylo-try:*"
+        # temporary until this scope is removed from .taskcluster.yml
+        - "assume:repo:hg.mozilla.org/try:*"
     nss:
       url: "{{{host}}}{{{path}}}/raw-file/{{revision}}/automation/taskcluster/decision_task.yml"
       level: 'nss'
