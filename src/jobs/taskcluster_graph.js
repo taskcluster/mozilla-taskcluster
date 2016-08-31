@@ -8,6 +8,7 @@ import mustache from 'mustache';
 import * as projectConfig from '../project_scopes';
 import assert from 'assert';
 import retry from 'promise-retries';
+import shell_quote from 'shell-quote';
 
 import Path from 'path';
 import Base from './base';
@@ -86,6 +87,12 @@ export default class TaskclusterGraphJob extends Base {
     let level = projectConfig.level(this.config.try, repo.alias);
     let scopes = projectConfig.scopes(this.config.try, repo.alias)
 
+    // quote the contained text for passing to the shell; note that this includes
+    // the leading and trailing " or ' characters, so they must not be included
+    // in the template.
+    let shellquote = (text, render) => {
+      return shell_quote.quote([render(text)]);
+    };
     let templateVariables = {
       owner: push.user,
       revision: lastChangeset.node,
@@ -97,7 +104,8 @@ export default class TaskclusterGraphJob extends Base {
       pushlog_id: String(push.id),
       url: repo.url,
       importScopes: true,
-      pushdate
+      pushdate,
+      shellquote
     };
 
     let repositoryUrlParts = parseUrl(repo.url);
