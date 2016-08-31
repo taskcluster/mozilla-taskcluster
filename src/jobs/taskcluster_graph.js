@@ -8,7 +8,6 @@ import mustache from 'mustache';
 import * as projectConfig from '../project_scopes';
 import assert from 'assert';
 import retry from 'promise-retries';
-import shell_quote from 'shell-quote';
 
 import Path from 'path';
 import Base from './base';
@@ -40,9 +39,9 @@ function parseUrl(url) {
 }
 
 /**
-Fetch a task graph from a url (retires included...)
+Fetch a task graph from a url (retries included...)
 */
-async function fetchGraph(job, url) {
+async function fetchGraph(url) {
   assert(url, 'url is required');
   let opts = { interval: GRAPH_INTERVAL, retires: GRAPH_RETIRES };
   try {
@@ -87,12 +86,6 @@ export default class TaskclusterGraphJob extends Base {
     let level = projectConfig.level(this.config.try, repo.alias);
     let scopes = projectConfig.scopes(this.config.try, repo.alias)
 
-    // quote the contained text for passing to the shell; note that this includes
-    // the leading and trailing " or ' characters, so they must not be included
-    // in the template.
-    let shellquote = (text, render) => {
-      return shell_quote.quote([render(text)]);
-    };
     let templateVariables = {
       owner: push.user,
       revision: lastChangeset.node,
@@ -104,8 +97,7 @@ export default class TaskclusterGraphJob extends Base {
       pushlog_id: String(push.id),
       url: repo.url,
       importScopes: true,
-      pushdate,
-      shellquote
+      pushdate
     };
 
     let repositoryUrlParts = parseUrl(repo.url);
@@ -127,7 +119,7 @@ export default class TaskclusterGraphJob extends Base {
     try {
       let graphUrl = projectConfig.tcYamlUrl(this.config.try, urlVariables);
       console.log(`Fetching '.taskcluster.yml' url ${graphUrl} for '${repo.alias}' push id ${push.id}`);
-      let graphText = await fetchGraph(job, graphUrl);
+      let graphText = await fetchGraph(graphUrl);
       templateVariables.source = graphUrl;
       // Assume .taskcluster.yml has been fetched successfully
       let queue = new taskcluster.Queue({
@@ -145,7 +137,7 @@ export default class TaskclusterGraphJob extends Base {
       console.log(`Error fetching .taskcluster.yml at ${graphUrl} for ${repo.alias}. ${err.stack}`);
       let graphUrl = projectConfig.url(this.config.try, repo.alias, urlVariables);
       console.log(`Fetching url ${graphUrl} for '${repo.alias}' push id ${push.id}`);
-      let graphText = await fetchGraph(job, graphUrl);
+      let graphText = await fetchGraph(graphUrl);
       templateVariables.source = graphUrl;
 
       let scheduler = new taskcluster.Scheduler({
@@ -175,7 +167,7 @@ export default class TaskclusterGraphJob extends Base {
       // Even though we won't end up doing anything overly useful we still need
       // to convey some status to the end user ... The instantiate error should
       // be safe to pass as it is simply some yaml error.
-      let errorGraph = await fetchGraph(job, errorGraphUrl);
+      let errorGraph = await fetchGraph(errorGraphUrl);
       renderedTemplate = instantiate(errorGraph, templateVariables);
       renderedTemplate.tasks[0].task.payload.env = renderedTemplate.tasks[0].task.payload.env || {};
       renderedTemplate.tasks[0].task.payload.env.ERROR_MSG = e.toString()
@@ -235,7 +227,7 @@ export default class TaskclusterGraphJob extends Base {
       // Even though we won't end up doing anything overly useful we still need
       // to convey some status to the end user ... The instantiate error should
       // be safe to pass as it is simply some yaml error.
-      let errorGraph = await fetchGraph(job, errorGraphUrl);
+      let errorGraph = await fetchGraph(errorGraphUrl);
       graph = instantiate(errorGraph, variables);
       graph.tasks[0].task.payload.env = graph.tasks[0].task.payload.env || {};
       graph.tasks[0].task.payload.env.ERROR_MSG = e.toString()
