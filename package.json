@@ -45,6 +45,7 @@
     "promise-retries": "^1.0.1",
     "promised-temp": "^0.1.0",
     "proxied-promise-object": "^0.2.0",
+    "shell-quote": "^1.6.1",
     "slugid": "^1.1.0",
     "superagent": "^1.7.2",
     "superagent-promise": "^0.2.0",
