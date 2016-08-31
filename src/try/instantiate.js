@@ -1,6 +1,7 @@
 import slugid from 'slugid';
 import yaml from 'js-yaml';
 import mustache from 'mustache';
+import shell_quote from 'shell-quote';
 
 // Regular expression matching: X days Y hours Z minutes
 let timeExp = /^(\s*(\d+)\s*d(ays?)?)?(\s*(\d+)\s*h(ours?)?)?(\s*(\d+)\s*m(in(utes?)?)?)?\s*$/;
@@ -55,6 +56,7 @@ export function relativeTime(time, to = new Date()) {
  *  - `now` date-time string for now,
  *  - `from-now` modifier taking a relative date as 'X days Y hours Z minutes'
  *  - `as-slugid` modifier converting a label to a slugid
+ *  - `shellquote` quotes its contents for a shell argument (including adding leading and trailing quotes)
  *
  */
 export default function instantiate(template, options) {
@@ -93,6 +95,13 @@ export default function instantiate(template, options) {
     }
   }
 
+  // quote the contained text for passing to the shell; note that this includes
+  // the leading and trailing " or ' characters, so they must not be included
+  // in the template.
+  function shellquote(text, render) {
+    return shell_quote.quote([render(text)]);
+  }
+
   // Parameterize template
   template = mustache.render(template, {
     now: new Date().toJSON(),
@@ -107,7 +116,8 @@ export default function instantiate(template, options) {
     url: options.url,
     from_now: fromNow,
     as_slugid: asSlugId,
-    pushdate: options.pushdate
+    pushdate: options.pushdate,
+    shellquote,
   });
 
   // Parse template
