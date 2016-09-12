@@ -98,8 +98,10 @@ export default function instantiate(template, options) {
   // quote the contained text for passing to the shell; note that this includes
   // the leading and trailing " or ' characters, so they must not be included
   // in the template.
-  function shellquote(text, render) {
-    return shell_quote.quote([render(text)]);
+  function shellquote() {
+    return function(text, render) {
+      return shell_quote.quote([render(text)]);
+    }
   }
 
   // Parameterize template
@@ -117,7 +119,7 @@ export default function instantiate(template, options) {
     from_now: fromNow,
     as_slugid: asSlugId,
     pushdate: options.pushdate,
-    shellquote,
+    shellquote
   });
 
   // Parse template
