@@ -84,7 +84,11 @@ export default class TaskclusterGraphJob extends Base {
     let pushdate = push.date;
 
     let level = projectConfig.level(this.config.try, repo.alias);
-    let scopes = projectConfig.scopes(this.config.try, repo.alias)
+    let scopes = projectConfig.scopes(this.config.try, repo.alias);
+
+    // All pushes should at least be able to send
+    // emails to the submitting user if desired.
+    scopes.push('queue:route:notify.email.' + repo.user + '.*');
 
     let templateVariables = {
       owner: push.user,
