@@ -197,6 +197,8 @@ export default class RetriggerJob extends Base {
 
     // Ensure when retrigger is sent that we use the right scopes for the job.
     let scopes = projectConfig.scopes(this.config.try, project, false);
+    // retriggers need to be able to notify anyone (bug 1308543)
+    scopes.push('queue:route:notify.*');
     let scheduler = new taskcluster.Scheduler({
       credentials: this.config.taskcluster.credentials,
       // include scheduler:create-task-graph so we can call create-task-graph,
