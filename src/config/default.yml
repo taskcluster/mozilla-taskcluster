@@ -141,6 +141,12 @@ try:
         - "assume:repo:hg.mozilla.org/mozilla-central:*"
         # temporary until this scope is removed from .taskcluster.yml
         - "assume:repo:hg.mozilla.org/try:*"
+    cedar:
+      level: 2
+      scopes:
+        - "assume:repo:hg.mozilla.org/projects/cedar:*"
+        # temporary until this scope is removed from .taskcluster.yml
+        - "assume:repo:hg.mozilla.org/try:*
     cypress:
       level: 2
       scopes:
