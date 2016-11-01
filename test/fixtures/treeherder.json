@@ -178,9 +178,5 @@
   "build-system": {
     "consumer_secret": "build-system",
     "consumer_key": "build-system"
-  },
-  "fx-team": {
-    "consumer_secret": "fx-team",
-    "consumer_key": "fx-team"
   }
 }
