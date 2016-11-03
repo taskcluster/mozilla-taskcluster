@@ -175,6 +175,10 @@
     "consumer_secret": "larch",
     "consumer_key": "larch"
   },
+  "graphics": {
+     "consumer_secret": "graphics",
+     "consumer_key": "graphics"
+   },
   "build-system": {
     "consumer_secret": "build-system",
     "consumer_key": "build-system"
