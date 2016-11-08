@@ -200,7 +200,7 @@ try:
       scopes:
         - "assume:repo:hg.mozilla.org/projects/graphics:*"
         # temporary until this scope is removed from .taskcluster.yml
-        - "assume:repo:hg.mozilla.org/try:*
+        - "assume:repo:hg.mozilla.org/try:*"
     mozilla-beta:
       level: 3
       scopes:
