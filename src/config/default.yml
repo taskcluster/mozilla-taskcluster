@@ -166,7 +166,7 @@ try:
         # temporary until this scope is removed from .taskcluster.yml
         - "assume:repo:hg.mozilla.org/try:*"
     date:
-      level: 2
+      level: 3
       scopes:
         - "assume:repo:hg.mozilla.org/projects/date:*"
         # temporary until this scope is removed from .taskcluster.yml
