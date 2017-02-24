@@ -219,6 +219,12 @@ try:
         - "assume:repo:hg.mozilla.org/releases/mozilla-esr45:*"
         # temporary until this scope is removed from .taskcluster.yml
         - "assume:repo:hg.mozilla.org/try:*"
+    mozilla-esr52:
+      level: 3
+      scopes:
+        - "assume:repo:hg.mozilla.org/releases/mozilla-esr52:*"
+        # temporary until this scope is removed from .taskcluster.yml
+        - "assume:repo:hg.mozilla.org/try:*"
     stylo:
       level: 2
       scopes:
