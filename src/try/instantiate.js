@@ -104,10 +104,16 @@ export default function instantiate(template, options) {
     }
   }
 
+  // make sure the owner looks like an email
+  let owner = options.owner;
+  if (owner.indexOf('@') === -1) {
+    owner = owner + '@noreply.mozilla.org';
+  }
+
   // Parameterize template
   template = mustache.render(template, {
     now: new Date().toJSON(),
-    owner: options.owner,
+    owner: owner,
     source: options.source,
     revision: options.revision,
     comment: options.comment,
