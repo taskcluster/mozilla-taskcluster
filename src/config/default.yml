@@ -172,7 +172,7 @@ try:
         # temporary until this scope is removed from .taskcluster.yml
         - "assume:repo:hg.mozilla.org/try:*"
     jamun:
-      level: 2
+      level: 3
       scopes:
         - "assume:repo:hg.mozilla.org/projects/jamun:*"
         # temporary until this scope is removed from .taskcluster.yml
