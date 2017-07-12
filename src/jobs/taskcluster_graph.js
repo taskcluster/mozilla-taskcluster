@@ -93,9 +93,6 @@ export default class TaskclusterGraphJob extends Base {
       host: repositoryUrlParts.host
     };
 
-    let errorGraphUrl =
-      mustache.render(this.config.try.errorTaskUrl, urlVariables);
-
     let graphUrl = projectConfig.tcYamlUrl(this.config.try, urlVariables);
     console.log(`Fetching '.taskcluster.yml' url ${graphUrl} for '${repo.alias}' push id ${push.id}`);
     let graphText = await this.fetchGraph(graphUrl);
@@ -111,10 +108,10 @@ export default class TaskclusterGraphJob extends Base {
                                         graphText,
                                         templateVariables,
                                         scopes,
-                                        errorGraphUrl);
+                                        this.config.try.errorTask);
   }
 
-  async scheduleTaskGroup(client, project, template, templateVariables, scopes, errorGraphUrl) {
+  async scheduleTaskGroup(client, project, template, templateVariables, scopes, errorGraphTemplate) {
     let renderedTemplate;
     let groupId;
 
@@ -125,9 +122,8 @@ export default class TaskclusterGraphJob extends Base {
       // Even though we won't end up doing anything overly useful we still need
       // to convey some status to the end user ... The instantiate error should
       // be safe to pass as it is simply some yaml error.
-      let errorGraph = await this.fetchGraph(errorGraphUrl);
       // TODO: use json-e instead of instantiate
-      renderedTemplate = instantiate(errorGraph, templateVariables);
+      renderedTemplate = instantiate(errorGraphTemplate, templateVariables);
       renderedTemplate.tasks[0].task.payload.env = renderedTemplate.tasks[0].task.payload.env || {};
       renderedTemplate.tasks[0].task.payload.env.ERROR_MSG = e.toString()
     }

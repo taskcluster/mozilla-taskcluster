@@ -1,3 +1,4 @@
+import path from 'path';
 import _ from 'lodash';
 import assert from 'assert';
 import slugid from 'slugid';
@@ -10,6 +11,15 @@ import yaml from 'js-yaml';
 import TaskclusterGraphJob from '../../src/jobs/taskcluster_graph';
 
 suite('TaskclusterGraphJob.work', function() {
+  let defaultConfig;
+
+  // load the default config so we can utilize some of its values
+  setup(async () => {
+    let resolved = path.resolve(__dirname + '/../../src/config/default.yml');
+    let content = await fs.readFile(resolved, 'utf8');
+    defaultConfig = yaml.safeLoad(content);
+  });
+
   let makeJob = ({graphs}) => {
     let config = {
       taskcluster: {
@@ -19,9 +29,9 @@ suite('TaskclusterGraphJob.work', function() {
         },
       },
       try: {
-        tcYamlUrl: "{{{host}}}{{{path}}}/raw-file/{{revision}}/.taskcluster.yml",
-        defaultUrl: "{{{host}}}{{{path}}}/raw-file/{{revision}}/testing/taskcluster/tasks/decision/branch.yml",
-        errorTaskUrl: "https://gist.githubusercontent.com/gregarndt/8fc123be2408180c2f13/raw/4e46790b569f0f09b7a1c9b9867eeb6634c70123/error.yml",
+        tcYamlUrl: defaultConfig.try.tcYamlUrl,
+        defaultUrl: defaultConfig.try.defaultUrl,
+        errorTask: defaultConfig.try.errorTask,
         projects:{
           mine: {
             url: "{{{host}}}/myrepo",
@@ -51,8 +61,12 @@ suite('TaskclusterGraphJob.work', function() {
     let job = new TaskclusterGraphJob({config, runtime});
 
     job.fetchGraph = async function(url) {
-      assert(graphs[url], `fake graph for ${url} not defined`);
-      return JSON.stringify(graphs[url])
+      let rv = graphs[url];
+      assert(rv, `fake graph for ${url} not defined`);
+      if (typeof rv !== 'string') {
+        rv = JSON.stringify(rv);
+      }
+      return rv;
     };
 
     return job;
@@ -113,7 +127,7 @@ suite('TaskclusterGraphJob.work', function() {
     if (typeof template !== 'string') {
       template = JSON.stringify(template);
     }
-    await job.scheduleTaskGroup(queue, 'mine', template, templateVariables, [], 'ERROR');
+    await job.scheduleTaskGroup(queue, 'mine', template, templateVariables, [], job.config.try.errorTask);
     return queue.created;
   };
 
@@ -188,6 +202,43 @@ tasks:
     assert(new Date() - new Date(created.created) < 5000);
     // for a decision task, taskGroupId = taskId
     assert.equal(created.taskGroupId, taskId);
+  });
+
+  test('scheduleTaskGroup invalid', async function() {
+    let template = 'version: 0\nIN-VALID: true';
+    let created = await runScheduleTaskGroup(template);
+    assert.equal(created.length, 1);
+    let taskId = created[0].taskId;
+    created = created[0].definition;
+    // this should result in the error task
+    assert.deepEqual(_.pick(created, ['metadata', 'tags', 'routes', 'payload', 'scopes', 'schedulerId']), {
+      metadata: {
+        description: "Error creating decision task...\n",
+        name: "Error message...",
+        owner: "ffxbld@noreply.mozilla.org",
+        source: "https://hg.mozilla.org/myrepo/raw-file/6fec4855b5345eb63fef57089e61829b88f5f4eb/.taskcluster.yml",
+      },
+      payload: {
+        env: {
+          ERROR_MSG: "TypeError: Cannot read property 'Symbol(Symbol.iterator)' of undefined"
+        },
+        command: [
+          "/bin/bash",
+          "-c",
+          "echo \"[taskcluster:error] ERROR Generating task graph (no tests/build will be created)\"; echo \"[taskcluster:error] $ERROR_MSG\"; exit 1\n",
+        ],
+        "env": {
+          "ERROR_MSG": "TypeError: Cannot read property 'Symbol(Symbol.iterator)' of undefined",
+        },
+        "image": "quay.io/mozilla/decision:0.0.3",
+        "maxRunTime": 500,
+      },
+      "routes": [
+        "tc-treeherder-stage.mine.6fec4855b5345eb63fef57089e61829b88f5f4eb",
+        "tc-treeherder.mine.6fec4855b5345eb63fef57089e61829b88f5f4eb",
+      ],
+      scopes: [],
+    });
   });
 });
 
