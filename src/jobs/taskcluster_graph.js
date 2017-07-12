@@ -114,18 +114,18 @@ export default class TaskclusterGraphJob extends Base {
   }
 
   async scheduleTaskGroup(client, project, template, templateVariables, scopes, errorGraphUrl) {
-    let schedulerId = `gecko-level-${templateVariables.level}`;
+    let renderedTemplate;
     let groupId;
 
-    let renderedTemplate;
     try {
-      renderedTemplate = instantiate(template, templateVariables);
+      renderedTemplate = this.renderTemplate(project, template, templateVariables);
     } catch(e) {
-      console.log(`Error creating graph due to yaml syntax errors, ${e.message}`);
+      console.log(`Error interpreting .taskcluster.yml: ${e.message}`);
       // Even though we won't end up doing anything overly useful we still need
       // to convey some status to the end user ... The instantiate error should
       // be safe to pass as it is simply some yaml error.
       let errorGraph = await this.fetchGraph(errorGraphUrl);
+      // TODO: use json-e instead of instantiate
       renderedTemplate = instantiate(errorGraph, templateVariables);
       renderedTemplate.tasks[0].task.payload.env = renderedTemplate.tasks[0].task.payload.env || {};
       renderedTemplate.tasks[0].task.payload.env.ERROR_MSG = e.toString()
@@ -142,7 +142,7 @@ export default class TaskclusterGraphJob extends Base {
       }
 
       let taskDefinition = task;
-      // Support legacy .taskcluster.yml files that listed tasks as
+      // Support version 0 .taskcluster.yml files that listed tasks as
       // [{taskId: ..., task: <definition>}, ...]
       if (task.task) {
         taskDefinition = task.task;
@@ -155,8 +155,7 @@ export default class TaskclusterGraphJob extends Base {
       let taskScopes = new Set(taskDefinitionScopes.concat(scopes));
       taskDefinition.scopes = Array.from(taskScopes);
 
-      // schedulerId and taskGroupId can't be specified in the template
-      taskDefinition.schedulerId = schedulerId;
+      // taskGroupId can't be specified in the template
       taskDefinition.taskGroupId = groupId;
 
       console.log(
@@ -174,6 +173,17 @@ export default class TaskclusterGraphJob extends Base {
         throw e;
       }
     }
+  }
+
+  renderTemplate(project, template, templateVariables) {
+    let schedulerId = `gecko-level-${templateVariables.level}`;
+
+    let renderedTemplate = instantiate(template, templateVariables);
+    for (let task of renderedTemplate.tasks) {
+      task.task.schedulerId = schedulerId;
+    }
+
+    return renderedTemplate;
   }
 
   /**
