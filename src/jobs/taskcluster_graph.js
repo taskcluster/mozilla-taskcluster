@@ -8,6 +8,7 @@ import mustache from 'mustache';
 import * as projectConfig from '../project_scopes';
 import assert from 'assert';
 import retry from 'promise-retries';
+import yaml from 'js-yaml';
 
 import Path from 'path';
 import Base from './base';
@@ -176,6 +177,30 @@ export default class TaskclusterGraphJob extends Base {
   }
 
   renderTemplate(project, template, templateVariables) {
+    // determine the version number
+    let version;
+    try {
+      let data = yaml.safeLoad(template);
+      version = data.version;
+    } catch(e) {
+      // version 0 templates are not valid YAML until run through mustache, so
+      // if the YAML load fails, but `version: 0` is in the text, we will
+      // consider it version 0
+      if (template.indexOf('version: 0') !== -1) {
+        version = 0;
+      } else {
+        throw e;
+      }
+    }
+
+    if (version === 0) {
+      return this.renderTemplateV0(project, template, templateVariables);
+    } else {
+      throw new Error('Unrecognized .taskcluster.yml version');
+    }
+  }
+
+  renderTemplateV0(project, template, templateVariables) {
     let schedulerId = `gecko-level-${templateVariables.level}`;
 
     let renderedTemplate = instantiate(template, templateVariables);

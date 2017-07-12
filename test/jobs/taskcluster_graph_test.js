@@ -110,84 +110,80 @@ suite('TaskclusterGraphJob.work', function() {
       pushdate: '1499805383',
       source: 'https://hg.mozilla.org/myrepo/raw-file/6fec4855b5345eb63fef57089e61829b88f5f4eb/.taskcluster.yml',
     };
-    await job.scheduleTaskGroup(queue, 'mine', JSON.stringify(template), templateVariables, [], 'ERROR');
+    if (typeof template !== 'string') {
+      template = JSON.stringify(template);
+    }
+    await job.scheduleTaskGroup(queue, 'mine', template, templateVariables, [], 'ERROR');
     return queue.created;
   };
 
   test('scheduleTaskGroup version 0', async function() {
-    // this is a stripped-down version of the old version-0 .taskcluster.yml
-    let template = {
-      "version": 0,
-      "scopes":  [],
-      "tasks": [
-      {
-        "taskId": "{{#as_slugid}}decision task{{/as_slugid}}", // note, this is ignored..
-        "task": {
-          "created": "{{now}}",
-          "expires": "{{#from_now}}365 day{{/from_now}}",
-          "deadline": "{{#from_now}}1 day{{/from_now}}",
-          "metadata": {"source": "{{{source}}}"},
-          "tags": {"createdForUser": "{{owner}}"},
-          "routes": ["tc-treeherder-stage.v2.{{project}}.{{revision}}.{{pushlog_id}}"],
-          "payload": {
-            "cache": {"level-{{level}}-checkouts": "/home/worker/checkouts"},
-            "command": [
-              "--pushlog-id='{{pushlog_id}}' ",
-              "--pushdate='{{pushdate}}' ",
-              "--project='{{project}}' ",
-              "--message={{#shellquote}}{{{comment}}}{{/shellquote}} ",
-              "--owner='{{owner}}' ",
-              "--level='{{level}}' ",
-              "--head-repository='{{{url}}}' ",
-              "--head-ref='{{revision}}' ",
-              "--head-rev='{{revision}}'"
-            ],
-            "env": {
-              "GECKO_HEAD_REPOSITORY": "{{{url}}}",
-              "GECKO_HEAD_REV": "{{revision}}",
-            },
-          },
-        },
-      },
-    ]}
+    // this is a stripped-down version of the old version-0 .taskcluster.yml.  Note that
+    // this is not valid YAML!
+    let template = `
+---
+version: 0
+scopes: []
+tasks:
+- taskId: '{{#as_slugid}}decision task{{/as_slugid}}'  # note that this is ignored
+  task:
+    created: '{{now}}'
+    deadline: '{{#from_now}}1 day{{/from_now}}'
+    expires: '{{#from_now}}365 day{{/from_now}}'
+    metadata: {source: '{{{source}}}'}
+    payload:
+      cache: {'level-{{level}}-checkouts': /home/worker/checkouts}
+      command:
+        - bash
+        - >
+          --pushlog-id='{{pushlog_id}}'
+          --pushdate='{{pushdate}}'
+          --project='{{project}}'
+          --message={{#shellquote}}{{{comment}}}{{/shellquote}}
+          --owner='{{owner}}'
+          --level='{{level}}'
+          --head-repository='{{{url}}}'
+          --head-rev='{{revision}}'
+      env: {GECKO_HEAD_REPOSITORY: '{{{url}}}', GECKO_HEAD_REV: '{{revision}}'}
+    routes: ['tc-treeherder-stage.v2.{{project}}.{{revision}}.{{pushlog_id}}']
+    tags: {createdForUser: '{{owner}}'}`;
 
     let created = await runScheduleTaskGroup(template);
     assert.equal(created.length, 1);
     let taskId = created[0].taskId;
     created = created[0].definition;
-		assert.deepEqual(_.pick(created, ['metadata', 'tags', 'routes', 'payload', 'scopes', 'schedulerId']), {
-			"metadata": {
-				"source": "https://hg.mozilla.org/myrepo/raw-file/6fec4855b5345eb63fef57089e61829b88f5f4eb/.taskcluster.yml"
-			},
-			"tags": {
-				"createdForUser": "ffxbld@noreply.mozilla.org"
-			},
-			"routes": [
-				"tc-treeherder-stage.v2.mine.6fec4855b5345eb63fef57089e61829b88f5f4eb.9999"
-			],
-			"payload": {
-				"cache": {
-					"level-7-checkouts": "/home/worker/checkouts"
-				},
-				"command": [
-					"--pushlog-id='9999' ",
-					"--pushdate='1499805383' ",
-					"--project='mine' ",
-					"--message='comment with stuff in it' ",
-					"--owner='ffxbld@noreply.mozilla.org' ",
-					"--level='7' ",
-					"--head-repository='https://hg.mozilla.org/myrepo' ",
-					"--head-ref='6fec4855b5345eb63fef57089e61829b88f5f4eb' ",
-					"--head-rev='6fec4855b5345eb63fef57089e61829b88f5f4eb'"
-				],
-				"env": {
-					"GECKO_HEAD_REPOSITORY": "https://hg.mozilla.org/myrepo",
-					"GECKO_HEAD_REV": "6fec4855b5345eb63fef57089e61829b88f5f4eb"
-				}
-			},
-			"scopes": [],
-			"schedulerId": "gecko-level-7",
-		});
+    assert.deepEqual(_.pick(created, ['metadata', 'tags', 'routes', 'payload', 'scopes', 'schedulerId']), {
+      "metadata": {
+        "source": "https://hg.mozilla.org/myrepo/raw-file/6fec4855b5345eb63fef57089e61829b88f5f4eb/.taskcluster.yml"
+      },
+      "tags": {
+        "createdForUser": "ffxbld@noreply.mozilla.org"
+      },
+      "routes": [
+        "tc-treeherder-stage.v2.mine.6fec4855b5345eb63fef57089e61829b88f5f4eb.9999"
+      ],
+      "payload": {
+        "cache": {
+          "level-7-checkouts": "/home/worker/checkouts"
+        },
+        "command": ["bash", [
+          "--pushlog-id='9999'",
+          "--pushdate='1499805383'",
+          "--project='mine'",
+          "--message='comment with stuff in it'",
+          "--owner='ffxbld@noreply.mozilla.org'",
+          "--level='7'",
+          "--head-repository='https://hg.mozilla.org/myrepo'",
+          "--head-rev='6fec4855b5345eb63fef57089e61829b88f5f4eb'"
+        ].join(' ') + '\n'], // pesky newline..
+        "env": {
+          "GECKO_HEAD_REPOSITORY": "https://hg.mozilla.org/myrepo",
+          "GECKO_HEAD_REV": "6fec4855b5345eb63fef57089e61829b88f5f4eb"
+        }
+      },
+      "scopes": [],
+      "schedulerId": "gecko-level-7",
+    });
     // created should be in the last 5s..
     assert(new Date() - new Date(created.created) < 5000);
     // for a decision task, taskGroupId = taskId
