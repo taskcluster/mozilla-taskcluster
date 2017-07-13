@@ -203,6 +203,85 @@ tasks:
     assert.equal(created.taskGroupId, taskId);
   });
 
+  test('scheduleTaskGroup version 1', async function() {
+    let template = JSON.stringify({
+      version: 1,
+      tasks: {
+        $let: {ownerEmail: {$if: '"@" in push.owner', then: '${push.owner}', else: '${push.owner}@noreply.mozilla.org'}},
+        in: [
+          {
+            taskId: {$eval: 'asSlugId("decision")'},
+            taskGroupId: {$eval: 'asSlugId("decision")'},
+            created: {$fromNow: ''},
+            deadline: {$fromNow: '1 day'},
+            expires: {$fromNow: '1 year'},
+            metadata: {source: '${repo.url}/raw-file/${push.revision}/.taskcluster.yml'},
+            payload: {
+              cache: {'level-${repo.level}-checkouts': '/home/worker/checkouts'},
+              command: ['bash', [
+                  "--pushlog-id='${push.pushlog_id}'",
+                  "--pushdate='${push.pushdate}'",
+                  "--project='${repo.project}'",
+                  "--message=$GECKO_COMMIT_MSG",
+                  "--owner='${ownerEmail}'",
+                  "--level='${repo.level}'",
+                  "--head-repository='${repo.url}'",
+                  "--head-rev='${push.revision}'",
+              ].join(' ')],
+              env: {
+                GECKO_COMMIT_MSG: '${push.comment}',
+              },
+            },
+            routes: ['tc-treeherder-stage.v2.${repo.project}.${push.revision}.${push.pushlog_id}'],
+            tags: {createdForUser: '${ownerEmail}'},
+            scopes: ['all-the-things'],
+            schedulerId: "gecko-level-7",
+          },
+        ],
+      },
+    });
+
+    let created = await runScheduleTaskGroup(template);
+    assert.equal(created.length, 1);
+    let taskId = created[0].taskId;
+    created = created[0].definition;
+    assert.deepEqual(_.pick(created, ['metadata', 'tags', 'routes', 'payload', 'scopes', 'schedulerId']), {
+      metadata: {
+        "source": "https://hg.mozilla.org/myrepo/raw-file/6fec4855b5345eb63fef57089e61829b88f5f4eb/.taskcluster.yml"
+      },
+      tags: {
+        "createdForUser": "ffxbld@noreply.mozilla.org"
+      },
+      routes: [
+        "tc-treeherder-stage.v2.mine.6fec4855b5345eb63fef57089e61829b88f5f4eb.9999"
+      ],
+      payload: {
+        cache: {
+          "level-7-checkouts": "/home/worker/checkouts"
+        },
+        command: ["bash", [
+          "--pushlog-id='9999'",
+          "--pushdate='1499805383'",
+          "--project='mine'",
+          "--message=$GECKO_COMMIT_MSG",
+          "--owner='ffxbld@noreply.mozilla.org'",
+          "--level='7'",
+          "--head-repository='https://hg.mozilla.org/myrepo'",
+          "--head-rev='6fec4855b5345eb63fef57089e61829b88f5f4eb'"
+        ].join(' ')],
+        env: {
+          "GECKO_COMMIT_MSG": "comment with stuff in it",
+        }
+      },
+      scopes: ['all-the-things'],
+      schedulerId: "gecko-level-7",
+    });
+    // created should be in the last 5s..
+    assert(new Date() - new Date(created.created) < 5000);
+    // for a decision task, taskGroupId = taskId
+    assert.equal(created.taskGroupId, taskId);
+  });
+
   test('scheduleTaskGroup invalid', async function() {
     let template = 'version: 0\nIN-VALID: true';
     let created = await runScheduleTaskGroup(template);
