@@ -120,7 +120,6 @@ suite('TaskclusterGraphJob.work', function() {
       comment: 'comment with stuff in it',
       pushlog_id: '9999',
       url: 'https://hg.mozilla.org/myrepo',
-      importScopes: true,
       pushdate: '1499805383',
       source: 'https://hg.mozilla.org/myrepo/raw-file/6fec4855b5345eb63fef57089e61829b88f5f4eb/.taskcluster.yml',
     };

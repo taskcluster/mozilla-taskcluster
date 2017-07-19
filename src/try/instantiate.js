@@ -47,8 +47,6 @@ export function relativeTime(time, to = new Date()) {
  *   revision_hash: '...',               // Revision hash for treeherder resultset
  *   pushlog_id:    '...',               // Pushlog id based on json-pushes
  *   url:           '...',               // Repository url
- *   importScopes:  true,                // When true scopes from tasks will be
- *                                       // imported to the graph level.
  * }
  *
  * In in addition to options provided above the following paramters is available
@@ -71,7 +69,6 @@ export default function instantiate(template, options) {
     comment: Joi.string().default(""),
     pushlog_id: Joi.string().required(),
     url: Joi.string().required(),
-    importScopes: Joi.boolean().required(),
     error: Joi.string(),
     pushdate: Joi.number()
   }));
@@ -131,24 +128,5 @@ export default function instantiate(template, options) {
   // Parse template
   let graph = yaml.safeLoad(template);
 
-  // If we are not importing scopes just return the graph...
-  if (!options.importScopes || !graph.tasks) {
-    return graph;
-  }
-
-  // Root scopes in the graph...
-  let scopes = new Set(graph.scopes || []);
-
-  // Traverse all the scopes and add them to the root...
-  for (let task of graph.tasks) {
-    let inner = task.task;
-    if (inner.scopes) {
-      // Only add scopes once...
-      for (let scope of inner.scopes) {
-        scopes.add(scope);
-      }
-    }
-  }
-  graph.scopes = Array.from(scopes);
   return graph;
 };

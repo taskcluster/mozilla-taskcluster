@@ -80,7 +80,6 @@ export default class TaskclusterGraphJob extends Base {
       comment: parseCommitMessage(lastChangeset.desc) || ' ',
       pushlog_id: String(push.id),
       url: repo.url,
-      importScopes: true,
       pushdate
     };
 
