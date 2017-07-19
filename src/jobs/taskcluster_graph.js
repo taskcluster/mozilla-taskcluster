@@ -121,10 +121,9 @@ export default class TaskclusterGraphJob extends Base {
       // Even though we won't end up doing anything overly useful we still need
       // to convey some status to the end user ... The instantiate error should
       // be safe to pass as it is simply some yaml error.
-      // TODO: use json-e instead of instantiate
-      renderedTemplate = instantiate(errorGraphTemplate, templateVariables);
-      renderedTemplate.tasks[0].task.payload.env = renderedTemplate.tasks[0].task.payload.env || {};
-      renderedTemplate.tasks[0].task.payload.env.ERROR_MSG = e.toString()
+      renderedTemplate = this.renderTemplate(project, errorGraphTemplate, templateVariables);
+      renderedTemplate.tasks[0].payload.env = renderedTemplate.tasks[0].payload.env || {};
+      renderedTemplate.tasks[0].payload.env.ERROR_MSG = e.toString()
     }
 
     // Iterate over the tasks and ignore other graph related fields that might
@@ -137,29 +136,22 @@ export default class TaskclusterGraphJob extends Base {
         groupId = taskId;
       }
 
-      let taskDefinition = task;
-      // Support version 0 .taskcluster.yml files that listed tasks as
-      // [{taskId: ..., task: <definition>}, ...]
-      if (task.task) {
-        taskDefinition = task.task;
-      }
-
       // Give all tasks within the task template the scopes allowed for the
       // given project.  This makes the assumption that the template only contains
       // one task, which is a decision task.
-      let taskDefinitionScopes = taskDefinition.scopes || [];
+      let taskDefinitionScopes = task.scopes || [];
       let taskScopes = new Set(taskDefinitionScopes.concat(scopes));
-      taskDefinition.scopes = Array.from(taskScopes);
+      task.scopes = Array.from(taskScopes);
 
       // taskGroupId can't be specified in the template
-      taskDefinition.taskGroupId = groupId;
+      task.taskGroupId = groupId;
 
       console.log(
         `Creating task. Project: ${project} ` +
         `Revision: ${templateVariables.revision} Task ID: ${taskId}`
       );
       try {
-        await client.createTask(taskId, taskDefinition);
+        await client.createTask(taskId, task);
         console.log(
           `Created task. Project: ${project} ` +
           `Revision: ${templateVariables.revision} Task ID: ${taskId}`
@@ -199,8 +191,13 @@ export default class TaskclusterGraphJob extends Base {
     let schedulerId = `gecko-level-${templateVariables.level}`;
 
     let renderedTemplate = instantiate(template, templateVariables);
+
+    // version 0 has {tasks: [{task: .., taskId: ..}]}.  We don't need the tsakId.
+    renderedTemplate.tasks = renderedTemplate.tasks.map(t => t.task);
+
+    // set the schedulerId for all tasks, since it is not included in the template
     for (let task of renderedTemplate.tasks) {
-      task.task.schedulerId = schedulerId;
+      task.schedulerId = schedulerId;
     }
 
     return renderedTemplate;

@@ -227,7 +227,7 @@ tasks:
           "echo \"[taskcluster:error] ERROR Generating task graph (no tests/build will be created)\"; echo \"[taskcluster:error] $ERROR_MSG\"; exit 1\n",
         ],
         "env": {
-          "ERROR_MSG": "TypeError: Cannot read property 'Symbol(Symbol.iterator)' of undefined",
+          "ERROR_MSG": "TypeError: Cannot read property 'map' of undefined",
         },
         "image": "quay.io/mozilla/decision:0.0.3",
         "maxRunTime": 500,
@@ -236,6 +236,7 @@ tasks:
         "tc-treeherder-stage.mine.6fec4855b5345eb63fef57089e61829b88f5f4eb",
         "tc-treeherder.mine.6fec4855b5345eb63fef57089e61829b88f5f4eb",
       ],
+      schedulerId: "gecko-level-7",
       scopes: [],
     });
   });

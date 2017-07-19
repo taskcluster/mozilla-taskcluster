@@ -67,6 +67,7 @@ try:
   # task if for no other reason than to notify the user that this failed.  Note that this
   # is a YAML string embedded in YAML.
   errorTask: |
+    version: 0
     metadata:
       name: 'Error Message Task'
       description: |
