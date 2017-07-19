@@ -1,6 +1,6 @@
-# Mozilla Taskcluster
-
-## Developing
+---
+title: Developing
+---
 
 Development can be setup locally but the intended environment is fig.
 
