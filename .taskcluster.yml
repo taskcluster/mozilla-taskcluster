@@ -14,8 +14,7 @@ tasks:
       maxRunTime: 3600
       image: taskcluster/upload-project-docs:latest
       features:
-        taskclusterProxy:
-          true
+        taskclusterProxy: true
       command:
         - /bin/bash
         - '--login'
