@@ -129,16 +129,8 @@ export default class TaskclusterGraphJob extends Base {
     // Iterate over the tasks and ignore other graph related fields that might
     // exist
     for (let task of renderedTemplate.tasks) {
-      let taskId = slugid.nice();
-
-      // set the groupId to match the taskId of the first task in the graph
-      if (!groupId) {
-        groupId = taskId;
-      }
-
-      // taskGroupId can't be specified in the template
-      task.taskGroupId = groupId;
-
+      let taskId = task.taskId;
+      delete task.taskId;
       console.log(
         `Creating task. Project: ${project} ` +
         `Revision: ${templateVariables.revision} Task ID: ${taskId}`
@@ -188,8 +180,20 @@ export default class TaskclusterGraphJob extends Base {
     // version 0 has {tasks: [{task: .., taskId: ..}]}.  We don't need the tsakId.
     renderedTemplate.tasks = renderedTemplate.tasks.map(t => t.task);
 
-    // set the schedulerId for all tasks, since it is not included in the template
+    let groupId;
     for (let task of renderedTemplate.tasks) {
+      let taskId = slugid.nice();
+
+      // set the groupId to match the taskId of the first task in the graph
+      if (!groupId) {
+        groupId = taskId;
+      }
+
+      // taskGroupId can't be specified in the template
+      task.taskId = taskId;
+      task.taskGroupId = groupId;
+
+      // set the schedulerId for all tasks, since it is not included in the template
       task.schedulerId = schedulerId;
 
       // Give all tasks within the task template the scopes allowed for the
