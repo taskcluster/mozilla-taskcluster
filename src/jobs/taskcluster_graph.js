@@ -115,13 +115,13 @@ export default class TaskclusterGraphJob extends Base {
     let groupId;
 
     try {
-      renderedTemplate = this.renderTemplate(project, template, templateVariables);
+      renderedTemplate = this.renderTemplate(project, template, templateVariables, scopes);
     } catch(e) {
       console.log(`Error interpreting .taskcluster.yml: ${e.message}`);
       // Even though we won't end up doing anything overly useful we still need
       // to convey some status to the end user ... The instantiate error should
       // be safe to pass as it is simply some yaml error.
-      renderedTemplate = this.renderTemplate(project, errorGraphTemplate, templateVariables);
+      renderedTemplate = this.renderTemplate(project, errorGraphTemplate, templateVariables, scopes);
       renderedTemplate.tasks[0].payload.env = renderedTemplate.tasks[0].payload.env || {};
       renderedTemplate.tasks[0].payload.env.ERROR_MSG = e.toString()
     }
@@ -135,13 +135,6 @@ export default class TaskclusterGraphJob extends Base {
       if (!groupId) {
         groupId = taskId;
       }
-
-      // Give all tasks within the task template the scopes allowed for the
-      // given project.  This makes the assumption that the template only contains
-      // one task, which is a decision task.
-      let taskDefinitionScopes = task.scopes || [];
-      let taskScopes = new Set(taskDefinitionScopes.concat(scopes));
-      task.scopes = Array.from(taskScopes);
 
       // taskGroupId can't be specified in the template
       task.taskGroupId = groupId;
@@ -163,7 +156,7 @@ export default class TaskclusterGraphJob extends Base {
     }
   }
 
-  renderTemplate(project, template, templateVariables) {
+  renderTemplate(project, template, templateVariables, scopes) {
     // determine the version number
     let version;
     try {
@@ -181,13 +174,13 @@ export default class TaskclusterGraphJob extends Base {
     }
 
     if (version === 0) {
-      return this.renderTemplateV0(project, template, templateVariables);
+      return this.renderTemplateV0(project, template, templateVariables, scopes);
     } else {
       throw new Error('Unrecognized .taskcluster.yml version');
     }
   }
 
-  renderTemplateV0(project, template, templateVariables) {
+  renderTemplateV0(project, template, templateVariables, scopes) {
     let schedulerId = `gecko-level-${templateVariables.level}`;
 
     let renderedTemplate = instantiate(template, templateVariables);
@@ -198,6 +191,13 @@ export default class TaskclusterGraphJob extends Base {
     // set the schedulerId for all tasks, since it is not included in the template
     for (let task of renderedTemplate.tasks) {
       task.schedulerId = schedulerId;
+
+      // Give all tasks within the task template the scopes allowed for the
+      // given project.  This makes the assumption that the template only contains
+      // one task, which is a decision task.
+      let taskDefinitionScopes = task.scopes || [];
+      let taskScopes = new Set(taskDefinitionScopes.concat(scopes));
+      task.scopes = Array.from(taskScopes);
     }
 
     return renderedTemplate;
