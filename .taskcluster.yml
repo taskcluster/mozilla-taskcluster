@@ -9,7 +9,7 @@ tasks:
         branches:
           - master
     scopes:
-      - auth:aws-s3:read-write:taskcluster-raw-docs/taskcluster-lib-api/
+      - auth:aws-s3:read-write:taskcluster-raw-docs/mozilla-taskcluster/
     payload:
       maxRunTime: 3600
       image: taskcluster/upload-project-docs:latest
@@ -28,7 +28,7 @@ tasks:
           export DEBUG=* DOCS_PROJECT=mozilla-taskcluster DOCS_TIER=integrations DOCS_FOLDER=docs DOCS_README=README.md &&
           upload-project-docs
     metadata:
-      name: "taskcluster-lib-api docs upload"
+      name: "mozilla-taskcluster docs upload"
       description: "Upload documentation for this project"
       owner: '{{ event.head.user.email }}'
       source: '{{ event.head.repo.url }}'
