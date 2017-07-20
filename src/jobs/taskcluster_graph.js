@@ -236,7 +236,7 @@ export default class TaskclusterGraphJob extends Base {
         pushlog_id: parseInt(templateVariables.pushlog_id, 10),
         pushdate: templateVariables.pushdate,
       },
-      repo: {
+      repository: {
         url: templateVariables.url,
         project: templateVariables.project,
         level: templateVariables.level,
