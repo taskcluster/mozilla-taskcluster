@@ -97,7 +97,6 @@ export default class TaskclusterGraphJob extends Base {
     console.log(`Fetching '.taskcluster.yml' url ${graphUrl} for '${repo.alias}' push id ${push.id}`);
     let graphText = await this.fetchGraph(graphUrl);
     templateVariables.source = graphUrl;
-    // Assume .taskcluster.yml has been fetched successfully
     let queue = new taskcluster.Queue({
       credentials: this.config.taskcluster.credentials,
       authorizedScopes: scopes
@@ -183,7 +182,7 @@ export default class TaskclusterGraphJob extends Base {
 
     let renderedTemplate = instantiate(template, templateVariables);
 
-    // version 0 has {tasks: [{task: .., taskId: ..}]}.  We don't need the tsakId.
+    // version 0 has {tasks: [{task: .., taskId: ..}]}.  We don't need the taskId.
     renderedTemplate.tasks = renderedTemplate.tasks.map(t => t.task);
 
     let groupId;
