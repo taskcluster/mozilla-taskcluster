@@ -24,10 +24,10 @@ variables are provided:
 
 ```js
 {
-  // tasksFor (string) - always 'hg-push' for mozilla-taskcluster (this is to
+  // tasks_for (string) - always 'hg-push' for mozilla-taskcluster (this is to
   // distinguish from other tools that might read the same template, such as
   // taskcluster-github)
-  tasksFor: 'hg-push',
+  tasks_for: 'hg-push',
 
   push: {
     // push.owner (string) - the hg user that made the push (not always an email)
@@ -61,10 +61,10 @@ variables are provided:
   // now (string) - the current time, useful for reproducible $fromNow invocations
   now: '..',
 
-  // asSlugId (function) - given a label, generate a slugid.  Multiple calls with the
+  // as_slugid (function) - given a label, generate a slugid.  Multiple calls with the
   // same label in the same push will generate the same slugiid, but different slugids
   // in different pushes.  Use this to generate taskIds, etc.
-  asSlugId: function(label) { .. },
+  as_slugid: function(label) { .. },
 }
 ```
 
@@ -86,6 +86,6 @@ Each repository has a corresponding set of scopes defined in the [mozilla-taskcl
 configuration](https://github.com/taskcluster/mozilla-taskcluster/blob/master/src/config/default.yml).
 
 Tasks generated from pushes to a repository are limited to the repository's
-scopes.  That is, the reopsitory's configured scopes must
+scopes.  That is, the repository's configured scopes must
 [satisfy](https://docs.taskcluster.net/manual/design/apis/hawk/scopes) the
 scopes of every task defined in `.taskcluster.yml`.

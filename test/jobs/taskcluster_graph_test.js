@@ -210,8 +210,8 @@ tasks:
         $let: {ownerEmail: {$if: '"@" in push.owner', then: '${push.owner}', else: '${push.owner}@noreply.mozilla.org'}},
         in: [
           {
-            taskId: {$eval: 'asSlugId("decision")'},
-            taskGroupId: {$eval: 'asSlugId("decision")'},
+            taskId: {$eval: 'as_slugid("decision")'},
+            taskGroupId: {$eval: 'as_slugid("decision")'},
             created: {$fromNow: ''},
             deadline: {$fromNow: '1 day'},
             expires: {$fromNow: '1 year'},

@@ -218,7 +218,7 @@ export default class TaskclusterGraphJob extends Base {
     // be the case once v0 is no longer supported
 
     let slugids = {};
-    let asSlugId = (label) => {
+    let as_slugid = (label) => {
       let rv;
       if (rv = slugids[label]) {
         return rv;
@@ -229,7 +229,7 @@ export default class TaskclusterGraphJob extends Base {
 
     // documented in docs/taskcluster-yml.md
     let context = {
-      tasksFor: 'hg-push',
+      tasks_for: 'hg-push',
       push: {
         owner: templateVariables.owner,
         revision: templateVariables.revision,
@@ -243,7 +243,7 @@ export default class TaskclusterGraphJob extends Base {
         level: templateVariables.level,
       },
       now: new Date().toJSON(),
-      asSlugId,
+      as_slugid,
     };
 
     return jsone(yaml.safeLoad(template), context);
