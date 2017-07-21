@@ -64,9 +64,47 @@ try:
   defaultUrl: "{{{host}}}{{{path}}}/raw-file/{{revision}}/testing/taskcluster/tasks/decision/branch.yml"
 
   # If for some reason the task yaml is invalid we still would like to create a
-  # task if for no other reason then to notify the user that this failed.
-  # XXX: This url is temporary until a real one hits mozilla-central.
-  errorTaskUrl: "https://gist.githubusercontent.com/gregarndt/8fc123be2408180c2f13/raw/4e46790b569f0f09b7a1c9b9867eeb6634c70123/error.yml"
+  # task if for no other reason than to notify the user that this failed.  Note that this
+  # is a YAML string embedded in YAML.
+  errorTask: |
+    version: 0
+    metadata:
+      name: 'Error Message Task'
+      description: |
+        There was an error creating the decision task.
+      owner: "{{owner}}"
+      source: "{{{source}}}"
+
+    tasks:
+      - taskId: '{{#as_slugid}}decision-task{{/as_slugid}}'
+        task:
+          created: '{{now}}'
+          deadline: '{{#from_now }}5 minutes{{/from_now}}'
+          metadata:
+            source: '{{{source}}}'
+            owner: '{{owner}}'
+            name: Error message...
+            description: |
+              Error creating decision task...
+
+          workerType: gecko-decision
+          provisionerId: aws-provisioner-v1
+          routes:
+             - "tc-treeherder-stage.{{project}}.{{revision_hash}}"
+             - "tc-treeherder.{{project}}.{{revision_hash}}"
+          payload:
+            image: 'quay.io/mozilla/decision:0.0.3'
+            maxRunTime: 500
+            command:
+              - /bin/bash
+              - -c
+              - >
+                echo "[taskcluster:error] ERROR Generating task graph (no tests/build will be created)";
+                echo "[taskcluster:error] $ERROR_MSG";
+                exit 1
+          extra:
+            treeherder:
+              symbol: D
 
   # Each project can have
   #  - url: url of the decision task YAML (defaults to defaultUrl)

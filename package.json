@@ -34,6 +34,7 @@
     "joi": "^5.1.0",
     "joi-to-json-schema": "^1.0.2",
     "js-yaml": "^3.2.5",
+    "json-e": "^2.0.5",
     "kue": "^0.8.11",
     "lodash": "^4.12.0",
     "lodash.merge": "^4.4.0",
@@ -55,12 +56,12 @@
     "uuid": "^2.0.1"
   },
   "devDependencies": {
+    "amqplib": "^0.3.1",
     "dockerode": "^2.0.7",
     "dockerode-promise": "0.0.1",
     "mkdirp": "^0.5.0",
     "mocha": "^2.0.1",
-    "wait-for-port": "0.0.1",
-    "amqplib": "^0.3.1"
+    "wait-for-port": "0.0.1"
   },
   "engines": {
     "node": "6.11.1"
