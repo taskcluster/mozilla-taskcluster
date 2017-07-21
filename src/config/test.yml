@@ -28,7 +28,6 @@ treeherder:
     secret: 'secret'
 
 try:
-  errorTaskUrl: "{{{host}}}{{{path}}}/raw-file/{{revision}}/error.yml"
   projects:
     try:
       scopes:

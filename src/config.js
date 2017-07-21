@@ -91,8 +91,8 @@ let schema = Joi.object().keys({
     defaultUrl: Joi.string().required().
       description('Default url (with mustache params) to use to fetch taskgraph'),
 
-    errorTaskUrl: Joi.string().required().
-      description('Location of the "error" task to use if we cannot parse the yaml'),
+    errorTask: Joi.object().required().
+      description('The "error" task to use if we cannot parse the yaml'),
 
     projects: Joi.object().pattern(/.*/, Joi.object({
       level: [Joi.number(), Joi.string()],
