@@ -47,7 +47,7 @@ variables are provided:
     pushdate: ..,
   },
 
-  repo: {
+  repository: {
     // repo.url (string) - repository root URL
     url: '..',
 
