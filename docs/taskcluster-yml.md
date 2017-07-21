@@ -48,7 +48,7 @@ variables are provided:
   },
 
   repository: {
-    // repo.url (string) - repository root URL
+    // repo.url (string) - repository root URL (begins with `https://`, ends with `/`)
     url: '..',
 
     // repo.project (string) - alias for this repository
