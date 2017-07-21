@@ -117,7 +117,7 @@ export default class TaskclusterGraphJob extends Base {
     try {
       renderedTemplate = this.renderTemplate(project, template, templateVariables, scopes);
     } catch(e) {
-      console.log(`Error interpreting .taskcluster.yml: ${e.message}`);
+      console.log(`Error interpreting .taskcluster.yml: ${e.message}\n${e.stack}`);
       // Even though we won't end up doing anything overly useful we still need
       // to convey some status to the end user ... The instantiate error should
       // be safe to pass as it is simply some yaml error.
