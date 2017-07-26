@@ -292,7 +292,4 @@ try:
     users/mozilla_hocat.ca/comm-taskcluster:
       level: 1
       scopes:
-        - "assume:moz-tree:level:1"
-        - "queue:scheduler-id:gecko-level-1"
-        - "assume:project:thunderbird:*"
-        - "assume:repo:hg.mozilla.org/users/mozilla_hocat.ca/comm-taskcluster"
+        - "assume:repo:hg.mozilla.org/users/mozilla_hocat.ca/comm-taskcluster:*"
