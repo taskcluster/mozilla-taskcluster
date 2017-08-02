@@ -19,7 +19,7 @@ function getProject(config, name, allowMissing = false) {
 
   let allowed = Object.keys(config.projects);
   throw new Error(`
-    Unknown project "${project}" allowed options:
+    Unknown project "${name}" allowed options:
       ${allowed.join(', ')}
   `);
 }
