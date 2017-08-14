@@ -17,12 +17,12 @@ suite('project scopes', function() {
   };
 
   test('#scopes', function() {
-    assert.equal(
+    assert.deepEqual(
       subject.scopes(config, 'defaults'),
       []
     );
 
-    assert.equal(
+    assert.deepEqual(
       subject.scopes(config, 'withScopes'),
       config.projects.withScopes.scopes
     );
