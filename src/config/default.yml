@@ -19,6 +19,7 @@ treeherderTaskcluster:
 treeherderProxy:
   port: 60025
 
+config: {}
 redis: {}
 pulse: {}
 

@@ -3,11 +3,9 @@ documentdb:
 
 treeherderActions:
   exchange: tests/treeherder-job-actions
+  connectionString: just-testing
 
-config:
-  files:
-    - test-treeherder-proxy.yml
-    - test/config.yml
+
 kue:
   prefix: test
   logFailedJobs: true
@@ -18,14 +16,19 @@ repositoryMonitor:
 
 treeherderTaskcluster:
   routePrefix: tc-treeherder-test
+  connectionString: just-testing
 
 commitPublisher:
   exchangePrefix: tests/
+  connectionString: just-testing
 
 treeherder:
   credentials:
-    clientId: 'my-client-id',
+    clientId: 'my-client-id'
     secret: 'secret'
+
+redis:
+  host: none
 
 try:
   projects:

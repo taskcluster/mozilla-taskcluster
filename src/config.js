@@ -36,7 +36,7 @@ let schema = Joi.object().keys({
     database: Joi.string().required().description('database name')
   }),
 
-  config: Joi.object().keys({
+  config: Joi.object().required().keys({
     documentkey: Joi.string().
       description('documentdb key of location to fetch additional configs'),
 
@@ -146,26 +146,31 @@ export default async function load(profile, options = {}) {
     path.join(__dirname, '..', 'src', 'config', `${profile}.yml`)
   );
 
-  let baseConfig = _.merge({}, defaultConfig, profileConfig);
+  let baseConfig = _.merge(
+      {},
+      defaultConfig,
+      profileConfig,
+      options.overrides || {});
 
   // extend the base config with additional parameters from files...
   let extraYamlConfigFiles = (baseConfig.config.files || []);
-  debug('Loading additional configs', extraYamlConfigFiles);
-  for (let yamlConfigFile of extraYamlConfigFiles) {
-    // Convert the path to be relative to the root of the project...
-    let yamlConfigPath = path.join(__dirname, '..', yamlConfigFile);
+  if (extraYamlConfigFiles.length) {
+    debug('Loading additional configs', extraYamlConfigFiles);
+    for (let yamlConfigFile of extraYamlConfigFiles) {
+      // Convert the path to be relative to the root of the project...
+      let yamlConfigPath = path.join(__dirname, '..', yamlConfigFile);
 
-    // Skip any config files which do not exist they are not required...
-    if (!await fs.exists(yamlConfigPath)) {
-      debug('skip config', yamlConfigPath);
-      continue;
+      // Skip any config files which do not exist they are not required...
+      if (!await fs.exists(yamlConfigPath)) {
+        debug('skip config', yamlConfigPath);
+        continue;
+      }
+
+      let config = await loadYaml(yamlConfigPath);
+      baseConfig = _.merge(baseConfig, config);
+      debug('added config', yamlConfigPath);
     }
-
-    let config = await loadYaml(yamlConfigPath);
-    baseConfig = _.merge(baseConfig, config);
-    debug('added config', yamlConfigPath);
   }
-
   // Load additional configuration from the database...
   if (baseConfig.config.documentkey) {
     let db = await createConnection(baseConfig.mongo.connectionString)
