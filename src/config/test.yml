@@ -32,15 +32,6 @@ redis:
 
 try:
   projects:
-    try:
-      scopes:
-        - queue:route:test*
-        - scheduler:create-task-graph
-        - queue:create-task:test/test
-        - queue:define-task:test/test
-        - queue:claim-task
-        - assume:worker-type:test/test
-        - assume:worker-id:test/test
-        - queue:report-task-completed
-        - queue:resolve-task
-        - queue:route:tc-treeherder-test.*
+    testbranch:
+      level: 7
+      scopes: ['xyz']

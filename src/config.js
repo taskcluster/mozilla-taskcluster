@@ -1,6 +1,6 @@
 import path from 'path';
 import fs from 'mz/fs';
-import denodeify from 'denodeify';
+import request from 'superagent-promise';
 import _ from 'lodash';
 import yaml from 'js-yaml';
 let Joi = require('joi');
@@ -41,7 +41,9 @@ let schema = Joi.object().keys({
       description('documentdb key of location to fetch additional configs'),
 
     files: Joi.array().includes(Joi.string()).
-      description('list of additional files to load / merge')
+      description('list of additional files to load / merge'),
+    productionBranchesUrl: Joi.string().
+      description('URL of production-branches.json describing Gecko branches')
   }),
 
   treeherderProxy: Joi.object().keys({
@@ -137,6 +139,46 @@ let schema = Joi.object().keys({
   })
 }).unknown(true);
 
+async function productionBranchesConfig(url) {
+  let res = await request.get(url);
+  let productionBranches = res.body;
+
+  let projects = {};
+  for (let alias of Object.keys(productionBranches)) {
+    let pb = productionBranches[alias];
+    if (!pb.features || !pb.features['taskcluster-push']) {
+      debug('skipping production branch ' + alias + ': taskcluster-push feature not enabled');
+      continue;
+    }
+    if (pb.repo_type !== 'hg') {
+      debug('skipping production branch ' + alias + ': not an hg repo');
+      continue;
+    }
+
+    let level = /^scm_level_([123])$/.exec(pb.access);
+    if (!level) {
+      debug('skipping production branch ' + alias + ': unrecognized access ' + pb.access);
+      continue;
+    }
+    level = parseInt(level[1], 10);
+
+    let repourl = /^https:\/\/(hg\.mozilla\.org\/.*)$/.exec(pb.repo);
+    if (!repourl) {
+      debug('skipping production branch ' + alias + ': unrecognizede repo URL ' + pb.repo);
+      continue;
+    }
+    let scope = 'assume:repo:' + repourl[1] + ':*';
+
+    projects[alias] = {
+      level,
+      scopes: [scope],
+    }
+  }
+
+  // return a config override, including the confusingly-named `try` toplevel key
+  return {try: {projects}}
+}
+
 export default async function load(profile, options = {}) {
   let defaultConfig = await loadYaml(
     path.join(__dirname, '..', 'src', 'config', 'default.yml')
@@ -178,6 +220,12 @@ export default async function load(profile, options = {}) {
     debug('fetching document', baseConfig.config.documentkey);
     let doc = await configCollection.findById(baseConfig.config.documentkey);
     baseConfig = _.merge(baseConfig, doc);
+  }
+
+  // Load additional configuration from production-branches.json
+  if (baseConfig.config.productionBranchesUrl) {
+    let pbConfig = await productionBranchesConfig(baseConfig.config.productionBranchesUrl);
+    baseConfig = _.merge(baseConfig, pbConfig);
   }
 
   let result = Joi.validate(
