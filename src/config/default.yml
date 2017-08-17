@@ -19,6 +19,7 @@ treeherderTaskcluster:
 treeherderProxy:
   port: 60025
 
+config: {}
 redis: {}
 pulse: {}
 
@@ -111,124 +112,12 @@ try:
   #  - scopes: scopes for the task graph
   #  - level: SCM level (defaults to 1) passed to the decision task
   projects:
-    # Try is unique in that it parses the commit message
-    try: # Note the keys match the "alias" which treeherder defines.
-      url: "{{{host}}}{{{path}}}/raw-file/{{revision}}/testing/taskcluster/tasks/decision/try.yml"
-      level: 1
-      scopes:
-        - "assume:repo:hg.mozilla.org/try:*"
-
-    # we don't create task graphs for gaia (gaia-taskcluster does that), but we do handle
-    # retriggers for gaia.  For that, we use the gaia role (which is not a Mozilla tree)
-    gaia:
-      scopes:
-        - "assume:repo:github.com/mozilla-b2g/gaia:*"
-
-    gaia-master:
-      scopes:
-        - "assume:repo:github.com/mozilla-b2g/gaia:*"
-
-    # same story as gaia
+    # Note that most of this data is loaded from the productionBranchesUrl.
+    # These are non-gecko, legacy projects that are not included there.
     bmo-master:
       scopes:
         - "assume:repo:github.com/mozilla/webtools-bmo-bugzilla:*"
 
-    # the remainder use the defaults, and get their scopes from the corresponding role
-    mozilla-b2g34_v2_1s:
-      level: 3
-      scopes:
-        - "assume:repo:hg.mozilla.org/releases/mozilla-b2g34_v2_1s:*"
-    mozilla-b2g44_v2_5:
-      level: 3
-      scopes:
-        - "assume:repo:hg.mozilla.org/releases/mozilla-b2g44_v2_5:*"
-    b2g-ota:
-      scopes:
-        - "assume:repo:hg.mozilla.org/releases/b2g-ota:*"
-    mozilla-aurora:
-      level: 3
-      scopes:
-        - "assume:repo:hg.mozilla.org/releases/mozilla-aurora:*"
-    mozilla-inbound:
-      level: 3
-      scopes:
-        - "assume:repo:hg.mozilla.org/integration/mozilla-inbound:*"
-    autoland:
-      level: 3
-      scopes:
-        - "assume:repo:hg.mozilla.org/integration/autoland:*"
-    mozilla-central:
-      level: 3
-      scopes:
-        - "assume:repo:hg.mozilla.org/mozilla-central:*"
-    cedar:
-      level: 2
-      scopes:
-        - "assume:repo:hg.mozilla.org/projects/cedar:*"
-    cypress:
-      level: 2
-      scopes:
-        - "assume:repo:hg.mozilla.org/projects/cypress:*"
-    alder:
-      level: 2
-      scopes:
-        - "assume:repo:hg.mozilla.org/projects/alder:*"
-    pine:
-      level: 2
-      scopes:
-        - "assume:repo:hg.mozilla.org/projects/pine:*"
-    ash:
-      level: 2
-      scopes:
-        - "assume:repo:hg.mozilla.org/projects/ash:*"
-    date:
-      level: 3
-      scopes:
-        - "assume:repo:hg.mozilla.org/projects/date:*"
-    jamun:
-      level: 3
-      scopes:
-        - "assume:repo:hg.mozilla.org/projects/jamun:*"
-    oak:
-      level: 2
-      scopes:
-        - "assume:repo:hg.mozilla.org/projects/oak:*"
-    elm:
-      level: 2
-      scopes:
-        - "assume:repo:hg.mozilla.org/projects/elm:*"
-    larch:
-      level: 2
-      scopes:
-        - "assume:repo:hg.mozilla.org/projects/larch:*"
-    graphics:
-      level: 2
-      scopes:
-        - "assume:repo:hg.mozilla.org/projects/graphics:*"
-    holly:
-      level: 2
-      scopes:
-        - "assume:repo:hg.mozilla.org/projects/holly:*"
-    mozilla-beta:
-      level: 3
-      scopes:
-        - "assume:repo:hg.mozilla.org/releases/mozilla-beta:*"
-    mozilla-release:
-      level: 3
-      scopes:
-        - "assume:repo:hg.mozilla.org/releases/mozilla-release:*"
-    mozilla-esr52:
-      level: 3
-      scopes:
-        - "assume:repo:hg.mozilla.org/releases/mozilla-esr52:*"
-    stylo:
-      level: 2
-      scopes:
-        - "assume:repo:hg.mozilla.org/incubator/stylo:*"
-    stylo-try:
-      level: 1
-      scopes:
-        - "assume:repo:hg.mozilla.org/incubator/stylo-try:*"
     nss:
       url: "{{{host}}}{{{path}}}/raw-file/{{revision}}/automation/taskcluster/decision_task.yml"
       level: 'nss'

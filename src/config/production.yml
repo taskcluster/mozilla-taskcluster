@@ -3,6 +3,8 @@ documentdb:
 
 config:
   documentkey: production
+  # always load the latest production-branches.json at startup
+  productionBranchesUrl: https://hg.mozilla.org/build/tools/raw-file/default/buildfarm/maintenance/production-branches.json
   files:
     - production-treeherder-proxy.yml
 
