@@ -199,41 +199,15 @@ export default class RetriggerJob extends Base {
     let scopes = projectConfig.scopes(this.config.try, project, false);
     // retriggers need to be able to notify anyone (bug 1308543)
     scopes.push('queue:route:notify.*');
-    let scheduler = new taskcluster.Scheduler({
-      credentials: this.config.taskcluster.credentials,
-      // include scheduler:create-task-graph so we can call create-task-graph,
-      // but not include it in graph.scopes
-      authorizedScopes: scopes.concat(['scheduler:create-task-graph'])
-    });
-
-    let taskGraphDetails;
-    try {
-      // Get the status of the task graph if it exists.  If an error is thrown,
-      // it is assuemd to be a task group.
-      taskGraphDetails = await scheduler.inspect(taskGraphId);
-    } catch(e) {
-      console.log(
-        `Could not find graph information for ${taskGraphId} while retriggering. ` +
-        `Assuming to be a task group instead.`
-      );
-    }
 
     let newGraphId;
     try {
-      if (taskGraphDetails) {
-        newGraphId = await this.duplicateTaskInTaskGraph(project,
-                                                         scheduler,
-                                                         taskGraphId,
-                                                         taskId,
-                                                         taskGraphDetails,
-                                                         scopes);
-      } else {
-        let queue = new taskcluster.Queue({
-          credentials: this.config.taskcluster.credentials,
-          authorizedScopes: scopes
-        });
-        newGraphId = await this.duplicateTaskInTaskGroup(project, queue, taskId)
-      }
+      let queue = new taskcluster.Queue({
+        credentials: this.config.taskcluster.credentials,
+        authorizedScopes: scopes
+      });
+
+      newGraphId = await this.duplicateTaskInTaskGroup(project, queue, taskId)
     } catch(e) {
       console.log(`Error posting retrigger job for '${project}', ${JSON.stringify(e, null, 2)}`);
       await this.postRetriggerFailureJob(project, revision, revisionHash, task, e);
@@ -254,42 +228,6 @@ export default class RetriggerJob extends Base {
     );
     console.log(`Finished handling retrigger event ${eventId} for ` +
                 `task ${taskId} in project '${project}' (${requester})`);
-  }
-
-  async duplicateTaskInTaskGraph(project, scheduler, graphId, taskId, taskGraphDetails, scopes) {
-    let graphDuplicator = new GraphDuplicator(scheduler);
-    // Duplicate the graph tasks...
-    let taskNodes = {};
-    let tasks = await graphDuplicator.duplicateGraphNode(
-      taskNodes,
-      graphId,
-      taskId,
-      true // Always duplicate entire graph
-    );
-
-    // Build a map of old task ids to new task ids...
-    let taskMap = Object.keys(taskNodes).reduce((result, value) => {
-      result[value] = taskNodes[value].taskId;
-      return result;
-    }, {});
-
-    // Replace all instances of the old task id's with the new ones...
-    let transformedTasks = recursiveUpdateTaskIds(tasks, taskMap);
-
-    let newGraphId = slugid.nice();
-    let graph = {
-      scopes: scopes,
-      tags: taskGraphDetails.tags,
-      metadata: taskGraphDetails.metadata,
-      tasks: transformedTasks
-    };
-
-    console.log(
-        `Posting retrigger job for '${project}' with task graph id ${newGraphId}`
-    );
-
-    await scheduler.createTaskGraph(newGraphId, graph);
-    return newGraphId;
   }
 
   async duplicateTaskInTaskGroup(project, queue, taskId) {
