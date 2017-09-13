@@ -112,10 +112,6 @@ suiteSetup(async function() {
     credentials: this.config.taskcluster.credentials
   });
 
-  this.scheduler = new taskcluster.Scheduler({
-    credentials: this.config.taskcluster.credentials
-  });
-
   let commitPublisher = await publisher(this.config.commitPublisher);
   await commitPublisher.assertExchanges(
     PushExchange,
