@@ -167,7 +167,8 @@ async function productionBranchesConfig(url) {
       debug('skipping production branch ' + alias + ': unrecognizede repo URL ' + pb.repo);
       continue;
     }
-    let scope = 'assume:repo:' + repourl[1] + ':*';
+    // use the scope for the default branch; we do not use in-repo branches anyway
+    let scope = 'assume:repo:' + repourl[1] + ':branch:default';
 
     projects[alias] = {
       level,
