@@ -245,7 +245,19 @@ export default class TaskclusterGraphJob extends Base {
       as_slugid,
     };
 
-    return jsone(yaml.safeLoad(template), context);
+    let result = jsone(yaml.safeLoad(template), context);
+
+    // https://bugzilla.mozilla.org/show_bug.cgi?id=1437562
+    // change `repo:...:*` to `repo:...:branch:default` for old revisions
+    // before this change landed in-tree.
+    result.tasks[0].scopes = result.tasks[0].scopes.map(scope => {
+      if (scope.startsWith('assume:repo:hg.mozilla.org/') && scope.endsWith(':*')) {
+        return scope.replace(/:\*$/, ':branch:default')
+      }
+      return scope;
+    });
+
+    return result;
   }
 
   /**
