@@ -19,9 +19,9 @@ suite('config', function() {
     });
 
     assert.equal(config.try.projects['try'].level, 1);
-    assert.equal(config.try.projects['try'].scopes[0], 'assume:repo:hg.mozilla.org/try:*');
+    assert.equal(config.try.projects['try'].scopes[0], 'assume:repo:hg.mozilla.org/try:branch:default');
     assert.equal(config.try.projects['mozilla-beta'].level, 3);
-    assert.equal(config.try.projects['mozilla-beta'].scopes[0], 'assume:repo:hg.mozilla.org/releases/mozilla-beta:*');
+    assert.equal(config.try.projects['mozilla-beta'].scopes[0], 'assume:repo:hg.mozilla.org/releases/mozilla-beta:branch:default');
     assert.equal(config.try.projects['testbranch'].level, 7);
     assert.equal(config.try.projects['testbranch'].scopes[0], 'xyz');
   });
