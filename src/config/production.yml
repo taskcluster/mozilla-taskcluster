@@ -4,7 +4,7 @@ documentdb:
 config:
   documentkey: production
   # always load the latest production-branches.json at startup
-  productionBranchesUrl: https://hg.mozilla.org/build/tools/raw-file/default/buildfarm/maintenance/production-branches.json
+  projectsYmlUrl: https://hg.mozilla.org/build/ci-configuration/raw-file/tip/projects.yml
   files:
     - production-treeherder-proxy.yml
 
