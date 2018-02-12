@@ -42,8 +42,8 @@ let schema = Joi.object().keys({
 
     files: Joi.array().includes(Joi.string()).
       description('list of additional files to load / merge'),
-    productionBranchesUrl: Joi.string().
-      description('URL of production-branches.json describing Gecko branches')
+    projectsYmlUrl: Joi.string().
+      description('URL of hg.mozilla.org/build/ci-configuration/projects.yml describing Gecko branches')
   }),
 
   treeherderProxy: Joi.object().keys({
@@ -139,13 +139,13 @@ let schema = Joi.object().keys({
   })
 }).unknown(true);
 
-async function productionBranchesConfig(url) {
+async function projectsConfig(url) {
   let res = await request.get(url);
-  let productionBranches = res.body;
+  let projectsYml = yaml.safeLoad(res.text);
 
   let projects = {};
-  for (let alias of Object.keys(productionBranches)) {
-    let pb = productionBranches[alias];
+  for (let alias of Object.keys(projectsYml)) {
+    let pb = projectsYml[alias];
     if (!pb.features || !pb.features['taskcluster-push']) {
       debug('skipping production branch ' + alias + ': taskcluster-push feature not enabled');
       continue;
@@ -164,7 +164,7 @@ async function productionBranchesConfig(url) {
 
     let repourl = /^https:\/\/(hg\.mozilla\.org\/.*)$/.exec(pb.repo);
     if (!repourl) {
-      debug('skipping production branch ' + alias + ': unrecognizede repo URL ' + pb.repo);
+      debug('skipping production branch ' + alias + ': unrecognized repo URL ' + pb.repo);
       continue;
     }
     // use the scope for the default branch; we do not use in-repo branches anyway
@@ -224,8 +224,8 @@ export default async function load(profile, options = {}) {
   }
 
   // Load additional configuration from production-branches.json
-  if (baseConfig.config.productionBranchesUrl) {
-    let pbConfig = await productionBranchesConfig(baseConfig.config.productionBranchesUrl);
+  if (baseConfig.config.projectsYmlUrl) {
+    let pbConfig = await projectsConfig(baseConfig.config.projectsYmlUrl);
     baseConfig = _.merge(baseConfig, pbConfig);
   }
 

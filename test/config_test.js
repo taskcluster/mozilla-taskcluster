@@ -7,13 +7,13 @@ suite('config', function() {
     await load('test');
   });
 
-  test('load test config with production-branches.yml', async function() {
+  test('load test config with projects.yml', async function() {
     // this uses a fixed revision and expects specific values.  If the format changes,
     // this will need to be updated to a new revision.
     let config = await load('test', {
       overrides: {
         config: {
-         productionBranchesUrl: 'https://hg.mozilla.org/build/tools/raw-file/63085f07948c/buildfarm/maintenance/production-branches.json',
+          projectsYmlUrl: 'https://hg.mozilla.org/build/ci-configuration/raw-file/94ebf429be75/projects.yml',
         },
       }
     });
