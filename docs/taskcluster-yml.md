@@ -82,7 +82,7 @@ service will remove and pass to `Queue.createTask` directly.
 
 ## Scopes
 
-Each repository has a corresponding set of scopes defined in the [mozilla-taskclutser
+Each repository has a corresponding set of scopes defined in the [mozilla-taskcluster
 configuration](https://github.com/taskcluster/mozilla-taskcluster/blob/master/src/config/default.yml).
 
 Tasks generated from pushes to a repository are limited to the repository's
