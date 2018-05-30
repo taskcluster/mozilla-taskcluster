@@ -104,10 +104,6 @@ let schema = Joi.object().keys({
     }))
   }),
 
-  redis: Joi.object().keys({
-    host: Joi.string().required()
-  }).unknown(true),
-
   kue: Joi.object().keys({
     purgeCompleted: Joi.boolean(),
     logFailedJobs: Joi.boolean(),
