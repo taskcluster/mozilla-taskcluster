@@ -27,9 +27,6 @@ treeherder:
     clientId: 'my-client-id'
     secret: 'secret'
 
-redis:
-  host: none
-
 try:
   projects:
     testbranch:
