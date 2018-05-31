@@ -1,3 +1,4 @@
+import url from 'url';
 import _ from 'lodash';
 import taskcluster from 'taskcluster-client';
 import kue from 'kue';
@@ -25,9 +26,18 @@ class Handler {
     this.queue = new taskcluster.Queue(config.taskcluster);
     this.prefix = config.treeherderTaskcluster.routePrefix;
 
+    let redisUrl = url.parse(process.env.REDIS_URL);
+    let password = redisUrl.auth.split(':')[1];
+
     this.jobs = kue.createQueue({
       prefix: config.kue.prefix,
-      redis: config.redis
+      redis: {
+        port: parseInt(redisUrl.port, 10),
+        host: redisUrl.hostname,
+        options: {
+          auth_pass: password, // I'm not sure why, but this is the format from mongo
+        },
+      },
     });
 
     listener.on('message', (message) => {
