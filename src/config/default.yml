@@ -117,6 +117,16 @@ try:
       scopes:
         - "assume:repo:github.com/mozilla/webtools-bmo-bugzilla:*"
 
+    ci-admin:
+      level: 3
+      scopes:
+        - "assume:repo:hg.mozilla.org/build/ci-admin:*"
+
+    ci-configuration:
+      level: 3
+      scopes:
+        - "assume:repo:hg.mozilla.org/build/ci-configuration:*"
+
     nss:
       url: "{{{host}}}{{{path}}}/raw-file/{{revision}}/automation/taskcluster/decision_task.yml"
       level: 'nss'
