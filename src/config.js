@@ -151,12 +151,16 @@ async function projectsConfig(url) {
       continue;
     }
 
-    let level = /^scm_level_([123])$/.exec(pb.access);
+    let level = /^scm_(versioncontrol|level_([123]))$/.exec(pb.access);
     if (!level) {
       debug('skipping production branch ' + alias + ': unrecognized access ' + pb.access);
       continue;
     }
-    level = parseInt(level[1], 10);
+    if (level[2]) {
+      level = parseInt(level[2], 10);
+    } else {
+      level = level[1];
+    }
 
     let repourl = /^https:\/\/(hg\.mozilla\.org\/.*)$/.exec(pb.repo);
     if (!repourl) {

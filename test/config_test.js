@@ -13,7 +13,7 @@ suite('config', function() {
     let config = await load('test', {
       overrides: {
         config: {
-          projectsYmlUrl: 'https://hg.mozilla.org/build/ci-configuration/raw-file/94ebf429be75/projects.yml',
+          projectsYmlUrl: 'https://hg.mozilla.org/build/ci-configuration/raw-file/e18be5161866/projects.yml',
         },
       }
     });
@@ -24,5 +24,6 @@ suite('config', function() {
     assert.equal(config.try.projects['mozilla-beta'].scopes[0], 'assume:repo:hg.mozilla.org/releases/mozilla-beta:branch:default');
     assert.equal(config.try.projects['testbranch'].level, 7);
     assert.equal(config.try.projects['testbranch'].scopes[0], 'xyz');
+    assert.equal(config.try.projects['version-control-tools'].level, 'versioncontrol');
   });
 });
