@@ -1,5 +1,5 @@
 import instantiate from '../try/instantiate'
-import request from 'superagent-promise';
+import request from 'superagent';
 import slugid from 'slugid';
 import taskcluster from 'taskcluster-client';
 import fs from 'mz/fs';
@@ -270,8 +270,7 @@ export default class TaskclusterGraphJob extends Base {
       return await retry(opts, async () => {
         let res = await request.get(url).
           timeout(GRAPH_REQ_TIMEOUT).
-          buffer(true).
-          end();
+          buffer(true);
 
         if (res.error) throw res.error;
         return res.text;

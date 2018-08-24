@@ -1,6 +1,6 @@
 import path from 'path';
 import fs from 'mz/fs';
-import request from 'superagent-promise';
+import request from 'superagent';
 import _ from 'lodash';
 import yaml from 'js-yaml';
 let Joi = require('joi');

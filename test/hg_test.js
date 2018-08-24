@@ -1,7 +1,7 @@
 import assert from 'assert';
 import createHg from './hg';
 import fs from 'mz/fs';
-import request from 'superagent-promise';
+import request from 'superagent';
 
 suite('hg', function() {
 
@@ -43,7 +43,7 @@ suite('hg', function() {
       }
 
       let url = `${hg.url}/json-pushes/`;
-      let res = await request.get(url).end();
+      let res = await request.get(url);
       let body = res.body;
 
       assert.equal(Object.keys(body).length, 3, 'correctly pushes 3 times');
