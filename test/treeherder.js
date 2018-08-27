@@ -1,5 +1,5 @@
 import urlJoin from 'urljoin';
-import request from 'superagent-promise';
+import request from 'superagent';
 import waitFor from './wait_for';
 import slugid from 'slugid';
 
@@ -17,8 +17,7 @@ export default class {
         revision_hash: revisionHash,
         with_jobs: 'true',
         debug: 'true'
-      }).
-      end();
+      });
 
     if (res.status === 404) return null;
     if (res.error) throw res.error;
@@ -33,8 +32,7 @@ export default class {
         count: 2000,
         result_set_id: resultsetId,
         debug: 'true'
-      }).
-      end();
+      });
 
     if (res.status === 404) return null;
     if (res.error) throw res.error;

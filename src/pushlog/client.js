@@ -1,4 +1,4 @@
-import request from 'superagent-promise';
+import request from 'superagent';
 import urljoin from 'urljoin';
 import { Agent as HttpsAgent } from 'https';
 import { Agent as HttpAgent } from 'http';
@@ -95,7 +95,7 @@ export default class PushlogClient {
                 agent(this.selectAgent(url)).
                 query(query);
 
-    let res = await req.end();
+    let res = await req;
     if (res.error) throw res.error;
     return this.formatBody(res.body);
   }
@@ -118,7 +118,7 @@ export default class PushlogClient {
                 agent(this.selectAgent(url)).
                 query(query);
 
-    let res = await req.end();
+    let res = await req;
     if (res.error) throw res.error;
     return this.formatBody(res.body);
   }
