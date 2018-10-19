@@ -116,22 +116,3 @@ try:
     bmo-master:
       scopes:
         - "assume:repo:github.com/mozilla/webtools-bmo-bugzilla:*"
-
-    nss:
-      url: "{{{host}}}{{{path}}}/raw-file/{{revision}}/automation/taskcluster/decision_task.yml"
-      level: 'nss'
-      scopes:
-        - "assume:repo:hg.mozilla.org/projects/nss:*"
-        
-    nss-try:
-      url: "{{{host}}}{{{path}}}/raw-file/{{revision}}/automation/taskcluster/decision_task.yml"
-      level: 'nss-try'
-      scopes:
-        - "assume:repo:hg.mozilla.org/projects/nss-try:*"
-
-    # This has a repository entry in the DB that was created manually. When this is removed,
-    # the database entry should be removed as well.
-    users/mozilla_hocat.ca/comm-taskcluster:
-      level: 1
-      scopes:
-        - "assume:repo:hg.mozilla.org/users/mozilla_hocat.ca/comm-taskcluster:*"
