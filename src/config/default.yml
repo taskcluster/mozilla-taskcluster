@@ -128,10 +128,3 @@ try:
       level: 'nss-try'
       scopes:
         - "assume:repo:hg.mozilla.org/projects/nss-try:*"
-
-    # This has a repository entry in the DB that was created manually. When this is removed,
-    # the database entry should be removed as well.
-    users/mozilla_hocat.ca/comm-taskcluster:
-      level: 1
-      scopes:
-        - "assume:repo:hg.mozilla.org/users/mozilla_hocat.ca/comm-taskcluster:*"
