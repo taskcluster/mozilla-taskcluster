@@ -151,7 +151,7 @@ async function projectsConfig(url) {
       continue;
     }
 
-    let level = /^scm_(versioncontrol|level_([123]))$/.exec(pb.access);
+    let level = /^scm_(nss|versioncontrol|level_([123]))$/.exec(pb.access);
     if (!level) {
       debug('skipping production branch ' + alias + ': unrecognized access ' + pb.access);
       continue;
