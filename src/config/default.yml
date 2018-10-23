@@ -79,24 +79,23 @@ try:
       - taskId: '{{#as_slugid}}decision-task{{/as_slugid}}'
         task:
           created: '{{now}}'
-          deadline: '{{#from_now }}5 minutes{{/from_now}}'
+          deadline: '{{#from_now }}30 minutes{{/from_now}}'
           metadata:
             source: '{{{source}}}'
             owner: '{{owner}}'
-            name: Error message...
-            description: |
-              Error creating decision task...
+            name: Error Creating Decision Task
+            description: Error creating decision task
 
-          workerType: gecko-decision
+          workerType: "gecko-decision"
           provisionerId: aws-provisioner-v1
           routes:
-             - "tc-treeherder-stage.{{project}}.{{revision_hash}}"
-             - "tc-treeherder.{{project}}.{{revision_hash}}"
+             - "tc-treeherder.v2.{{project}}.{{revision}}.{{pushlog_id}}"
+             - "notify.email.{{owner}}.on-failed"
           payload:
-            image: 'quay.io/mozilla/decision:0.0.3'
+            image: 'alpine'
             maxRunTime: 500
             command:
-              - /bin/bash
+              - sh
               - -c
               - >
                 echo "[taskcluster:error] ERROR Generating task graph (no tests/build will be created)";
