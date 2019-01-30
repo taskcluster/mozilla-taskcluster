@@ -2,7 +2,6 @@ import formatResultset from '../treeherder/resultset';
 import denodeify from 'denodeify'
 
 import PushExchange from '../exchanges/push';
-import Treeherder from 'mozilla-treeherder/project';
 import Base from './base';
 
 let Joi = require('joi');
@@ -35,11 +34,6 @@ export default class TreeherderResultsetJob extends Base {
     let { repo, pushref } = job.data;
     let push = await this.runtime.pushlog.getOne(repo.url, pushref.id);
 
-    let treeherderProject = new Treeherder(repo.alias, {
-      clientId: this.config.treeherder.credentials.clientId,
-      secret: this.config.treeherder.credentials.secret,
-      baseUrl: this.config.treeherder.apiUrl
-    });
 
     let resultset = formatResultset(repo.alias, push);
     console.log(`Created result set for project '${repo.alias}'`);
