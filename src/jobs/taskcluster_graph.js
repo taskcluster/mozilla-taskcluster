@@ -243,6 +243,7 @@ export default class TaskclusterGraphJob extends Base {
       },
       now: new Date().toJSON(),
       as_slugid,
+      ownTaskId: as_slugid('decision'),
     };
 
     let result = jsone(yaml.safeLoad(template), context);
