@@ -65,6 +65,10 @@ variables are provided:
   // same label in the same push will generate the same slugiid, but different slugids
   // in different pushes.  Use this to generate taskIds, etc.
   as_slugid: function(label) { .. },
+
+  // a fixed taskId for a decision task, equivalent to as_slugid('decision'); this is
+  // intended to make these inputs compatible with the hooks service.
+  ownTaskId: '..',
 }
 ```
 
