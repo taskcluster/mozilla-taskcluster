@@ -13,7 +13,7 @@ suite('config', function() {
     let config = await load('test', {
       overrides: {
         config: {
-          projectsYmlUrl: 'https://hg.mozilla.org/build/ci-configuration/raw-file/e18be5161866/projects.yml',
+          projectsYmlUrl: 'https://hg.mozilla.org/ci/ci-configuration/raw-file/e18be5161866/projects.yml',
         },
       }
     });
