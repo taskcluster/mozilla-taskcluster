@@ -43,7 +43,7 @@ let schema = Joi.object().keys({
     files: Joi.array().includes(Joi.string()).
       description('list of additional files to load / merge'),
     projectsYmlUrl: Joi.string().
-      description('URL of hg.mozilla.org/build/ci-configuration/projects.yml describing Gecko branches')
+      description('URL of hg.mozilla.org/ci/ci-configuration/projects.yml describing Gecko branches')
   }),
 
   treeherderProxy: Joi.object().keys({

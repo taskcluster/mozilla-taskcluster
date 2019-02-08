@@ -8,7 +8,7 @@ treeherderActions:
 config:
   documentkey: stage
   # always load the latest production-branches.json at startup
-  projectsYmlUrl: https://hg.mozilla.org/build/ci-configuration/raw-file/tip/projects.yml
+  projectsYmlUrl: https://hg.mozilla.org/ci/ci-configuration/raw-file/tip/projects.yml
   files:
     - stage-treeherder-proxy.yml
 
