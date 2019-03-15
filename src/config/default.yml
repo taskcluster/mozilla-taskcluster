@@ -109,9 +109,4 @@ try:
   #  - url: url of the decision task YAML (defaults to defaultUrl)
   #  - scopes: scopes for the task graph
   #  - level: SCM level (defaults to 1) passed to the decision task
-  projects:
-    # Note that most of this data is loaded from the projectsYmlUrl.
-    # These are non-gecko, legacy projects that are not included there.
-    bmo-master:
-      scopes:
-        - "assume:repo:github.com/mozilla/webtools-bmo-bugzilla:*"
+  projects: []

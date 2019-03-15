@@ -142,8 +142,8 @@ async function projectsConfig(url) {
   let projects = {};
   for (let alias of Object.keys(projectsYml)) {
     let pb = projectsYml[alias];
-    if (!pb.features || !pb.features['taskcluster-push']) {
-      debug('skipping production branch ' + alias + ': taskcluster-push feature not enabled');
+    if (!pb.features || !pb.features['taskcluster-push-via-mozilla-taskcluster']) {
+      debug('skipping production branch ' + alias + ': taskcluster-push-via-mozilla-taskcluster feature not enabled');
       continue;
     }
     if (pb.repo_type !== 'hg') {
